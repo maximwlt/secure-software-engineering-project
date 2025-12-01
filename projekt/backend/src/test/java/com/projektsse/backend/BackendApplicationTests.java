@@ -1,10 +1,10 @@
-package com.example.sseprojekt;
+package com.projektsse.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SseProjektApplicationTests {
+class BackendApplicationTests {
 
     @Test
     void contextLoads() {

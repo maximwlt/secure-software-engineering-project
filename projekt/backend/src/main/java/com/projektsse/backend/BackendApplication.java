@@ -1,13 +1,13 @@
-package com.example.sseprojekt;
+package com.projektsse.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SseProjektApplication {
+public class BackendApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SseProjektApplication.class, args);
+        SpringApplication.run(BackendApplication.class, args);
     }
 
 }
