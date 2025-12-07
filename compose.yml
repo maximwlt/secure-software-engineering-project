@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres
+    image: postgres:18
     env_file:
       - path: projekt/backend/.env
         required: true
