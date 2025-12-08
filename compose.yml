@@ -18,3 +18,10 @@ services:
     links:
       - "db:database"
     restart: on-failure
+  frontend:
+    build: ./projekt/frontend
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "5000:5000"
