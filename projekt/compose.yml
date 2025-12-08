@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:18
     env_file:
-      - path: projekt/backend/.env
+      - path: backend/.env
         required: true
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
@@ -11,7 +11,7 @@ services:
       start_period: 30s
       timeout: 10s
   backend:
-    build: ./projekt/backend
+    build: backend
     depends_on:
       db:
         condition: service_healthy
@@ -19,7 +19,7 @@ services:
       - "db:database"
     restart: on-failure
   frontend:
-    build: ./projekt/frontend
+    build: frontend
     depends_on:
       backend:
         condition: service_started
