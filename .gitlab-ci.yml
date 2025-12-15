@@ -1,0 +1,9 @@
+stages:
+  - build
+build-job:
+  stage: build
+  image: docker:20.10
+  services:
+    - docker:20.10-dind
+  script:
+    - docker compose create
