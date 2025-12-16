@@ -6,4 +6,5 @@ build-job:
   services:
     - docker:24.0.5-dind
   script:
+    - cd projekt
     - docker compose create
