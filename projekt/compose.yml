@@ -2,8 +2,6 @@ services:
   db:
     image: postgres:18
     env_file: "backend/.env"
-#      - path: "backend/.env"
-#        required: true
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
@@ -11,6 +9,7 @@ services:
       start_period: 30s
       timeout: 10s
   backend:
+    image: "${CI_REGISTRY_IMAGE}/backend:${CI_COMMIT_SHA}"
     build: backend
     depends_on:
       db:
@@ -19,6 +18,7 @@ services:
       - "db:database"
     restart: on-failure
   frontend:
+    image: "${CI_REGISTRY_IMAGE}/frontend:${CI_COMMIT_SHA}"
     build: frontend
     depends_on:
       backend:
