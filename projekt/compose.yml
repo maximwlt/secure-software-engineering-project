@@ -1,9 +1,9 @@
 services:
   db:
     image: postgres:18
-    env_file:
-      - path: "backend/.env"
-        required: true
+    env_file: "backend/.env"
+#      - path: "backend/.env"
+#        required: true
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
