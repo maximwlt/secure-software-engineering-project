@@ -2,8 +2,7 @@ services:
   db:
     image: postgres:18
     env_file:
-      - path: .env
-        required: false
+      - .env
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
@@ -14,8 +13,7 @@ services:
     image: "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}"
     build: backend
     env_file:
-      - path: .env
-        required: false
+      - .env
     depends_on:
       db:
         condition: service_healthy
