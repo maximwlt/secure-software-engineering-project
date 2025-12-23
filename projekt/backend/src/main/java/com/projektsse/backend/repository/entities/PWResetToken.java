@@ -1,7 +1,6 @@
 package com.projektsse.backend.repository.entities;
 
 import jakarta.persistence.*;
-import jdk.jfr.Timestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,7 +14,6 @@ public class PWResetToken {
 
 
     private String token;
-
 
     private LocalDateTime expires_at;
 

@@ -1,9 +1,11 @@
 
 
-INSERT INTO users (id, username, email, password_hash, created_at, updated_at) VALUES
-                                                                         ('ea952ebe-c38b-43cf-af1a-0b2a70402c34', 'John', 'john.don@gmail.com', '$argon2id$v=19$m=16,t=2,p=1$RFpyc0N1MVprZDZVQ0d4Tw$UqgALGLHr60VgINlAm63aQ', NOW(), NOW()),
-                                                                         ('413972c5-d918-49a2-a425-7fa5bb68ff3b', 'Player123', 'ben.schmidt@gmx.de', '$argon2id$v=19$m=16,t=2,p=1$Wk1TMFZtV1ZVd1pRVG9uZw$eXhY5Vn3K0lXU1Z3b3JqYQ', NOW(), NOW()),
-                                                                         ('7f4e2d1a-8c3b-4f5e-9f6a-2b3c4d5e6f70', 'MaxD3', 'lisa.bach@yahoo.de', '$argon2id$v=19$m=16,t=2,p=1$T1ZsV1ZtV1ZVd1pRVG9uZw$Y2hpbGRyZW4xMjM0NTY3OA', NOW(), NOW());
+INSERT INTO users (id, email, password_hash, status, verification_code, verification_code_expiry, verified_at, created_at, updated_at) VALUES
+                                                                                                                                      ('ea952ebe-c38b-43cf-af1a-0b2a70402c34', 'john.don@gmail.com', '$argon2id$v=19$m=16,t=2,p=1$RFpyc0N1MVprZDZVQ0d4Tw$UqgALGLHr60VgINlAm63aQ', 'VERIFIED', NULL, NULL, NOW(), NOW(), NOW()),
+                                                                                                                                      ('413972c5-d918-49a2-a425-7fa5bb68ff3b', 'ben.schmidt@gmx.de', '$argon2id$v=19$m=16,t=2,p=1$Wk1TMFZtV1ZVd1pRVG9uZw$eXhY5Vn3K0lXU1Z3b3JqYQ', 'VERIFIED', NULL, NULL, NOW(), NOW(), NOW()),
+                                                                                                                                      ('7f4e2d1a-8c3b-4f5e-9f6a-2b3c4d5e6f70', 'lisa.bach@yahoo.de', '$argon2id$v=19$m=16,t=2,p=1$T1ZsV1ZtV1ZVd1pRVG9uZw$Y2hpbGRyZW4xMjM0NTY3OA', 'VERIFIED', NULL, NULL, NOW(), NOW(), NOW());
+
+
 
 INSERT INTO notes (note_id, title, md_content, is_private, created_at, updated_at, user_id) VALUES
                                                                                                 ('60d17d7c-3fbb-428f-9d2b-b5aee81457e6', 'Grocery List', '**Milk, Eggs, Bread, Butter**', FALSE, NOW(), NOW(), 'ea952ebe-c38b-43cf-af1a-0b2a70402c34'),
