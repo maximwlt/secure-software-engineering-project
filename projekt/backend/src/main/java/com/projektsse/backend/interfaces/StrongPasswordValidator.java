@@ -1,4 +1,4 @@
-package com.projektsse.backend.validation;
+package com.projektsse.backend.interfaces;
 
 import com.nulabinc.zxcvbn.Zxcvbn;
 import jakarta.validation.ConstraintValidator;

@@ -1,6 +1,10 @@
 package com.projektsse.backend.repository.entities;
 
+import com.projektsse.backend.models.NoteModel;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -53,4 +57,27 @@ public class Note {
         this.user = user;
     }
 
+    public void setTitle(@NotBlank(message = "Titel darf nicht leer sein") @Size(max = 255, message = "Titel darf maximal 255 Zeichen lang sein") String title) {
+        this.title = title;
+    }
+    
+    
+    public NoteModel toModel() {
+        return new NoteModel(
+            this.noteId,
+            this.title,
+            this.md_content,
+            this.is_private,
+            this.created_at,
+            this.updated_at,
+            this.user != null ? this.user.getId() : null
+        );
+    }
+
+
+    public void setMd_content(@NotBlank(message = "Inhalt darf nicht leer sein") @Size(max = 10000, message = "Inhalt darf maximal 10.000 Zeichen lang sein") String s) {
+    }
+
+    public void setIs_private(@NotNull(message = "Sichtbarkeit muss angegeben werden") boolean aPrivate) {
+    }
 }
