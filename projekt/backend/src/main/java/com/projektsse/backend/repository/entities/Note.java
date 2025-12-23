@@ -23,19 +23,18 @@ public class Note {
     private String title;
 
     @Column(name = "md_content", nullable = false, length = 1000)
-    private String md_content;
+    private String mdContent;
 
     @Column(name = "is_private")
-    private boolean is_private;
+    private boolean isPrivate;
 
     @CreationTimestamp
     @Column(name = "created_at")
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private LocalDateTime updated_at;
-
+    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -48,10 +47,6 @@ public class Note {
     public void setNoteId(UUID noteId) {
         this.noteId = noteId;
     }
-    public String getTitle() {
-        return title;
-    }
-
 
     public void setOwner(User user) {
         this.user = user;
@@ -60,24 +55,24 @@ public class Note {
     public void setTitle(@NotBlank(message = "Titel darf nicht leer sein") @Size(max = 255, message = "Titel darf maximal 255 Zeichen lang sein") String title) {
         this.title = title;
     }
-    
-    
+
     public NoteModel toModel() {
         return new NoteModel(
             this.noteId,
             this.title,
-            this.md_content,
-            this.is_private,
-            this.created_at,
-            this.updated_at,
+            this.mdContent,
+            this.isPrivate,
+            this.createdAt,
+            this.updatedAt,
             this.user != null ? this.user.getId() : null
         );
     }
 
-
-    public void setMd_content(@NotBlank(message = "Inhalt darf nicht leer sein") @Size(max = 10000, message = "Inhalt darf maximal 10.000 Zeichen lang sein") String s) {
+    public void setMdContent(@NotBlank(message = "Inhalt darf nicht leer sein") @Size(max = 10000, message = "Inhalt darf maximal 10.000 Zeichen lang sein") String mdContent) {
+        this.mdContent = mdContent;
     }
 
-    public void setIs_private(@NotNull(message = "Sichtbarkeit muss angegeben werden") boolean aPrivate) {
+    public void setIsPrivate(@NotNull(message = "Sichtbarkeit muss angegeben werden") boolean isPrivate) {
+        this.isPrivate = isPrivate;
     }
 }

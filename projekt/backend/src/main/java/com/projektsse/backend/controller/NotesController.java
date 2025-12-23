@@ -47,7 +47,7 @@ public class NotesController {
     @GetMapping("/{documentId:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}}")
     public ResponseEntity<?> getNoteById(@PathVariable UUID documentId) {
         NoteModel note = noteService.getNoteById(documentId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(note);
     }
 
     @GetMapping("/user")
