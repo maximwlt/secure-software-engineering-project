@@ -1,15 +1,20 @@
 package com.projektsse.backend.service;
 
 import com.projektsse.backend.controller.dto.NoteReq;
+import com.projektsse.backend.exceptions.NoteNotFoundException;
 import com.projektsse.backend.models.NoteModel;
 import com.projektsse.backend.repository.NoteRepository;
 import com.projektsse.backend.repository.entities.Note;
 import jakarta.validation.Valid;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
+
+import static java.util.Arrays.stream;
 
 @Service
 public class NoteService {
@@ -40,5 +45,31 @@ public class NoteService {
         Note savedNote = noteRepository.save(note);
         return savedNote.toModel();
 
+    }
+
+    public List<NoteModel> searchPublicNotes(String query) {
+        String lowerCaseQuery = query.toLowerCase();
+        List<NoteModel> notes = noteRepository.findAllByIsPrivateFalseAndTitleContainingIgnoreCaseOrIsPrivateFalseAndMdContentContainingIgnoreCase(lowerCaseQuery, lowerCaseQuery)
+                .stream().map(note -> ((Note) note).toModel()).toList();
+        return notes;
+    }
+
+    public NoteModel getNoteById(UUID documentId) {
+        Note note = noteRepository.findById(documentId)
+                .orElseThrow(() -> new NoteNotFoundException("Notiz mit der ID " + documentId + " wurde nicht gefunden"));
+        return note.toModel();
+    }
+
+    public List<NoteModel> getNotesByUserId(UUID userId) {
+        List<NoteModel> notes = noteRepository.getNotesByUser_IdOrderByIs_privateDesc(userId)
+                                      .stream().map(Note::toModel).toList();
+        return notes;
+    }
+
+    public List<NoteModel> searchUserNotes(@NotBlank @Size(max = 50) @Pattern(regexp = "^[a-zA-Z0-9 äöüÄÖÜß!?.,-]*$", message = "Query contains invalid characters") String query, UUID userId) {
+        String lowerCaseQuery = query.toLowerCase();
+        List<Note> notesEntities = noteRepository.getNotesByUser_IdAndTitleContainingIgnoreCaseOrMd_contentIsContainingIgnoreCase(userId, lowerCaseQuery, lowerCaseQuery);
+        List<NoteModel> notes = notesEntities.stream().map(Note::toModel).toList();
+        return notes;
     }
 }

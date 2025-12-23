@@ -48,6 +48,8 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                    .requestMatchers(
+                           "/api/documents/public",
+                           "/api/documents/public/search",
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/verify-email",
