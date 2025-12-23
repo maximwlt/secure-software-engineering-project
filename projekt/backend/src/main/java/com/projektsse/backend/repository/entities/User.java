@@ -16,13 +16,26 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name="username", nullable = false, unique = true, length = 50)
-    private String username;
-
     @Column(name="email", nullable = false, unique = true, length = 255)
     private String email;
+
     @Column(name="password_hash", nullable = false, length = 255)
     private String password_hash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="status", nullable = false)
+    private UserStatus status;
+
+    @Column(name="verification_code", unique = true)
+    private String verificationCode;
+
+    @Column(name="verification_code_expiry")
+    private LocalDateTime verificationCodeExpiry;
+
+    @CreationTimestamp
+    @Column(name="verified_at")
+    private LocalDateTime verifiedAt;
+
     @CreationTimestamp
     @Column(name="created_at", updatable = false, nullable = false)
     private LocalDateTime created_at;
@@ -33,39 +46,28 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Note> notes = new ArrayList<>();
 
-    public UUID getId() {
-        return id;
-    }
-
+    public UUID getId() { return id; }
     public void addNote(Note note) {
         notes.add(note);
         note.setOwner(this);
     }
-
     public void removeNote(Note note) {
         notes.remove(note);
         note.setOwner(null);
     }
+    public List<Note> getNotes() { return notes; }
+    public UserStatus getStatus() { return status; }
+    public LocalDateTime getVerificationCodeExpiry() { return verificationCodeExpiry; }
+    public String getVerificationCode() { return verificationCode; }
+    public void setEmail(String email) { this.email = email; }
+    public void setStatus(UserStatus userStatus) { this.status = userStatus; }
+    public String getEmail() { return email; }
+    public void setPassword(String hashedPassword) { this.password_hash = hashedPassword; }
+    public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
+    public void setVerificationCodeExpiry(LocalDateTime verificationCodeExpiry) { this.verificationCodeExpiry = verificationCodeExpiry; }
+    public void setVerifiedAt(LocalDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
 
-
-
-    public List<Note> getNotes() {
-        return notes;
+    public String getPassword_hash() {
+        return password_hash;
     }
 }
-
-
-/*
-Option 2: Tabelle manuell in der DB erstellen (für Production)
-Führe dieses SQL-Statement in deiner Datenbank aus:
-CREATE TABLE users (
-    id UUID PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
-);
-Best Practice für Projekte:
-Entwicklung: ddl-auto: create-drop oder create
-Production: ddl-auto: validate + Liquibase/Flyway für Migrations
- */
