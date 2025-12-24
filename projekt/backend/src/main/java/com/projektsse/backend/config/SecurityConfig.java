@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -26,11 +25,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-    private final AuthenticationProvider authenticationProvider;
 
-    SecurityConfig(JwtFilter jwtFilter, AuthenticationProvider authenticationProvider) {
+    SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
-        this.authenticationProvider = authenticationProvider;
     }
 
     @Bean
@@ -64,7 +61,6 @@ public class SecurityConfig {
             )
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
-            // .authenticationProvider(authenticationProvider)
             .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -84,8 +80,3 @@ public class SecurityConfig {
         return source;
     }
 }
-//                          "/api/auth/login",
-//                          "/api/auth/register",
-//                          "/api/auth/verify-email",
-//                          "/api/documents/public",
-//                          "/api/documents/public/search"
