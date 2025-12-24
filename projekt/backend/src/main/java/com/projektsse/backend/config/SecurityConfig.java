@@ -1,5 +1,7 @@
 package com.projektsse.backend.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -10,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,11 +38,13 @@ public class SecurityConfig {
         http
             //.cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf
-                  .ignoringRequestMatchers(
-                          "/api/auth/login",
-                          "/api/auth/register",
-                          "/api/auth/verify-email"
-                  )
+                  .requireCsrfProtectionMatcher(new RequestMatcher() {
+                      @Override
+                      public boolean matches(@NonNull HttpServletRequest request) {
+                          String uri = request.getRequestURI();
+                          return uri.equals("/api/auth/refresh-token") || uri.equals("/api/auth/logout");
+                      }
+                  })
                   .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                   .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
             )
@@ -79,3 +84,8 @@ public class SecurityConfig {
         return source;
     }
 }
+//                          "/api/auth/login",
+//                          "/api/auth/register",
+//                          "/api/auth/verify-email",
+//                          "/api/documents/public",
+//                          "/api/documents/public/search"
