@@ -55,17 +55,22 @@ public class TokenService {
 
     public void deleteRefreshToken(String rawToken) {
         String hash = refreshTokenHasher.hash(rawToken);
-        refreshTokenRepository.deleteByToken(hash);
+        RefreshToken token = refreshTokenRepository.findRefreshTokenByTokenAndExpiresAtAfter(hash, Instant.now())
+                .orElseThrow(() -> new UnauthorizedExceptionCustom("Invalid refresh token"));
+        refreshTokenRepository.delete(token);
     }
 
     @Transactional
     public String rotateRefreshToken(String oldToken) {
         String oldTokenHash = refreshTokenHasher.hash(oldToken);
-        UUID userId = refreshTokenRepository.getUserIdByToken(oldTokenHash);
         RefreshToken token = refreshTokenRepository.findRefreshTokenByTokenAndExpiresAtAfter(oldTokenHash, Instant.now())
                 .orElseThrow(() -> new UnauthorizedExceptionCustom("Invalid refresh token"));
-        deleteRefreshToken(token.getToken());
-        return createRefreshToken(userId.toString());
+
+        refreshTokenRepository.delete(token);
+
+        String newRefreshToken = createRefreshToken(token.getUserId().toString());
+
+        return newRefreshToken;
     }
 
     public Optional<String> validateRefreshToken(String rawToken) {
