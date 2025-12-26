@@ -68,9 +68,7 @@ public class TokenService {
 
         refreshTokenRepository.delete(token);
 
-        String newRefreshToken = createRefreshToken(token.getUserId().toString());
-
-        return newRefreshToken;
+        return createRefreshToken(token.getUserId().toString());
     }
 
     public Optional<String> validateRefreshToken(String rawToken) {
