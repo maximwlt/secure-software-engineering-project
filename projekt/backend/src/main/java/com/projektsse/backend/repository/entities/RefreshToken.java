@@ -42,7 +42,4 @@ public class RefreshToken {
         return token;
     }
 
-    public Long getExpiresAt() {
-        return expiresAt;
-    }
 }
