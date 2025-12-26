@@ -12,6 +12,6 @@ public class StrongPasswordValidator implements ConstraintValidator<StrongPasswo
         Zxcvbn zxcvbn = new Zxcvbn();
         int score = zxcvbn.measure(password).getScore();
 
-        return score >= 3;
+        return score == 4;
     }
 }

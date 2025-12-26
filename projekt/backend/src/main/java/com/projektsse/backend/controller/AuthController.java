@@ -130,7 +130,7 @@ public class AuthController {
         String userId = userIdOpt.get();
 
         String newAccessToken = jwtService.generateAccessToken(userId);
-        String newRefreshToken = tokenService.rotateRefreshToken(refreshToken, userId);
+        String newRefreshToken = tokenService.rotateRefreshToken(refreshToken);
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(
                 "REFRESH_TOKEN", newRefreshToken

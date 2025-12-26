@@ -7,8 +7,10 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password4j.Argon2Password4jPasswordEncoder;
 
 @Configuration
 public class SecurityBeansConfig {
@@ -25,7 +27,7 @@ public class SecurityBeansConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
     }
 
     @Bean
