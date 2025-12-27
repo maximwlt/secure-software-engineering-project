@@ -16,7 +16,7 @@ public class RefreshTokenHasher {
     private static final String HMAC_ALGORITHM = "HmacSHA256"; // Alternativ: Hashfunktion aus der SHA-3 Familie: HmacSHA3-256
     private final SecretKeySpec secretKeySpec;
 
-    public RefreshTokenHasher(@Value("${REFRESH_TOKEN_HMAC_SECRET}") String hmacSecret) {
+    public RefreshTokenHasher(@Value("${refreshToken.value}") String hmacSecret) {
         this.secretKeySpec = new SecretKeySpec(hmacSecret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM);
     }
 
