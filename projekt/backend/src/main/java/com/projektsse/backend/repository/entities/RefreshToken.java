@@ -2,6 +2,7 @@ package com.projektsse.backend.repository.entities;
 
 import jakarta.persistence.*;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -15,7 +16,7 @@ public class RefreshToken {
     private String token;
 
     @Column(name = "expires_at", nullable = false)
-    private Long expiresAt;
+    private Instant expiresAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -23,7 +24,7 @@ public class RefreshToken {
 
     protected RefreshToken() {}
 
-    public RefreshToken(String token, Long expiresAt, User user) {
+    public RefreshToken(String token, Instant expiresAt, User user) {
         this.token = token;
         this.expiresAt = expiresAt;
         this.user = user;
@@ -41,7 +42,4 @@ public class RefreshToken {
         return token;
     }
 
-    public Long getExpiresAt() {
-        return expiresAt;
-    }
 }

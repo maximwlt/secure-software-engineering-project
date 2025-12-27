@@ -1,4 +1,4 @@
-package com.projektsse.backend.validation;
+package com.projektsse.backend.interfaces;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

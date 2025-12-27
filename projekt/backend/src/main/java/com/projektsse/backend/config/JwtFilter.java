@@ -56,7 +56,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
+                        userId, // <--- Im CurrentUserIdResolver wird dieser Wert ausgelesen mit getName()
+                        null,
+                        userDetails.getAuthorities()
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -69,7 +71,6 @@ public class JwtFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         return path.startsWith("/api/v1/auth/") ||
-                path.equals("/api/v1/auth") ||
-                path.startsWith("/public");
+                path.equals("/api/v1/auth");
     }
 }

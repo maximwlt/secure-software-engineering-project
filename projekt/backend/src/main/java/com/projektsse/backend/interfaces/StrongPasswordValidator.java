@@ -1,4 +1,4 @@
-package com.projektsse.backend.validation;
+package com.projektsse.backend.interfaces;
 
 import com.nulabinc.zxcvbn.Zxcvbn;
 import jakarta.validation.ConstraintValidator;
@@ -12,6 +12,6 @@ public class StrongPasswordValidator implements ConstraintValidator<StrongPasswo
         Zxcvbn zxcvbn = new Zxcvbn();
         int score = zxcvbn.measure(password).getScore();
 
-        return score >= 3;
+        return score == 4;
     }
 }

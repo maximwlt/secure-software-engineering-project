@@ -108,4 +108,8 @@ public class UserService {
             throw new IllegalStateException("Benutzerkonto ist nicht verifiziert.");
         }
     }
+
+    public User getUserById(String userId) {
+        return userRepository.findById(UUID.fromString(userId)).orElse(null);
+    }
 }
