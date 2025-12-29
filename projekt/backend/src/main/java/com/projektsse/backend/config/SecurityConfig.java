@@ -33,6 +33,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
         http
+            .cors(AbstractHttpConfigurer::disable)
             //.cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf
                   .requireCsrfProtectionMatcher(new RequestMatcher() {
@@ -69,7 +70,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*")); // Später nur frontend URL erlauben
+        configuration.setAllowedOrigins(List.of("*")); // TODO: Später nur frontend URL erlauben
         configuration.setAllowCredentials(true);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-XSRF-TOKEN"));
