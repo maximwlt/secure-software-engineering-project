@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import ErrorMessage from "./ErrorMessage";
+import { useAuth } from "../utils/useAuth.ts";
+import {getCookie} from "../utils/cookies.ts";
 
 
 interface FormData {
@@ -14,6 +16,7 @@ interface Errors {
 }
 
 function LoginPage() {
+    const { token, login, logout, isAuthenticated } = useAuth();
     const [formData, setFormData] = useState<FormData>({
         email: '',
         password: ''
@@ -38,7 +41,7 @@ function LoginPage() {
     };
 
     const handleSubmit = (): void => {
-        submitLogin(formData, setIsSubmitting, setErrors).catch(
+        submitLogin(formData, setIsSubmitting, setErrors, login).catch(
             error => {
                 setErrors({
                     general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
@@ -47,6 +50,68 @@ function LoginPage() {
         )
     };
 
+    const handleLogout = async (): Promise<void> => {
+        setIsSubmitting(true);
+        setErrors({});
+
+        try {
+
+            const csrf_token = getCookie("XSRF-TOKEN");
+
+            const headers : HeadersInit = {
+                'Content-Type': 'application/json',
+            };
+            if (csrf_token) {
+                headers['X-XSRF-TOKEN'] = csrf_token;
+            }
+
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: headers,
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Logout fehlgeschlagen');
+            }
+
+            logout();
+            console.log('Logout erfolgreich!');
+
+        } catch (error) {
+            setErrors({
+                general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Wenn eingeloggt: Logout-View anzeigen
+    if (isAuthenticated) {
+        return (
+            <div>
+                <h1>Sie sind angemeldet</h1>
+                <p>Token vorhanden: {token ? '✓' : '✗'}</p>
+
+                <ErrorMessage
+                    message={errors.general}
+                    type="general"
+                />
+
+                <button
+                    onClick={handleLogout}
+                    disabled={isSubmitting}
+                    style={{ marginTop: '20px' }}
+                >
+                    {isSubmitting ? 'Wird abgemeldet...' : 'Abmelden'}
+                </button>
+            </div>
+        );
+    }
+
+    // Wenn nicht eingeloggt: Login-Form anzeigen
     return (
         <div>
             <h1>Login Page</h1>
@@ -96,9 +161,9 @@ function LoginPage() {
 async function submitLogin(
     formData: FormData,
     setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>,
-    setErrors: React.Dispatch<React.SetStateAction<Errors>>
+    setErrors: React.Dispatch<React.SetStateAction<Errors>>,
+    login: (token: string) => void
 ): Promise<void> {
-    // Validation
     const newErrors: Errors = {};
 
     if (!formData.email) {
@@ -109,8 +174,6 @@ async function submitLogin(
 
     if (!formData.password) {
         newErrors.password = 'Passwort ist erforderlich';
-    } else if (formData.password.length < 6) {
-        newErrors.password = 'Passwort muss mindestens 6 Zeichen haben';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -124,6 +187,7 @@ async function submitLogin(
     try {
         const response = await fetch('/api/auth/login', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -138,16 +202,14 @@ async function submitLogin(
         const data = await response.json();
         console.log('Erhaltene Daten:', data);
 
-        if (!data.accessToken)  {
+        if (!data.accessToken) {
             throw new Error('Kein Zugriffstoken im Antwortkörper gefunden');
         }
 
-
-        localStorage.setItem('jwt_token', data.accessToken);
+        // Token im Context speichern (In-Memory)
+        login(data.accessToken);
 
         console.log('Login erfolgreich!');
-
-
 
     } catch (error) {
         setErrors({
@@ -157,6 +219,5 @@ async function submitLogin(
         setIsSubmitting(false);
     }
 }
-
 
 export default LoginPage;

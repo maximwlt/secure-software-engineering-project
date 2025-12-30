@@ -1,0 +1,73 @@
+import React, { useCallback, useEffect, useState } from "react";
+import { getCookie } from "../utils/cookies";
+import { AuthContext } from "./AuthContext";
+
+let refreshPromise: Promise<string | null> | null = null;
+
+function AuthProvider({ children }: { children: React.ReactNode }) {
+    const [token, setToken] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const login = useCallback((newToken: string) => {
+        setToken(newToken);
+    }, []);
+
+    const logout = useCallback(() => {
+        setToken(null);
+    }, []);
+
+    const refreshAccessToken = useCallback(async (): Promise<string | null> => {
+        if (!refreshPromise) {
+            refreshPromise = (async () => {
+                try {
+                    const csrf = getCookie("XSRF-TOKEN");
+
+                    const headers: HeadersInit = {
+                        "Content-Type": "application/json",
+                    };
+                    if (csrf) headers["X-XSRF-TOKEN"] = csrf;
+
+                    const res = await fetch("/api/auth/refresh-token", {
+                        method: "POST",
+                        credentials: "include",
+                        headers,
+                    });
+
+                    if (!res.ok) {
+                        logout();
+                        return null;
+                    }
+
+                    const data = await res.json();
+                    setToken(data.accessToken);
+                    return data.accessToken;
+                } finally {
+                    refreshPromise = null;
+                }
+            })();
+        }
+
+        return refreshPromise;
+    }, [logout]);
+
+    // Initialer Silent Refresh beim App-Start
+    useEffect(() => {
+        refreshAccessToken().finally(() => setIsLoading(false));
+    }, [refreshAccessToken]);
+
+    return (
+        <AuthContext.Provider
+            value={{
+                token,
+                login,
+                logout,
+                refreshAccessToken,
+                isAuthenticated: token !== null,
+            }}
+        >
+            {isLoading ? <div>Lade...</div> : children}
+        </AuthContext.Provider>
+    );
+}
+
+export default AuthProvider
