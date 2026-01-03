@@ -71,7 +71,7 @@ public class SecurityConfig {
             )
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
-            .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
+            // .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

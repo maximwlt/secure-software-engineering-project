@@ -46,10 +46,6 @@ export function DocumentDetailPage() {
                 }
 
                 const data = await response.json();
-                console.log("⚠️⚠️⚠️ HIER SIND DIE DATEN: ", data);
-                console.log("Typ der Daten: ", typeof data);
-                console.log("Inhalt von content: ", data?.content);
-                console.log("Inhalt von title: ", data?.title);
                 setDocument(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');

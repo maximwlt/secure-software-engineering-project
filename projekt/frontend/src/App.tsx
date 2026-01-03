@@ -4,6 +4,7 @@ import RegisterPage from "./components/RegisterPage.tsx";
 import AuthProvider from "./components/AuthProvider.tsx";
 import {PublicDocumentsPage} from "./components/PublicDocumentsPage.tsx";
 import {DocumentDetailPage} from "./components/DocumentDetailPage.tsx";
+import {CreateDocument} from "./components/CreateDocument.tsx";
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
                     <Route path="public" element={<PublicDocumentsPage />} />
                     <Route path="search" element={<div>Search Documents Page</div>} />
                     <Route path=":documentId" element={<DocumentDetailPage />} />
+                    <Route path="create" element={<CreateDocument /> } />
                 </Route>
                 <Route path="users">
                     <Route path="me" element={<div>My Profile Page</div>} />

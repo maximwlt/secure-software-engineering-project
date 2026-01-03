@@ -31,10 +31,8 @@ services:
       - "db:database"
       - "mailhog:mailhog"
     restart: on-failure
-    expose:
-        - "8080"
-    #ports:
-      #- "8081:8080"
+
+
   frontend:
     image: "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
     build: frontend
@@ -42,5 +40,7 @@ services:
     depends_on:
       backend:
         condition: service_started
+    links:
+        - "backend:backend"
     ports:
       - "8080:80"

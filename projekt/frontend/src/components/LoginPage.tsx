@@ -196,7 +196,7 @@ async function submitLogin(
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Login fehlgeschlagen');
+            throw new Error(errorData.message || 'Falsche E-Mail Adresse oder Passwort');
         }
 
         const data = await response.json();
