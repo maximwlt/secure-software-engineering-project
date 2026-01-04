@@ -17,19 +17,8 @@ interface Errors {
 }
 
 function CreateDocument() {
-    // const { isAuthenticated, token } = useAuth();
-
     const auth = useAuth();
     const navigate = useNavigate();
-
-    /*
-    console.log('Auth Debug:', {
-        isAuthenticated,
-        token,
-        tokenExists: !!token,
-        authObject: auth
-    });
-     */
 
     const [formData, setFormData] = useState<FormData>({
         title: '',
@@ -171,9 +160,6 @@ function CreateDocument() {
     return (
         <div style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1rem' }}>
             <h1>Neues Dokument erstellen</h1>
-            <p style={{ color: '#666', marginBottom: '2rem' }}>
-                Status: {auth.isAuthenticated ? '✓ Angemeldet' : '○ Nicht angemeldet'}
-            </p>
 
             <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: '1.5rem' }}>
@@ -228,7 +214,7 @@ function CreateDocument() {
                             checked={formData.isPrivate}
                             onChange={handleChange}
                         />
-                        <span style={{ fontWeight: 600 }}>Öffentlich sichtbar</span>
+                        <span style={{ fontWeight: 600 }}>Privat sichtbar</span>
                     </label>
                 </div>
 

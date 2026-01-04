@@ -1,5 +1,6 @@
 package com.projektsse.backend.service;
 
+import com.projektsse.backend.config.MdSanitizer;
 import com.projektsse.backend.controller.dto.NoteReq;
 import com.projektsse.backend.exceptions.NoteNotFoundException;
 import com.projektsse.backend.models.NoteModel;
@@ -20,11 +21,13 @@ import static java.util.Arrays.stream;
 public class NoteService {
 
     private final UserService userService;
-    NoteRepository noteRepository;
+    private final NoteRepository noteRepository;
+    private final MdSanitizer mdSanitizer;
 
-    public NoteService(NoteRepository noteRepository, UserService userService) {
+    public NoteService(NoteRepository noteRepository, UserService userService, MdSanitizer mdSanitizer) {
         this.noteRepository = noteRepository;
         this.userService = userService;
+        this.mdSanitizer = mdSanitizer;
     }
 
     public List<NoteModel> getAllPublicNotes() {
@@ -38,8 +41,8 @@ public class NoteService {
 
     public NoteModel createNote(@Valid NoteReq noteReq, String userId) {
         Note note = new Note();
-        note.setTitle(noteReq.title());
-        note.setMdContent(noteReq.mdContent());
+        note.setTitle(mdSanitizer.sanitizeTitle(noteReq.title()));
+        note.setMdContent(mdSanitizer.sanitizeContent(noteReq.mdContent()));
         note.setIsPrivate(noteReq.isPrivate());
         note.setOwner(userService.getUserById(userId));
         Note savedNote = noteRepository.save(note);
