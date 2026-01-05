@@ -17,9 +17,21 @@ public class MdSanitizer {
             .addTags("table", "thead", "tbody", "tfoot", "tr", "td", "th") // Tabellen zulasssen
             .addTags("ul", "ol", "li"); // Listen zulassen
 
+    private static final String NEWLINE_PLACEHOLDER = "___NEWLINE___";
+
     public String sanitizeContent(String markdown) {
         if (markdown == null) return "";
-        return Jsoup.clean(markdown, MARKDOWN_SAFELIST);
+        if (markdown.length() > 10000) {
+            markdown = markdown.substring(0, 10000);
+        }
+
+        String markdownWithPlaceholders = markdown
+                .replace("\r\n", NEWLINE_PLACEHOLDER)
+                .replace("\n", NEWLINE_PLACEHOLDER);
+
+        String cleanedMarkdown = Jsoup.clean(markdownWithPlaceholders, MARKDOWN_SAFELIST);
+
+        return cleanedMarkdown.replace(NEWLINE_PLACEHOLDER, "\n");
     }
 
     public String sanitizeTitle(String title) {

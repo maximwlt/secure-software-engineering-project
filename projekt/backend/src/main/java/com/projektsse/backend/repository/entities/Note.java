@@ -19,10 +19,10 @@ public class Note {
     @Column(name = "note_id")
     private UUID noteId;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
-    @Column(name = "md_content", nullable = false, length = 1000)
+    @Column(name = "md_content", nullable = false, length = 10000)
     private String mdContent;
 
     @Column(name = "is_private")
