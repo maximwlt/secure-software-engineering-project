@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { apiFetch } from '../utils/apiFetch';
 import { useAuth } from '../utils/useAuth';
@@ -113,6 +113,8 @@ export function DocumentDetailPage() {
 
 
 /*
+
+<SafeMarkdown markdown={document.md_content} />
                 <div className="document-meta">
                     <div className="meta-item">
                         <span className="meta-label">Dokument-ID:</span>
