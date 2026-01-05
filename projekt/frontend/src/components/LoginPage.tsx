@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ErrorMessage from "./ErrorMessage";
 import { useAuth } from "../utils/useAuth.ts";
 import {getCookie} from "../utils/cookies.ts";
+import Navbar from "./Navbar.tsx";
 
 
 interface FormData {
@@ -16,7 +17,7 @@ interface Errors {
 }
 
 function LoginPage() {
-    const { token, login, logout, isAuthenticated } = useAuth();
+    const { login, logout, isAuthenticated } = useAuth();
     const [formData, setFormData] = useState<FormData>({
         email: '',
         password: ''
@@ -91,70 +92,67 @@ function LoginPage() {
     // Wenn eingeloggt: Logout-View anzeigen
     if (isAuthenticated) {
         return (
-            <div>
-                <h1>Sie sind angemeldet</h1>
-                <p>Token vorhanden: {token ? '✓' : '✗'}</p>
+            <><Navbar/>
+                <div>
+                    <h1>Sie sind angemeldet</h1>
 
-                <ErrorMessage
-                    message={errors.general}
-                    type="general"
-                />
+                    <ErrorMessage
+                        message={errors.general}
+                        type="general"/>
 
-                <button
-                    onClick={handleLogout}
-                    disabled={isSubmitting}
-                    style={{ marginTop: '20px' }}
-                >
-                    {isSubmitting ? 'Wird abgemeldet...' : 'Abmelden'}
-                </button>
-            </div>
+                    <button className="primary-button"
+                        onClick={handleLogout}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Wird abgemeldet...' : 'Abmelden'}
+                    </button>
+                </div>
+            </>
         );
     }
 
     // Wenn nicht eingeloggt: Login-Form anzeigen
     return (
-        <div>
-            <h1>Login Page</h1>
+        <>
+            <Navbar/>
+            <div className="register-wrapper">
+                <h1>Login Page</h1>
 
-            <div>
-                <label>Email-Adresse: </label>
-                <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="E-Mail Adresse eingeben"
-                />
+                <div className="form-group">
+                    <label>Email-Adresse </label>
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="E-Mail Adresse eingeben"/>
+                    <ErrorMessage
+                        message={errors.email}
+                        type="field"/>
+                </div>
+
+                <div className="form-group">
+                    <label>Passwort </label>
+                    <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Passwort eingeben"/>
+                    <ErrorMessage
+                        message={errors.password}
+                        type="field"/>
+                </div>
+
                 <ErrorMessage
-                    message={errors.email}
-                    type="field"
-                />
+                    message={errors.general}
+                    type="general"/>
+
+                <button className="primary-button" onClick={handleSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? 'Lädt...' : 'Login'}
+                </button>
             </div>
-
-            <div>
-                <label>Passwort: </label>
-                <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Password eingeben"
-                />
-                <ErrorMessage
-                    message={errors.password}
-                    type="field"
-                />
-            </div>
-
-            <ErrorMessage
-                message={errors.general}
-                type="general"
-            />
-
-            <button onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting ? 'Lädt...' : 'Login'}
-            </button>
-        </div>
+        </>
     );
 }
 

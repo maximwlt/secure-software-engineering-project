@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router';
 import { apiFetch } from '../utils/apiFetch';
 import { useAuth } from '../utils/useAuth';
 import { isValidUUID } from '../utils/validation';
-import './DocumentDetailPage.css';
+import '../styling/DocumentDetailPage.css';
 import {SafeMarkdown} from "./SafeMarkdown.tsx";
+import Navbar from "./Navbar.tsx";
 
 interface DocumentDetail {
     noteId: string;
@@ -81,33 +82,35 @@ export function DocumentDetailPage() {
     }
 
     return (
-        <div className="document-detail-container">
-            <button onClick={handleBack} className="back-button">
-                ← Zurück zur Übersicht
-            </button>
+        <>
+            <Navbar />
+            <div className="document-detail-container">
+                <button onClick={handleBack} className="back-button">
+                    ← Zurück zur Übersicht
+                </button>
 
-            <div className="document-detail-card">
-                <header className="document-header">
-                    <h1 className="document-title">
-                        <SafeMarkdown markdown={document.title} />
-                    </h1>
-                    {document.is_private ? (
-                        <span className="content-badge">🔒 Privat</span>
-                    ) :
-                        <p className="content-text">Öffentlich</p>
-                    }
-                </header>
-                <div className="document-content">
-                    {document.md_content ? (
-                        <SafeMarkdown markdown={document.md_content} />
-                    ) : (
-                        <p className="content-text">Kein Inhalt vorhanden</p>
-                    )}
+                <div className="document-detail-card">
+                    <header className="document-header">
+                        <h1 className="document-title">
+                            <SafeMarkdown markdown={document.title}/>
+                        </h1>
+                        {document.is_private ? (
+                                <span className="content-badge">🔒 Privat</span>
+                            ) :
+                            <p className="content-text">Öffentlich</p>}
+                    </header>
+                    <div className="document-content">
+                        {document.md_content ? (
+                            <SafeMarkdown markdown={document.md_content}/>
+                        ) : (
+                            <p className="content-text">Kein Inhalt vorhanden</p>
+                        )}
+                    </div>
+
+
                 </div>
-
-
             </div>
-        </div>
+        </>
     );
 }
 

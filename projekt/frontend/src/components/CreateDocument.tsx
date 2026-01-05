@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { apiFetch } from '../utils/apiFetch';
 import ErrorMessage from './ErrorMessage';
+import Navbar from "./Navbar.tsx";
 
 interface FormData {
     title: string;
@@ -158,85 +159,85 @@ function CreateDocument() {
     };
 
     return (
-        <div style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1rem' }}>
-            <h1>Neues Dokument erstellen</h1>
+        <>
+            <Navbar/>
+            <div style={{maxWidth: '800px', margin: '2rem auto', padding: '0 1rem'}}>
+                <h1>Neues Dokument erstellen</h1>
 
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                        Titel *
-                    </label>
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        placeholder="Dokumenttitel eingeben"
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            fontSize: '1rem',
-                            border: '1px solid #ddd',
-                            borderRadius: '6px'
-                        }}
-                    />
-                    <ErrorMessage message={errors.title} type="field" />
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                        Inhalt * (Markdown unterstützt)
-                    </label>
-                    <textarea
-                        name="mdContent"
-                        value={formData.mdContent}
-                        onChange={handleChange}
-                        placeholder="Dokumentinhalt eingeben"
-                        rows={15}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            fontSize: '1rem',
-                            border: '1px solid #ddd',
-                            borderRadius: '6px',
-                            fontFamily: "'Courier New', monospace",
-                            resize: 'vertical'
-                        }}
-                    />
-                    <ErrorMessage message={errors.content} type="field" />
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <form onSubmit={handleSubmit}>
+                    <div style={{marginBottom: '1.5rem'}}>
+                        <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: 600}}>
+                            Titel *
+                        </label>
                         <input
-                            type="checkbox"
-                            name="isPrivate"
-                            checked={formData.isPrivate}
+                            type="text"
+                            name="title"
+                            value={formData.title}
                             onChange={handleChange}
-                        />
-                        <span style={{ fontWeight: 600 }}>Privat sichtbar</span>
-                    </label>
-                </div>
+                            placeholder="Dokumenttitel eingeben"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                fontSize: '1rem',
+                                border: '1px solid #ddd',
+                                borderRadius: '6px'
+                            }}/>
+                        <ErrorMessage message={errors.title} type="field"/>
+                    </div>
 
-                <ErrorMessage message={errors.general} type="general" />
+                    <div style={{marginBottom: '1.5rem'}}>
+                        <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: 600}}>
+                            Inhalt * (Markdown unterstützt)
+                        </label>
+                        <textarea
+                            name="mdContent"
+                            value={formData.mdContent}
+                            onChange={handleChange}
+                            placeholder="Dokumentinhalt eingeben"
+                            rows={15}
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                fontSize: '1rem',
+                                border: '1px solid #ddd',
+                                borderRadius: '6px',
+                                fontFamily: "'Courier New', monospace",
+                                resize: 'vertical'
+                            }}/>
+                        <ErrorMessage message={errors.content} type="field"/>
+                    </div>
 
-                <button
-                    type="submit"
-                    disabled={isSubmitting || !auth.isAuthenticated}
-                    style={{
-                        padding: '0.75rem 1.5rem',
-                        backgroundColor: (isSubmitting || !auth.isAuthenticated) ? '#ccc' : '#2196f3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: (isSubmitting || !auth.isAuthenticated) ? 'not-allowed' : 'pointer'
-                    }}
-                >
-                    {isSubmitting ? 'Wird erstellt...' :
-                        !auth.isAuthenticated ? 'Anmeldung erforderlich' : 'Dokument erstellen'}
-                </button>
-            </form>
-        </div>
+                    <div style={{marginBottom: '1.5rem'}}>
+                        <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                            <input
+                                type="checkbox"
+                                name="isPrivate"
+                                checked={formData.isPrivate}
+                                onChange={handleChange}/>
+                            <span style={{fontWeight: 600}}>Privat sichtbar</span>
+                        </label>
+                    </div>
+
+                    <ErrorMessage message={errors.general} type="general"/>
+
+                    <button
+                        type="submit"
+                        disabled={isSubmitting || !auth.isAuthenticated}
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            backgroundColor: (isSubmitting || !auth.isAuthenticated) ? '#ccc' : '#2196f3',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: (isSubmitting || !auth.isAuthenticated) ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        {isSubmitting ? 'Wird erstellt...' :
+                            !auth.isAuthenticated ? 'Anmeldung erforderlich' : 'Dokument erstellen'}
+                    </button>
+                </form>
+            </div>
+        </>
     );
 }
 

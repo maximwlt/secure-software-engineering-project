@@ -1,0 +1,75 @@
+.navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand a {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.navbar-brand a:hover {
+    color: #2196f3;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.nav-link {
+    padding: 0.5rem 1rem;
+    color: #666;
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.nav-link:hover {
+    background-color: #f5f5f5;
+    color: #1a1a1a;
+}
+
+/* ✅ React Router fügt automatisch .active Klasse hinzu */
+.nav-link.active {
+    background-color: #e3f2fd;
+    color: #2196f3;
+    border-color: #2196f3;
+}
+
+.nav-link-primary {
+    background-color: #2196f3;
+    color: white !important;
+    border-color: #2196f3;
+}
+
+.nav-link-primary:hover {
+    background-color: #1976d2;
+    border-color: #1976d2;
+}
+
+
+.nav-link-primary.active {
+    background-color: #1565c0;
+    border-color: #1565c0;
+}
+

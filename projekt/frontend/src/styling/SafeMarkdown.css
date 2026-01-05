@@ -1,6 +1,8 @@
 .youtube-consent-placeholder {
-    background: #1a1a2e;
-    border: 2px solid #4a4a6a;
+    display: flex;
+    justify-content: center;
+    background: #e3e3e3;
+    border: 3px solid #a0a0a0;
     border-radius: 8px;
     padding: 2rem;
     text-align: center;
@@ -9,7 +11,7 @@
 }
 
 .consent-overlay p {
-    color: #e0e0e0;
+    color: #e3e3e3;
     margin: 0.5rem 0;
 }
 
@@ -23,9 +25,9 @@
 }
 
 .consent-load-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
+    background: #ffffff;
+    color: black;
+    border: 3px solid #8e8e8e;
     padding: 0.75rem 1.5rem;
     border-radius: 4px;
     cursor: pointer;
@@ -34,7 +36,7 @@
 }
 
 .consent-load-btn:hover {
-    background: #bb2d3b;
+    background: #c1c1c1;
 }
 
 .youtube-embed-active iframe {

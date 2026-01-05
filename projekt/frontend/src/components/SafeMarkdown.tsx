@@ -1,6 +1,7 @@
 import DOMPurify from "dompurify";
 import { marked, type Tokens } from "marked";
 import { useState, useEffect, useRef } from "react";
+import "../styling/SafeMarkdown.css";
 
 export function SafeMarkdown({ markdown }: { markdown: string }) {
     const [cleanHtml, setCleanHtml] = useState<string>("");
@@ -25,16 +26,24 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
                             <div class="youtube-consent-placeholder" 
                                  data-video-id="${DOMPurify.sanitize(youtubeId)}" 
                                  data-title="${DOMPurify.sanitize(text || 'YouTube Video')}">
-                                <div class="consent-overlay">
+                                <div class="consent-overlay"> 
+                                    <strong>Empfohlener externer Inhalt</strong>
                                     <p class="consent-notice">
-                                        Durch das Laden dieses Videos akzeptieren Sie die 
-                                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
-                                            Datenschutzrichtlinien von YouTube
-                                        </a>.
+                                        An dieser Stelle finden Sie einen externen Inhalt von YouTube, <br>
+                                        der den Artikel ergänzt und von der Redaktion empfohlen wird. <br>
+                                        Sie können ihn sich mit einem Klick anzeigen lassen. <br>
+
                                     </p>
                                     <button class="consent-load-btn" type="button">
-                                        Video laden
+                                        Externen Inhalt laden
                                     </button>
+                                    <p class="consent-notice">Ich bin damit einverstanden, dass mir externe Inhalt angezeigt werden. <br>
+                                       Damit können personenbezogene Daten an Drittanbieter übermittelt werden. <br>
+                                       Mehr dazu in den 
+                                       <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
+                                            Datenschutzrichtlinien
+                                       </a>.
+                                     </p>
                                 </div>
                             </div>`;
                     }
