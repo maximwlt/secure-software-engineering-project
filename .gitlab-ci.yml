@@ -15,7 +15,7 @@ build-job:
     - docker compose create
     - docker save -o app/build.tar "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
   artifacts:
-    name: build-output
+    name: build-job
     paths:
       - app
 backend-test:
