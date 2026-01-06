@@ -15,13 +15,12 @@ build-job:
     - docker compose create
     - docker save -o app/build.tar "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
   artifacts:
-    name: build-job
     paths:
       - app
 backend-test:
   stage: test_backend
   needs:
-    - build-output
+    - build-job
   image: docker:24.0.5-cli
   services:
     - name: docker:24.0.5-dind
