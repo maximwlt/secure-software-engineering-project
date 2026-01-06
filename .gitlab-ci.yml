@@ -21,8 +21,7 @@ build-job:
 backend-test:
   stage: test_backend
   needs:
-    - job: build-job
-    artifacts: true
+    - build-output
   image: docker:24.0.5-cli
   services:
     - name: docker:24.0.5-dind
