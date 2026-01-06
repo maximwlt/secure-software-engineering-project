@@ -17,7 +17,7 @@ interface DocumentDetail {
     is_private?: boolean;
 }
 
-export function DocumentDetailPage() {
+function DocumentDetailPage() {
     const auth = useAuth();
     const navigate = useNavigate();
     const { documentId } = useParams<{ documentId: string }>();
@@ -59,7 +59,8 @@ export function DocumentDetailPage() {
     }, [documentId, auth]);
 
     const handleBack = () => {
-        navigate('/documents/public');
+        // navigate('/documents/public');
+        navigate(-1); // Vorherige Seite in der Historie
     };
 
     if (isLoading) {
@@ -113,6 +114,8 @@ export function DocumentDetailPage() {
         </>
     );
 }
+
+export default DocumentDetailPage
 
 
 /*

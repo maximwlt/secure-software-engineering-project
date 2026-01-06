@@ -30,6 +30,13 @@ function Navbar() {
                             >
                                 Profil
                             </NavLink>
+
+                            <NavLink
+                                to="/users/my-documents"
+                                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                            >
+                                Meine Dokumente
+                            </NavLink>
                         </>
                     ) : (
                         <>

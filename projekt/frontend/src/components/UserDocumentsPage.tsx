@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { apiFetch } from '../utils/apiFetch';
-import { useAuth } from '../utils/useAuth';
-import '../styling/PublicDocumentsPage.css';
+import {useAuth} from "../utils/useAuth.ts";
+import {useNavigate} from "react-router";
+import {useEffect, useState} from "react";
+import {apiFetch} from "../utils/apiFetch.ts";
 import Navbar from "./Navbar.tsx";
 import SearchBar from "./Searchbar.tsx";
-import ErrorMessage from "./ErrorMessage.tsx";
 
 interface PublicDocument {
     noteId: string;
@@ -13,7 +11,9 @@ interface PublicDocument {
     userId: string;
 }
 
-export function PublicDocumentsPage() {
+
+
+function UserDocumentsPage()  {
     const auth = useAuth();
     const navigate = useNavigate();
     const [documents, setDocuments] = useState<PublicDocument[]>([]);
@@ -28,15 +28,14 @@ export function PublicDocumentsPage() {
                 setIsLoading(true);
                 setError(null);
 
-                const url : string = query ?
-                    `/api/documents/public/search?q=${encodeURIComponent(query)}` :
-                    '/api/documents/public';
+                const url = query ?
+                    `/api/documents/user/search?q=${encodeURIComponent(query)}` :
+                    '/api/documents/user';
 
                 const response = await apiFetch(auth, url);
 
                 if (!response.ok) {
                     setError("Fehler beim Laden der Dokumente");
-                    return;
                 }
 
                 const data = await response.json();
@@ -65,7 +64,9 @@ export function PublicDocumentsPage() {
 
     if (error) {
         return (
-            <ErrorMessage message= {error} type="general"/>
+            <div className="public-documents-container">
+                <div className="error-message">⚠️ {error}</div>
+            </div>
         );
     }
 
@@ -74,11 +75,11 @@ export function PublicDocumentsPage() {
             <Navbar/>
             <SearchBar value={inputValue} onChange={setInputValue} onSubmit={() => setQuery(inputValue)} />
             <div className="public-documents-container">
-                <h1 className="page-title">Öffentliche Dokumente</h1>
+                <h1 className="page-title">Meine Dokumente</h1>
 
                 {documents.length === 0 ? (
                     <div className="empty-state">
-                        <p>Keine öffentlichen Dokumente vorhanden</p>
+                        <p>Keine eigenen Dokumente vorhanden</p>
                     </div>
                 ) : (
                     <div className="documents-grid">
@@ -108,3 +109,5 @@ export function PublicDocumentsPage() {
         </>
     );
 }
+
+export default UserDocumentsPage;

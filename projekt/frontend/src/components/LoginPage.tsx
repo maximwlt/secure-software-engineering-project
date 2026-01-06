@@ -92,20 +92,22 @@ function LoginPage() {
     // Wenn eingeloggt: Logout-View anzeigen
     if (isAuthenticated) {
         return (
-            <><Navbar/>
-                <div>
+            <>
+                <Navbar/>
+                <div className="register-wrapper">
                     <h1>Sie sind angemeldet</h1>
 
                     <ErrorMessage
                         message={errors.general}
-                        type="general"/>
-
+                        type="general"
+                    />
                     <button className="primary-button"
                         onClick={handleLogout}
                         disabled={isSubmitting}
                     >
                         {isSubmitting ? 'Wird abgemeldet...' : 'Abmelden'}
                     </button>
+
                 </div>
             </>
         );
