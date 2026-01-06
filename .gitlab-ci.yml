@@ -17,7 +17,7 @@ build-job:
     - docker save -o app/build.tar "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
   artifacts:
     paths:
-      - app
+      - projekt/app
 backend-test:
   stage: test_backend
   needs:
