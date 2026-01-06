@@ -54,7 +54,7 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
                     return `<img src="${safeHref}" title="${safeTitle}" alt="${safeAlt}"/>`;
                 };
 
-                console.log("Parsing Markdown:", JSON.stringify(markdown));
+                // console.log("Parsing Markdown:", JSON.stringify(markdown));
                 const html = await marked(markdown, {
                     renderer,
                     gfm: true,

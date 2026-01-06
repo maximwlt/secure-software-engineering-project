@@ -78,7 +78,6 @@ function LoginPage() {
             }
 
             logout();
-            console.log('Logout erfolgreich!');
 
         } catch (error) {
             setErrors({
@@ -200,7 +199,6 @@ async function submitLogin(
         }
 
         const data = await response.json();
-        console.log('Erhaltene Daten:', data);
 
         if (!data.accessToken) {
             throw new Error('Kein Zugriffstoken im Antwortkörper gefunden');
@@ -209,7 +207,7 @@ async function submitLogin(
         // Token im Context speichern (In-Memory)
         login(data.accessToken);
 
-        console.log('Login erfolgreich!');
+        // console.log('Login erfolgreich!');
 
     } catch (error) {
         setErrors({

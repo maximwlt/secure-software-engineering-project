@@ -122,7 +122,6 @@ function CreateDocument() {
         setErrors({});
 
         try {
-            console.log('Submitting form data: %o', formData);
             const response = await apiFetch(auth, '/api/documents', {
                 method: 'POST',
                 headers: {
@@ -131,15 +130,12 @@ function CreateDocument() {
                 body: JSON.stringify(formData)
             });
 
-            console.log("Response status:", response.status);
-
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Dokument konnte nicht erstellt werden');
             }
 
             const data = await response.json();
-            console.log('Dokument erstellt:', data);
 
             // Redirect zum erstellten Dokument
             if (data.noteId) {

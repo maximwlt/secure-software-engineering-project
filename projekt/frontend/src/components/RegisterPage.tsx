@@ -71,8 +71,8 @@ async function submitRegister(
             throw new Error(errorData.message || 'Registrierung fehlgeschlagen');
         }
 
-        const data = await response.json();
-        console.log('Registrierungsantwort: %o', data);
+        // const data = await response.json();
+        // console.log('Registrierungsantwort: %o', data);
 
         // Success anzeigen
         setIsSuccess(true);

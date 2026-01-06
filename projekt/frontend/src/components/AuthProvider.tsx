@@ -22,8 +22,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                 try {
                     const csrf = getCookie("XSRF-TOKEN");
 
-                    console.log("Cookies visible to JS:", document.cookie); // DEBUG
-                    console.log('Refreshing access token with CSRF:', csrf ? 'EXISTS' : 'MISSING'); // DEBUG
+                    // console.log('Refreshing access token with CSRF:', csrf ? 'EXISTS' : 'MISSING'); // DEBUG
 
                     const headers: HeadersInit = {
                         "Content-Type": "application/json",
@@ -37,10 +36,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                     });
 
                     if (!res.ok) {
-                        console.log("Refresh token request failed with status:", res.status); // DEBUG
+                        // console.log("Refresh token request failed with status:", res.status); // DEBUG
 
                         if (res.status === 401 || res.status === 403) {
-                            console.log("Refresh token is invalid or expired.");
+                            // console.log("Refresh token is invalid or expired.");
                             logout();
                         }
 
