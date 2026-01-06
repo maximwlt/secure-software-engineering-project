@@ -40,7 +40,7 @@ backend-test:
     MAIL_HOST: mailhog
     MAIL_PORT: 1025
   before_script:
-    - docker load -i app/build.tar
+    - docker load -i projekt/app/build.tar
   script:
     - docker run -p 8025:8025 -p 1025:1025 -d --name mailhog mailhog/mailhog:v1.0.1
     # start database container, with env variables
