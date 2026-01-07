@@ -1,7 +1,6 @@
 package com.projektsse.backend.models;
 
 import com.projektsse.backend.repository.entities.User;
-import com.projektsse.backend.repository.entities.UserStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -48,7 +47,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.getStatus() == UserStatus.VERIFIED;
+        return true;
     }
 
     public User getUser() {
