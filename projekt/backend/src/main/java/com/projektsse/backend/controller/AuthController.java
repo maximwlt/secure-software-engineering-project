@@ -39,11 +39,12 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterReq req) {
 
-        if (userService.existsByEmail(req.email())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                    Map.of("message", "E-Mail ist bereits registriert")
-            );
-        }
+        // Remove to avoid User Enumeration attack
+//        if (userService.existsByEmail(req.email())) {
+//            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+//                    Map.of("message", "E-Mail ist bereits registriert")
+//            );
+//        }
         UserReqModel userReqModel = new UserReqModel(req.email(), req.password());
 
         userService.registerUser(userReqModel);

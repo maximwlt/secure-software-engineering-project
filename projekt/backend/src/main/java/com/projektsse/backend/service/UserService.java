@@ -1,17 +1,20 @@
 package com.projektsse.backend.service;
 
 import com.projektsse.backend.models.UserReqModel;
+import com.projektsse.backend.repository.RegistrationRepository;
 import com.projektsse.backend.repository.UserRepository;
+import com.projektsse.backend.repository.entities.Registration_Request;
 import com.projektsse.backend.repository.entities.User;
-import com.projektsse.backend.repository.entities.UserStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+
+import static java.time.temporal.ChronoUnit.HOURS;
 
 @Service
 public class UserService {
@@ -19,33 +22,40 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final EmailService emailService;
+    private final RefreshTokenHasher verificationTokenHasher;
+    private final RegistrationRepository registrationRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService, EmailService emailService) {
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       TokenService tokenService,
+                       EmailService emailService,
+                       RefreshTokenHasher verificationTokenHasher,
+                       RegistrationRepository registrationRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
         this.emailService = emailService;
+        this.verificationTokenHasher = verificationTokenHasher;
+        this.registrationRepository = registrationRepository;
     }
 
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
-    public User createPendingUser(UserReqModel userReqModel, String verificationCode) {
-        User user = new User();
-        user.setEmail(userReqModel.email());
-        String hashedPassword = passwordEncoder.encode(userReqModel.password());
-        user.setPassword(hashedPassword);
-        user.setStatus(UserStatus.PENDING);
-        user.setVerificationCode(verificationCode);
-        user.setVerificationCodeExpiry(LocalDateTime.now().plusHours(3));
-        return userRepository.save(user);
+    public Registration_Request createPendingUser(UserReqModel userReqModel, String verificationCode) {
+        return new Registration_Request(
+                userReqModel.email(),
+                passwordEncoder.encode(userReqModel.password()),
+                verificationTokenHasher.hash(verificationCode),
+                Instant.now().plus(3, HOURS)
+        );
     }
 
     public void registerUser(UserReqModel userReqModel) {
         String verificationCode = tokenService.generateOpaqueToken();
-        User user = createPendingUser(userReqModel, verificationCode);
-        userRepository.save(user);
+        Registration_Request user = createPendingUser(userReqModel, verificationCode);
+        registrationRepository.save(user);
 
         // E-Mail versenden
         String title = "E-Mail Verifizierung";
@@ -53,9 +63,15 @@ public class UserService {
         Bitte verifizieren Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:
         http://localhost:8080/api/auth/verify-email?code=%s
         """, verificationCode);
-
         // TODO: Domain anpassen, wenn HTTPS und Reverse Proxy eingerichtet wurden
-        // TODO: GlobalExceptionHandler implementieren (allgemein)
+
+
+        if (existsByEmail(userReqModel.email())) {
+            title = "Hinweis auf ungewöhnliche Registrierungsaktivität";
+            message = "Es wurde versucht, diese E-Mail-Adresse erneut zu registrieren. " +
+                    "Wenn Sie das nicht waren, können Sie diese Nachricht ignorieren.";
+        }
+
         emailService.sendVerificationEmail(
                 user.getEmail(),
                 title,
@@ -65,29 +81,30 @@ public class UserService {
     }
 
     public boolean verifyUserEmail(@NotBlank(message = "Ungültiger Verifizierungscode.") @Size(min = 43, max = 43, message = "Ungültiger Verifizierungscode.") String code) {
-        Optional<User> user = userRepository.findByVerificationCode(code);
 
-        if (user.isEmpty()) {
+        //Optional<User> user = userRepository.findByVerificationCode(code);
+        Optional<Registration_Request> regReq = registrationRepository
+                .findByVerificationCodeAndVerificationCodeExpiryAfter(
+                        verificationTokenHasher.hash(code),
+                        Instant.now()
+                );
+
+        if (regReq.isEmpty()) {
             return false; // Kein Benutzer mit diesem Code gefunden
         }
-        User foundUser = user.get();
-        if (foundUser.getStatus() == UserStatus.VERIFIED) {
-            return false; // Bereits verifiziert
+        if (userRepository.existsByEmail(regReq.get().getEmail())) {
+            return false; // E-Mail ist bereits registriert
         }
 
-        if (foundUser.getStatus() == UserStatus.PENDING) {
-            if (foundUser.getVerificationCodeExpiry().isBefore(LocalDateTime.now())) {
-                return false; // Code ist abgelaufen
-            }
-            foundUser.setStatus(UserStatus.VERIFIED);
-            foundUser.setVerifiedAt(LocalDateTime.now());
-            foundUser.setVerificationCode(null); // Code löschen
-            foundUser.setVerificationCodeExpiry(null); // Ablaufdatum löschen
-            userRepository.save(foundUser);
-            return true; // Erfolgreich verifiziert
-        } else {
-            return false; // Ungültiger Status
-        }
+        User user = new User(
+                regReq.get().getEmail(),
+                regReq.get().getPassword_hash()
+        );
+        userRepository.save(user);
+        registrationRepository.delete(regReq.get());
+
+        return true; // Erfolgreich verifiziert
+
     }
 
     public UUID getUserIdByEmail(String email) {
@@ -103,9 +120,6 @@ public class UserService {
         User user = userOpt.get();
         if (!passwordEncoder.matches(password, user.getPassword_hash())) {
             throw new IllegalArgumentException("Ungültige Anmeldedaten.");
-        }
-        if (user.getStatus() != UserStatus.VERIFIED) {
-            throw new IllegalStateException("Benutzerkonto ist nicht verifiziert.");
         }
     }
 
