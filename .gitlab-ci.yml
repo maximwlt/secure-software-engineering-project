@@ -1,6 +1,7 @@
 stages:
   - build
   - test_backend
+  - push
 build-job:
   stage: build
   image: docker:24.0.5-cli
@@ -47,4 +48,20 @@ backend-test:
     - docker run --env POSTGRES_USER --env POSTGRES_DB --env POSTGRES_PASSWORD -d --name db postgres:18
     # start backend container, with modified entrypoint for testing and env variables
     - docker run --entrypoint /app/mvnw --env POSTGRES_USER --env POSTGRES_DB --env POSTGRES_PASSWORD --env DB_URL --env MAIL_HOST --env MAIL_PORT --env JWT_SECRET --env REFRESH_TOKEN_HMAC_SECRET --link "db:database" --link "mailhog:mailhog" --name backend "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" test
-
+registry-push:
+  stage: push
+  needs:
+    - build-job
+  image: docker:24.0.5-cli
+  services:
+    - name: docker:24.0.5-dind
+      alias: docker
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker load -i projekt/app/build.tar
+  script:
+    - docker push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - when: never
