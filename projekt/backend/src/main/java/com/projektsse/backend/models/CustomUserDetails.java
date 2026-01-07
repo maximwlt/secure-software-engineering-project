@@ -1,6 +1,8 @@
 package com.projektsse.backend.models;
 
 import com.projektsse.backend.repository.entities.User;
+import jakarta.validation.constraints.NotNull;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -15,6 +17,7 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
+    @NullMarked
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();
     }
@@ -25,6 +28,7 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
+    @NullMarked
     public String getUsername() {
         return user.getId().toString();
     }

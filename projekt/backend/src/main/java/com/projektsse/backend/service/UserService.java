@@ -44,13 +44,12 @@ public class UserService {
     }
 
     public Registration_Request createPendingUser(UserReqModel userReqModel, String verificationCode) {
-        Registration_Request user_req = new Registration_Request(
+        return new Registration_Request(
                 userReqModel.email(),
                 passwordEncoder.encode(userReqModel.password()),
                 verificationTokenHasher.hash(verificationCode),
                 Instant.now().plus(3, HOURS)
         );
-        return user_req;
     }
 
     public void registerUser(UserReqModel userReqModel) {
@@ -67,7 +66,7 @@ public class UserService {
         // TODO: Domain anpassen, wenn HTTPS und Reverse Proxy eingerichtet wurden
 
 
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (existsByEmail(userReqModel.email())) {
             title = "Hinweis auf ungewöhnliche Registrierungsaktivität";
             message = "Es wurde versucht, diese E-Mail-Adresse erneut zu registrieren. " +
                     "Wenn Sie das nicht waren, können Sie diese Nachricht ignorieren.";
