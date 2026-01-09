@@ -42,4 +42,5 @@ services:
     links:
       - "backend:backend"
     ports:
-      - "8080:443"
+      - "8080:8080"
+      - "8081:8081"
