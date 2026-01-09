@@ -6,6 +6,7 @@ import { isValidUUID } from '../utils/validation';
 import '../styling/DocumentDetailPage.css';
 import {SafeMarkdown} from "./SafeMarkdown.tsx";
 import Navbar from "./Navbar.tsx";
+import {jwtDecode, type JwtPayload} from "jwt-decode";
 
 interface DocumentDetail {
     noteId: string;
@@ -24,6 +25,10 @@ function DocumentDetailPage() {
     const [document, setDocument] = useState<DocumentDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const jwttoken = auth.token;
+    const decodedToken = jwtDecode<JwtPayload>(jwttoken || '') || {};
+    const isOwner  = decodedToken.sub === document?.userId;
 
     useEffect(() => {
         if (!documentId || !isValidUUID(documentId)) {
@@ -59,8 +64,31 @@ function DocumentDetailPage() {
     }, [documentId, auth]);
 
     const handleBack = () => {
-        // navigate('/documents/public');
         navigate(-1); // Vorherige Seite in der Historie
+    };
+
+    const handleDelete = async () => {
+        if (!documentId) return;
+
+        const confirmed = window.confirm(
+            "Willst du dieses Dokument wirklich löschen?"
+        );
+        if (!confirmed) return;
+
+        try {
+            const response = await apiFetch(
+                auth,
+                `/api/documents/${documentId}`, {
+                    method: "DELETE"
+                }
+            );
+            if (!response.ok) {
+                throw new Error("Löschen fehlgeschlagen");
+            }
+            navigate(-1);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Fehler beim Löschen");
+        }
     };
 
     if (isLoading) {
@@ -110,37 +138,18 @@ function DocumentDetailPage() {
 
 
                 </div>
+
+                { isOwner && (
+                    <button onClick={handleDelete} className="delete-button">
+                        Löschen
+                    </button>)
+                }
+
             </div>
         </>
     );
 }
 
+
+
 export default DocumentDetailPage
-
-
-/*
-
-<SafeMarkdown markdown={document.md_content} />
-                <div className="document-meta">
-                    <div className="meta-item">
-                        <span className="meta-label">Dokument-ID:</span>
-                        <span className="meta-value">{document.noteId}</span>
-                    </div>
-                    {document.createdAt && (
-                        <div className="meta-item">
-                            <span className="meta-label">Erstellt am:</span>
-                            <span className="meta-value">
-                                {new Date(document.createdAt).toLocaleString('de-DE')}
-                            </span>
-                        </div>
-                    )}
-                    {document.updatedAt && (
-                        <div className="meta-item">
-                            <span className="meta-label">Aktualisiert am:</span>
-                            <span className="meta-value">
-                                {new Date(document.updatedAt).toLocaleString('de-DE')}
-                            </span>
-                        </div>
-                    )}
-                </div>
- */

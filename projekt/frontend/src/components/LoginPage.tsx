@@ -3,6 +3,7 @@ import ErrorMessage from "./ErrorMessage";
 import { useAuth } from "../utils/useAuth.ts";
 import {getCookie} from "../utils/cookies.ts";
 import Navbar from "./Navbar.tsx";
+import "../styling/DocumentDetailPage.css";
 
 
 interface FormData {
@@ -106,6 +107,13 @@ function LoginPage() {
                     >
                         {isSubmitting ? 'Wird abgemeldet...' : 'Abmelden'}
                     </button>
+
+
+                    <button className="delete-button">
+                        Nutzer löschen
+                    </button>
+
+
 
                 </div>
             </>
