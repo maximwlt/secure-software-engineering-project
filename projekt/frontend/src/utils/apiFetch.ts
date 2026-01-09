@@ -42,7 +42,7 @@ export async function apiFetch(
     // Access Token refreshen
     const newToken = await auth.refreshAccessToken();
     if (!newToken) {
-        throw new Error("Session abgelaufen");
+        throw new Error("Sie müssen angemeldet sein, um diese Aktion durchzuführen.");
     }
 
     // Retry mit neuem Token + CSRF

@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.jsoup.Jsoup;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -76,8 +75,7 @@ public class NotesController {
     )
     public ResponseEntity<?> createNote(@Valid @RequestBody NoteReq noteReq, @CurrentUserId UUID userId) {
         NoteModel note = noteService.createNote(noteReq, userId.toString());
-        return ResponseEntity.status(201)
-                             .build();
+        return ResponseEntity.status(201).body(note.noteId());
 
     }
 

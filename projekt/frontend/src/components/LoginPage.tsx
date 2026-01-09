@@ -66,7 +66,7 @@ function LoginPage() {
                 headers['X-XSRF-TOKEN'] = csrf_token;
             }
 
-            const response = await fetch('/api/auth/logout', {
+            const response = await fetch('/api/auth/rt/logout', {
                 method: 'POST',
                 headers: headers,
                 credentials: 'include',
