@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.jsoup.Jsoup;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -75,6 +76,17 @@ public class NotesController {
     )
     public ResponseEntity<?> createNote(@Valid @RequestBody NoteReq noteReq, @CurrentUserId UUID userId) {
         NoteModel note = noteService.createNote(noteReq, userId.toString());
-        return ResponseEntity.status(201).body(note); // TODO: Fix this XSS issue by nginx configuration or Spring settings in SecurityConfig
+        return ResponseEntity.status(201)
+                             .build();
+
+    }
+
+    @DeleteMapping("/{docId}")
+    public ResponseEntity<?> deleteNote(
+            @PathVariable UUID docId,
+            @CurrentUserId UUID userId
+    ) {
+        noteService.deleteNote(docId, userId);
+        return ResponseEntity.noContent().build();
     }
 }

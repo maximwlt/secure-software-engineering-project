@@ -1,8 +1,10 @@
 package com.projektsse.backend.controller;
 
 import com.projektsse.backend.controller.dto.AuthResponse;
+import com.projektsse.backend.controller.dto.DeleteAccountReq;
 import com.projektsse.backend.controller.dto.LoginReq;
 import com.projektsse.backend.controller.dto.RegisterReq;
+import com.projektsse.backend.interfaces.CurrentUserId;
 import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.TokenService;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,12 +42,6 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterReq req) {
 
-        // Remove to avoid User Enumeration attack
-//        if (userService.existsByEmail(req.email())) {
-//            return ResponseEntity.status(HttpStatus.CONFLICT).body(
-//                    Map.of("message", "E-Mail ist bereits registriert")
-//            );
-//        }
         UserReqModel userReqModel = new UserReqModel(req.email(), req.password());
 
         userService.registerUser(userReqModel);
@@ -170,6 +167,18 @@ public class AuthController {
         return  ResponseEntity.ok()
                 .header("Set-Cookie", deleteCookie.toString())
                 .body(Map.of("message", "Erfolgreich abgemeldet."));
+    }
+
+
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteAccount(
+            @CurrentUserId UUID userId,
+            @Valid @RequestBody DeleteAccountReq deleteAccountReq
+    ) {
+        userService.deleteUserAccount(userId, deleteAccountReq.password());
+
+        return  ResponseEntity.ok()
+                .body(Map.of("message", "Benutzerkonto erfolgreich gelöscht."));
     }
 }
 

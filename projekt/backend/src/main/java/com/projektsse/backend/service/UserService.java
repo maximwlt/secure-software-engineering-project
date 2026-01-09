@@ -1,5 +1,6 @@
 package com.projektsse.backend.service;
 
+import com.projektsse.backend.exceptions.UserNotFoundException;
 import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.repository.RegistrationRepository;
 import com.projektsse.backend.repository.UserRepository;
@@ -123,7 +124,14 @@ public class UserService {
         }
     }
 
+
     public User getUserById(String userId) {
         return userRepository.findById(UUID.fromString(userId)).orElse(null);
+    }
+
+    public void deleteUserAccount(UUID userId, @NotBlank(message = "Passwort darf nicht leer sein.") String password) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Benutzer nicht gefunden."));
+        authenticateUser(user.getEmail(), password);
+        userRepository.delete(user);
     }
 }

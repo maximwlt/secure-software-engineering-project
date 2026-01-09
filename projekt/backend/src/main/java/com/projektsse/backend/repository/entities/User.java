@@ -32,6 +32,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Note> notes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens = new ArrayList<>();
 
     public User(String email, String passwordHash) {
         this.email = email;
@@ -41,6 +43,8 @@ public class User {
     public User() {}
 
     public UUID getId() { return id; }
+
+    public String getEmail() { return email; }
 
     public void setPassword(String hashedPassword) { this.password_hash = hashedPassword; }
     public String getPassword_hash() {
