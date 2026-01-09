@@ -22,20 +22,6 @@ public class User {
     @Column(name="password_hash", nullable = false, length = 255)
     private String password_hash;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name="status", nullable = false)
-    private UserStatus status;
-
-    @Column(name="verification_code", unique = true)
-    private String verificationCode;
-
-    @Column(name="verification_code_expiry")
-    private LocalDateTime verificationCodeExpiry;
-
-    @CreationTimestamp
-    @Column(name="verified_at")
-    private LocalDateTime verifiedAt;
-
     @CreationTimestamp
     @Column(name="created_at", updatable = false, nullable = false)
     private LocalDateTime created_at;
@@ -46,27 +32,17 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Note> notes = new ArrayList<>();
 
-    public UUID getId() { return id; }
-    public void addNote(Note note) {
-        notes.add(note);
-        note.setOwner(this);
-    }
-    public void removeNote(Note note) {
-        notes.remove(note);
-        note.setOwner(null);
-    }
-    public List<Note> getNotes() { return notes; }
-    public UserStatus getStatus() { return status; }
-    public LocalDateTime getVerificationCodeExpiry() { return verificationCodeExpiry; }
-    public String getVerificationCode() { return verificationCode; }
-    public void setEmail(String email) { this.email = email; }
-    public void setStatus(UserStatus userStatus) { this.status = userStatus; }
-    public String getEmail() { return email; }
-    public void setPassword(String hashedPassword) { this.password_hash = hashedPassword; }
-    public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
-    public void setVerificationCodeExpiry(LocalDateTime verificationCodeExpiry) { this.verificationCodeExpiry = verificationCodeExpiry; }
-    public void setVerifiedAt(LocalDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
 
+    public User(String email, String passwordHash) {
+        this.email = email;
+        this.password_hash = passwordHash;
+    }
+
+    public User() {}
+
+    public UUID getId() { return id; }
+
+    public void setPassword(String hashedPassword) { this.password_hash = hashedPassword; }
     public String getPassword_hash() {
         return password_hash;
     }
