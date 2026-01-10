@@ -123,6 +123,17 @@
     margin-top: 2rem;
 }
 
+.delete-confirm-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid #f44336;
+    border-radius: 8px;
+    background-color: #ffe4e9;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .document-detail-container {
