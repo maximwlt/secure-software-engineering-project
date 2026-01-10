@@ -7,6 +7,7 @@ import '../styling/DocumentDetailPage.css';
 import {SafeMarkdown} from "./SafeMarkdown.tsx";
 import Navbar from "./Navbar.tsx";
 import {jwtDecode, type JwtPayload} from "jwt-decode";
+import DOMPurify from "dompurify";
 
 interface DocumentDetail {
     noteId: string;
@@ -110,6 +111,8 @@ function DocumentDetailPage() {
         );
     }
 
+    const sanitizedTitle = DOMPurify.sanitize(document.title);
+
     return (
         <>
             <Navbar />
@@ -121,7 +124,7 @@ function DocumentDetailPage() {
                 <div className="document-detail-card">
                     <header className="document-header">
                         <h1 className="document-title">
-                            <SafeMarkdown markdown={document.title}/>
+                            {sanitizedTitle}
                         </h1>
                         {document.is_private ? (
                                 <span className="content-badge">🔒 Privat</span>

@@ -32,6 +32,7 @@ function LoginPage() {
 
     const [errors, setErrors] = useState<Errors>({});
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [cookieConsent, setCookieConsent] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target;
@@ -49,6 +50,11 @@ function LoginPage() {
     };
 
     const handleSubmit = (): void => {
+        if (!cookieConsent) {
+            setErrors({ general: 'Bitte stimmen Sie der Verwendung von notwendigen Cookies zu.' });
+            return;
+        }
+
         submitLogin(formData, setIsSubmitting, setErrors, login).catch(
             error => {
                 setErrors({
@@ -216,6 +222,18 @@ function LoginPage() {
                     <ErrorMessage
                         message={errors.password}
                         type="field"/>
+                </div>
+
+                <div>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={cookieConsent}
+                            onChange={(e) => setCookieConsent(e.target.checked)}
+                            required
+                        />
+                        {' '}Ich stimme der Verwendung von notwendigen Cookies zu.
+                    </label>
                 </div>
 
                 <ErrorMessage

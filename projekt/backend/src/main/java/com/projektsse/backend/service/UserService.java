@@ -8,6 +8,7 @@ import com.projektsse.backend.repository.entities.Registration_Request;
 import com.projektsse.backend.repository.entities.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -119,8 +120,14 @@ public class UserService {
             throw new IllegalArgumentException("Ungültige Anmeldedaten.");
         }
         User user = userOpt.get();
-        if (!passwordEncoder.matches(password, user.getPassword_hash())) {
+        String hashedPassword = user.getPassword_hash();
+        if (!passwordEncoder.matches(password, hashedPassword)) {
             throw new IllegalArgumentException("Ungültige Anmeldedaten.");
+        }
+        // Wenn Konfiguration von Argon2id geändert wurde, soll gerehashed werden
+        if (passwordEncoder instanceof Argon2PasswordEncoder && passwordEncoder.upgradeEncoding(user.getPassword_hash())) {
+            user.setPassword(passwordEncoder.encode(password));
+            userRepository.save(user);
         }
     }
 
