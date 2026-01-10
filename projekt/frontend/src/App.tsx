@@ -23,7 +23,7 @@ function App() {
                 <Route path="users">
                     <Route path="my-documents" element={<UserDocumentsPage />} />
                 </Route>
-                <Route path="*" element={<> <Navbar /> <div>Not Found</div> </>} />
+                <Route path="*" element={<> <Navbar /> <div>Main Page</div> </>} />
             </Routes>
         </AuthProvider>
     );
