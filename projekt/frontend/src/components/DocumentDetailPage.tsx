@@ -37,6 +37,11 @@ function DocumentDetailPage() {
             setIsLoading(false);
             return;
         }
+        if (auth == null) {
+            setError('Authentifizierung erforderlich!');
+            setIsLoading(false);
+            return;
+        }
 
         const fetchDocument = async () => {
             try {
