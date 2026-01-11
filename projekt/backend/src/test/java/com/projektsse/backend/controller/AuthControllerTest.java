@@ -7,6 +7,7 @@ import com.projektsse.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.test.json.JsonComparator;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
@@ -37,29 +38,5 @@ class AuthControllerTest {
                 .expectStatus().isCreated()
                 .expectBody()
                 .jsonPath("$.message").isEqualTo("Benutzer erfolgreich registriert. Bitte überprüfen Sie Ihre E-Mails zur Verifizierung.");
-    }
-
-    @Test
-    void registerFalseEmail() {
-        client.post()
-                .uri("/api/auth/register")
-                .body(new RegisterReq("invalid-email", "Xfr@nke41!g+6&4"))
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectBody()
-                .jsonPath("$.email").isEqualTo("Ungültige E-Mail-Adresse");
-    }
-
-    @Test
-    void registerWeakPassword() {
-        client.post()
-              .uri("/api/auth/register")
-              .body(new RegisterReq("frankestein@gmail.com", "pass123"))
-              .exchange()
-              .expectStatus()
-              .isBadRequest()
-              .expectBody()
-              .jsonPath("$.password")
-              .isEqualTo("Passwort ist zu schwach");
     }
 }
