@@ -1,9 +1,15 @@
 version: 2
 updates:
-  - package-ecosystem: docker-compose
-    directory: /projekt
+  - package-ecosystem: "docker"
+    directory: "/projekt"
     schedule:
-      interval: daily
+      interval: "daily"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    assignees:
+      - "@kalt09"
   - package-ecosystem: maven
     directory: /projekt/backend
     schedule:
