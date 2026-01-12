@@ -14,7 +14,7 @@ build-job:
 #    - mkdir projekt/app
   script:
     - cd projekt
-    - docker compose create
+    - docker compose create --build
     - docker compose push
   after_script:
     - docker compose down
