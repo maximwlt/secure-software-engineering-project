@@ -13,6 +13,7 @@ updates:
       include: "scope"
     assignees:
       - "@kalt09"
+    target-branch: "7-dependency-agent-einstellen"
   - package-ecosystem: "maven"
     directory: "/projekt/backend"
     schedule:

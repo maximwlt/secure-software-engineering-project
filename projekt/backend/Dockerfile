@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21
+FROM eclipse-temurin:20
 COPY . /app
 WORKDIR /app
 
