@@ -39,10 +39,10 @@ export function PublicDocumentsPage() {
                 if (!response.ok) {
                     setError("Fehler beim Laden der Dokumente");
                 }
-                else {
+
                     const data = await response.json();
                     setDocuments(data);
-                }
+
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
             } finally {

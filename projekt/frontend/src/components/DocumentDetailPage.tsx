@@ -27,18 +27,19 @@ function DocumentDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const jwttoken = auth.token;
-    const decodedToken = jwtDecode<JwtPayload>(jwttoken || '') || {};
-    const isOwner  = decodedToken.sub === document?.userId;
+    const isOwner = (() => {
+        if (!auth?.token || !document) return false;
+        try {
+            const decodedToken = jwtDecode<JwtPayload>(auth.token);
+            return decodedToken.sub === document.userId;
+        } catch {
+            return false;
+        }
+    })();
 
     useEffect(() => {
         if (!documentId || !isValidUUID(documentId)) {
             setError('Ungültige Dokument-ID');
-            setIsLoading(false);
-            return;
-        }
-        if (auth == null) {
-            setError('Authentifizierung erforderlich!');
             setIsLoading(false);
             return;
         }
@@ -105,10 +106,21 @@ function DocumentDetailPage() {
         );
     }
 
-    if (error || !document) {
+    if (error) {
         return (
             <div className="document-detail-container">
                 <div className="error-message">⚠️ {error || 'Dokument nicht gefunden'}</div>
+                <button onClick={handleBack} className="back-button">
+                    ← Zurück zur Übersicht
+                </button>
+            </div>
+        );
+    }
+
+    if (!document) {
+        return (
+            <div className="document-detail-container">
+                <div className="error-message">⚠️ Dokument nicht gefunden</div>
                 <button onClick={handleBack} className="back-button">
                     ← Zurück zur Übersicht
                 </button>
