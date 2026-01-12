@@ -15,7 +15,7 @@ build-job:
   script:
     - cd projekt
     - docker compose create
-    - docker push
+    - docker compose push
 #    - docker save -o app/frontend.tar "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
 #    - docker save -o app/backend.tar "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}"
 #  artifacts:
