@@ -62,6 +62,6 @@ registry-push:
   script:
     - docker push
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       when: always
     - when: never
