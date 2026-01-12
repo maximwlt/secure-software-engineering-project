@@ -17,7 +17,7 @@ build-job:
     - docker compose create --build
     - docker compose push
   after_script:
-    - docker compose down
+    - docker compose -f projekt/compose.yml down
 #    - docker save -o app/frontend.tar "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
 #    - docker save -o app/backend.tar "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}"
 #  artifacts:
