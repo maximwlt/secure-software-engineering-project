@@ -16,6 +16,8 @@ build-job:
     - cd projekt
     - docker compose create
     - docker compose push
+  after_script:
+    - docker compose down
 #    - docker save -o app/frontend.tar "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
 #    - docker save -o app/backend.tar "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}"
 #  artifacts:
@@ -51,6 +53,8 @@ backend-test:
     - docker run --env POSTGRES_USER --env POSTGRES_DB --env POSTGRES_PASSWORD -d --name db postgres:18
     # start backend container, with modified entrypoint for testing and env variables
     - docker run --entrypoint /app/mvnw --env POSTGRES_USER --env POSTGRES_DB --env POSTGRES_PASSWORD --env DB_URL --env MAIL_HOST --env MAIL_PORT --env JWT_SECRET --env REFRESH_TOKEN_HMAC_SECRET --link "db:database" --link "mailhog:mailhog" --name backend "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" test
+  after_script:
+    - docker rm -f mailhog db backend
 #registry-push:
 #  stage: push
 #  needs:
