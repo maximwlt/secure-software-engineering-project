@@ -4,41 +4,69 @@ updates:
     directory: "/projekt"
     schedule:
       interval: "daily"
+    vulnerability-alerts:
+      enabled: true
+      confidential: true
+      assignees:
+        - "kalt09"
+        - "mwlt39"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "deps"
       include: "scope"
     assignees:
-        - "kalt09"
+      - "kalt09"
+      - "mwlt39"
   - package-ecosystem: "docker"
     directories:
       - "/projekt/backend"
       - "/projekt/frontend"
     schedule:
       interval: "daily"
+    vulnerability-alerts:
+      enabled: true
+      confidential: true
+      assignees:
+        - "kalt09"
+        - "mwlt39"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "deps"
       include: "scope"
     assignees:
       - "kalt09"
+      - "mwlt39"
   - package-ecosystem: "maven"
     directory: "/projekt/backend"
     schedule:
       interval: "daily"
+    vulnerability-alerts:
+      enabled: true
+      confidential: true
+      assignees:
+        - "kalt09"
+        - "mwlt39"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "deps"
       include: "scope"
     assignees:
       - "kalt09"
+      - "mwlt39"
   - package-ecosystem: "npm"
     directory: "/projekt/frontend"
     schedule:
       interval: "daily"
+    vulnerability-alerts:
+      enabled: true
+      confidential: true
+      assignees:
+        - "kalt09"
+        - "mwlt39"
     open-pull-requests-limit: 5
     commit-message:
       prefix: "deps"
       include: "scope"
     assignees:
       - "kalt09"
+      - "mwlt39"
