@@ -1,7 +1,6 @@
 stages:
   - build
   - test_backend
-  - push
 build-job:
   stage: build
   image: docker:24.0.5-cli
@@ -9,16 +8,14 @@ build-job:
     - name: docker:24.0.5-dind
       alias: docker
   before_script:
-  #  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - touch projekt/.env
-    - mkdir projekt/app
   script:
     - cd projekt
-    - docker compose create
-    - docker save -o app/build.tar "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
-  artifacts:
-    paths:
-      - projekt/app
+    - docker compose create --build
+    - docker compose push
+  after_script:
+    - docker compose -f projekt/compose.yml down
 backend-test:
   stage: test_backend
   needs:
@@ -30,7 +27,7 @@ backend-test:
   variables:
     POSTGRES_USER: test_user
     POSTGRES_DB: test_db
-    POSTGRES_PASSWORD: test_pw # probably needs to be a secret too
+    POSTGRES_PASSWORD: test_pw
 
     DB_URL: jdbc:postgresql://database:5432/test_db
 
@@ -41,27 +38,11 @@ backend-test:
     MAIL_HOST: mailhog
     MAIL_PORT: 1025
   before_script:
-    - docker load -i projekt/app/build.tar
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
     - docker run -p 8025:8025 -p 1025:1025 -d --name mailhog mailhog/mailhog:v1.0.1
-    # start database container, with env variables
     - docker run --env POSTGRES_USER --env POSTGRES_DB --env POSTGRES_PASSWORD -d --name db postgres:18
     # start backend container, with modified entrypoint for testing and env variables
     - docker run --entrypoint /app/mvnw --env POSTGRES_USER --env POSTGRES_DB --env POSTGRES_PASSWORD --env DB_URL --env MAIL_HOST --env MAIL_PORT --env JWT_SECRET --env REFRESH_TOKEN_HMAC_SECRET --link "db:database" --link "mailhog:mailhog" --name backend "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" test
-registry-push:
-  stage: push
-  needs:
-    - build-job
-  image: docker:24.0.5-cli
-  services:
-    - name: docker:24.0.5-dind
-      alias: docker
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - docker load -i projekt/app/build.tar
-  script:
-    - docker push
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-    - when: never
+  after_script:
+    - docker rm -f mailhog db backend
