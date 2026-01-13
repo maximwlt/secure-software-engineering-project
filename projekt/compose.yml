@@ -32,7 +32,6 @@ services:
       - "mailhog:mailhog"
     restart: on-failure
 
-
   frontend:
     image: "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
     build: frontend
@@ -41,6 +40,7 @@ services:
       backend:
         condition: service_started
     links:
-        - "backend:backend"
+      - "backend:backend"
     ports:
-      - "8080:80"
+      - "8080:8080"
+      - "8081:8081"
