@@ -1,8 +1,26 @@
 stages:
-  - build
   - test_backend
+  - test_frontend
+  - build
+backend-test:
+  stage: test_backend
+  image: eclipse-temurin:25
+  script:
+    # start backend container, with modified entrypoint for testing
+    - cd projekt/backend
+    - ./mvnw clean test
+frontend-test:
+  stage: test_frontend
+  image: node:25.2.1-alpine
+  script:
+    - cd projekt/frontend
+    - npm install
+    - npm run test run
 build-job:
   stage: build
+  needs:
+    - frontend-test
+    - backend-test
   image: docker:24.0.5-cli
   services:
     - name: docker:24.0.5-dind
@@ -16,33 +34,8 @@ build-job:
     - docker compose push
   after_script:
     - docker compose -f projekt/compose.yml down
-backend-test:
-  stage: test_backend
-  needs:
-    - build-job
-  image: docker:24.0.5-cli
-  services:
-    - name: docker:24.0.5-dind
-      alias: docker
-  variables:
-    POSTGRES_USER: test_user
-    POSTGRES_DB: test_db
-    POSTGRES_PASSWORD: test_pw
-
-    DB_URL: jdbc:postgresql://database:5432/test_db
-
-    JWT_SECRET: $JWT_SECRET
-
-    REFRESH_TOKEN_HMAC_SECRET: $REFRESH_TOKEN_HMAC_SECRET
-
-    MAIL_HOST: mailhog
-    MAIL_PORT: 1025
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-  script:
-    - docker run -p 8025:8025 -p 1025:1025 -d --name mailhog mailhog/mailhog:v1.0.1
-    - docker run --env POSTGRES_USER --env POSTGRES_DB --env POSTGRES_PASSWORD -d --name db postgres:18
-    # start backend container, with modified entrypoint for testing and env variables
-    - docker run --entrypoint /app/mvnw --env POSTGRES_USER --env POSTGRES_DB --env POSTGRES_PASSWORD --env DB_URL --env MAIL_HOST --env MAIL_PORT --env JWT_SECRET --env REFRESH_TOKEN_HMAC_SECRET --link "db:database" --link "mailhog:mailhog" --name backend "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" test
-  after_script:
-    - docker rm -f mailhog db backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - if: $CI_COMMIT_TAG
+      when: on_success

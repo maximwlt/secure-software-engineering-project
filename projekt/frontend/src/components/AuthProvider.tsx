@@ -29,7 +29,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                     };
                     if (csrf) headers["X-XSRF-TOKEN"] = csrf;
 
-                    const res = await fetch("/api/auth/refresh-token", {
+                    const res = await fetch("/api/auth/rt/refresh-token", {
                         method: "POST",
                         credentials: "include",
                         headers,

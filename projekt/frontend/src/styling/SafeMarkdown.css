@@ -43,3 +43,15 @@
     border-radius: 8px;
     max-width: 100%;
 }
+
+.image-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.safe-markdown-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 3px;
+}

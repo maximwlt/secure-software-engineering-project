@@ -75,4 +75,8 @@ public class Note {
     public void setIsPrivate(@NotNull(message = "Sichtbarkeit muss angegeben werden") boolean isPrivate) {
         this.isPrivate = isPrivate;
     }
+
+    public User getOwner() {
+        return this.user;
+    }
 }

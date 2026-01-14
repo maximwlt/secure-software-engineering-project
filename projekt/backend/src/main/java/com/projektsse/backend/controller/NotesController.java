@@ -75,6 +75,16 @@ public class NotesController {
     )
     public ResponseEntity<?> createNote(@Valid @RequestBody NoteReq noteReq, @CurrentUserId UUID userId) {
         NoteModel note = noteService.createNote(noteReq, userId.toString());
-        return ResponseEntity.status(201).body(note); // TODO: Fix this XSS issue by nginx configuration or Spring settings in SecurityConfig
+        return ResponseEntity.status(201).body(note.noteId());
+
+    }
+
+    @DeleteMapping("/{docId}")
+    public ResponseEntity<?> deleteNote(
+            @PathVariable UUID docId,
+            @CurrentUserId UUID userId
+    ) {
+        noteService.deleteNote(docId, userId);
+        return ResponseEntity.noContent().build();
     }
 }
