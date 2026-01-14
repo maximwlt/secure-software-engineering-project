@@ -18,6 +18,9 @@ frontend-test:
     - npm run test run
 build-job:
   stage: build
+  needs:
+    - frontend-test
+    - backend-test
   image: docker:24.0.5-cli
   services:
     - name: docker:24.0.5-dind
@@ -32,6 +35,4 @@ build-job:
   after_script:
     - docker compose -f projekt/compose.yml down
   rules:
-    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" && $CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-    - when: never
+    - if: $CI_COMMIT_BRANCH == "main"
