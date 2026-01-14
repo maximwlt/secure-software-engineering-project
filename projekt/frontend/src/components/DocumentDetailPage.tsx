@@ -6,6 +6,8 @@ import { isValidUUID } from '../utils/validation';
 import '../styling/DocumentDetailPage.css';
 import {SafeMarkdown} from "./SafeMarkdown.tsx";
 import Navbar from "./Navbar.tsx";
+import {jwtDecode, type JwtPayload} from "jwt-decode";
+import DOMPurify from "dompurify";
 
 interface DocumentDetail {
     noteId: string;
@@ -24,6 +26,16 @@ function DocumentDetailPage() {
     const [document, setDocument] = useState<DocumentDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const isOwner = (() => {
+        if (!auth?.token || !document) return false;
+        try {
+            const decodedToken = jwtDecode<JwtPayload>(auth.token);
+            return decodedToken.sub === document.userId;
+        } catch {
+            return false;
+        }
+    })();
 
     useEffect(() => {
         if (!documentId || !isValidUUID(documentId)) {
@@ -59,8 +71,31 @@ function DocumentDetailPage() {
     }, [documentId, auth]);
 
     const handleBack = () => {
-        // navigate('/documents/public');
         navigate(-1); // Vorherige Seite in der Historie
+    };
+
+    const handleDelete = async () => {
+        if (!documentId) return;
+
+        const confirmed = window.confirm(
+            "Willst du dieses Dokument wirklich löschen?"
+        );
+        if (!confirmed) return;
+
+        try {
+            const response = await apiFetch(
+                auth,
+                `/api/documents/${documentId}`, {
+                    method: "DELETE"
+                }
+            );
+            if (!response.ok) {
+                throw new Error("Löschen fehlgeschlagen");
+            }
+            navigate(-1);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Fehler beim Löschen");
+        }
     };
 
     if (isLoading) {
@@ -71,7 +106,7 @@ function DocumentDetailPage() {
         );
     }
 
-    if (error || !document) {
+    if (error) {
         return (
             <div className="document-detail-container">
                 <div className="error-message">⚠️ {error || 'Dokument nicht gefunden'}</div>
@@ -81,6 +116,19 @@ function DocumentDetailPage() {
             </div>
         );
     }
+
+    if (!document) {
+        return (
+            <div className="document-detail-container">
+                <div className="error-message">⚠️ Dokument nicht gefunden</div>
+                <button onClick={handleBack} className="back-button">
+                    ← Zurück zur Übersicht
+                </button>
+            </div>
+        );
+    }
+
+    const sanitizedTitle = DOMPurify.sanitize(document.title);
 
     return (
         <>
@@ -93,7 +141,7 @@ function DocumentDetailPage() {
                 <div className="document-detail-card">
                     <header className="document-header">
                         <h1 className="document-title">
-                            <SafeMarkdown markdown={document.title}/>
+                            {sanitizedTitle}
                         </h1>
                         {document.is_private ? (
                                 <span className="content-badge">🔒 Privat</span>
@@ -110,37 +158,18 @@ function DocumentDetailPage() {
 
 
                 </div>
+
+                { isOwner && (
+                    <button onClick={handleDelete} className="delete-button">
+                        Löschen
+                    </button>)
+                }
+
             </div>
         </>
     );
 }
 
+
+
 export default DocumentDetailPage
-
-
-/*
-
-<SafeMarkdown markdown={document.md_content} />
-                <div className="document-meta">
-                    <div className="meta-item">
-                        <span className="meta-label">Dokument-ID:</span>
-                        <span className="meta-value">{document.noteId}</span>
-                    </div>
-                    {document.createdAt && (
-                        <div className="meta-item">
-                            <span className="meta-label">Erstellt am:</span>
-                            <span className="meta-value">
-                                {new Date(document.createdAt).toLocaleString('de-DE')}
-                            </span>
-                        </div>
-                    )}
-                    {document.updatedAt && (
-                        <div className="meta-item">
-                            <span className="meta-label">Aktualisiert am:</span>
-                            <span className="meta-value">
-                                {new Date(document.updatedAt).toLocaleString('de-DE')}
-                            </span>
-                        </div>
-                    )}
-                </div>
- */

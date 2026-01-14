@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import {useNavigate, useSearchParams} from 'react-router';
 import { apiFetch } from '../utils/apiFetch';
 import { useAuth } from '../utils/useAuth';
 import '../styling/PublicDocumentsPage.css';
@@ -15,14 +15,16 @@ interface PublicDocument {
 
 export function PublicDocumentsPage() {
     const auth = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const [documents, setDocuments] = useState<PublicDocument[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [inputValue, setInputValue] = useState("");
-    const [query, setQuery] = useState("");
+    const [inputValue, setInputValue] = useState(searchParams.get("q") || "");
 
     useEffect(() => {
+        const query = searchParams.get("q") || "";
+
         const fetchDocuments = async () => {
             try {
                 setIsLoading(true);
@@ -36,11 +38,11 @@ export function PublicDocumentsPage() {
 
                 if (!response.ok) {
                     setError("Fehler beim Laden der Dokumente");
-                    return;
                 }
 
-                const data = await response.json();
-                setDocuments(data);
+                    const data = await response.json();
+                    setDocuments(data);
+
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
             } finally {
@@ -49,10 +51,18 @@ export function PublicDocumentsPage() {
         };
 
         fetchDocuments();
-    }, [auth, query]);
+    }, [auth, searchParams]);
 
     const handleCardClick = (noteId: string) => {
         navigate(`/documents/${noteId}`);
+    };
+
+    const handleSearchSubmit = () => {
+        if (inputValue) {
+            setSearchParams({q: inputValue});
+        } else {
+            setSearchParams({});
+        }
     };
 
     if (isLoading) {
@@ -63,20 +73,17 @@ export function PublicDocumentsPage() {
         );
     }
 
-    if (error) {
-        return (
-            <ErrorMessage message= {error} type="general"/>
-        );
-    }
 
     return (
         <>
             <Navbar/>
-            <SearchBar value={inputValue} onChange={setInputValue} onSubmit={() => setQuery(inputValue)} />
+            <SearchBar value={inputValue} onChange={setInputValue} onSubmit={handleSearchSubmit} />
             <div className="public-documents-container">
                 <h1 className="page-title">Öffentliche Dokumente</h1>
 
-                {documents.length === 0 ? (
+                {error && <ErrorMessage message={error} type="general" />}
+
+                {!error && documents.length === 0 ? (
                     <div className="empty-state">
                         <p>Keine öffentlichen Dokumente vorhanden</p>
                     </div>

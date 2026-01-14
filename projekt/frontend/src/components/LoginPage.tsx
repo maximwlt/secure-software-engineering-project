@@ -3,6 +3,9 @@ import ErrorMessage from "./ErrorMessage";
 import { useAuth } from "../utils/useAuth.ts";
 import {getCookie} from "../utils/cookies.ts";
 import Navbar from "./Navbar.tsx";
+import "../styling/DocumentDetailPage.css";
+import {apiFetch} from "../utils/apiFetch.ts";
+import {redirect} from "react-router";
 
 
 interface FormData {
@@ -22,9 +25,14 @@ function LoginPage() {
         email: '',
         password: ''
     });
+    const auth = useAuth();
+
+    const [deletePassword, setDeletePassword] = useState("");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const [errors, setErrors] = useState<Errors>({});
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [cookieConsent, setCookieConsent] = useState<boolean>(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target;
@@ -42,6 +50,11 @@ function LoginPage() {
     };
 
     const handleSubmit = (): void => {
+        if (!cookieConsent) {
+            setErrors({ general: 'Bitte stimmen Sie der Verwendung von notwendigen Cookies zu.' });
+            return;
+        }
+
         submitLogin(formData, setIsSubmitting, setErrors, login).catch(
             error => {
                 setErrors({
@@ -66,7 +79,7 @@ function LoginPage() {
                 headers['X-XSRF-TOKEN'] = csrf_token;
             }
 
-            const response = await fetch('/api/auth/logout', {
+            const response = await fetch('/api/auth/rt/logout', {
                 method: 'POST',
                 headers: headers,
                 credentials: 'include',
@@ -88,6 +101,43 @@ function LoginPage() {
         }
     };
 
+
+
+
+    const handleDeleteAccount = async (): Promise<void> => {
+        if (!deletePassword) {
+            setErrors({ general: "Bitte Passwort eingeben." });
+            return;
+        }
+        /*const confirmed = window.confirm(
+            "Dein Konto wird gelöscht. Fortfahren?"
+        );
+        if (!confirmed) return;*/
+
+        try {
+            const res = await apiFetch(auth, '/api/auth/me', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ password: deletePassword })
+            })
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || 'Konto-Löschung fehlgeschlagen');
+            }
+
+            setErrors({})
+            // Nach erfolgreicher Löschung ausloggen
+            logout();
+            redirect('/');
+        } catch (error) {
+            setErrors({
+                general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
+            });
+        }
+    };
+
     // Wenn eingeloggt: Logout-View anzeigen
     if (isAuthenticated) {
         return (
@@ -106,6 +156,35 @@ function LoginPage() {
                     >
                         {isSubmitting ? 'Wird abgemeldet...' : 'Abmelden'}
                     </button>
+
+                    <button
+                        className="delete-button"
+                        onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+                    >
+                        Nutzerkonto löschen
+                    </button>
+
+                    {showDeleteConfirm && (
+                        <div className="delete-confirm-box">
+                            <p>Bitte Passwort zur Bestätigung eingeben:</p>
+                            <input
+                                type="password"
+                                value={deletePassword}
+                                onChange={(e) => setDeletePassword(e.target.value)}
+                                placeholder="Passwort"
+                            />
+
+                            <button
+                                className="delete-button"
+                                onClick={handleDeleteAccount}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "Lösche..." : "Konto endgültig löschen"}
+                            </button>
+
+                        </div>
+                    )}
+
 
                 </div>
             </>
@@ -143,6 +222,18 @@ function LoginPage() {
                     <ErrorMessage
                         message={errors.password}
                         type="field"/>
+                </div>
+
+                <div>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={cookieConsent}
+                            onChange={(e) => setCookieConsent(e.target.checked)}
+                            required
+                        />
+                        {' '}Ich stimme der Verwendung von notwendigen Cookies zu.
+                    </label>
                 </div>
 
                 <ErrorMessage

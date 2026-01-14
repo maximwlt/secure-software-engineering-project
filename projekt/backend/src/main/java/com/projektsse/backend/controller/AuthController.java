@@ -1,12 +1,15 @@
 package com.projektsse.backend.controller;
 
 import com.projektsse.backend.controller.dto.AuthResponse;
+import com.projektsse.backend.controller.dto.DeleteAccountReq;
 import com.projektsse.backend.controller.dto.LoginReq;
 import com.projektsse.backend.controller.dto.RegisterReq;
+import com.projektsse.backend.interfaces.CurrentUserId;
 import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.TokenService;
 import com.projektsse.backend.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -84,7 +88,7 @@ public class AuthController {
                 "REFRESH_TOKEN", refreshToken
         ).httpOnly(true)
           .secure(false) // TODO: auf true setzen, wenn HTTPS verwendet wird
-          .path("/api/auth/refresh-token")
+          .path("/api/auth/rt")
           .maxAge(durationDays) // 7 Tage
           .sameSite("Strict")
           .build();
@@ -97,7 +101,7 @@ public class AuthController {
 
 
 
-    @PostMapping("/refresh-token")
+    @PostMapping("/rt/refresh-token")
     public ResponseEntity<?> refreshToken(
             @CookieValue(name = "REFRESH_TOKEN") String refreshToken
     ) {
@@ -113,7 +117,7 @@ public class AuthController {
             ResponseCookie deleteCookie = ResponseCookie.from("REFRESH_TOKEN", "")
                                                         .httpOnly(true)
                                                         .secure(false) // TODO: true bei HTTPS
-                                                        .path("/api/auth/refresh-token")
+                                                        .path("/api/auth/rt")
                                                         .maxAge(0)
                                                         .sameSite("Strict")
                                                         .build();
@@ -131,7 +135,7 @@ public class AuthController {
                 "REFRESH_TOKEN", newRefreshToken
         ).httpOnly(true)
           .secure(false) // TODO: auf true setzen, wenn HTTPS verwendet wird
-          .path("/api/auth/refresh-token")
+          .path("/api/auth/rt")
           .maxAge(Duration.ofDays(7)) // 7 Tage
           .sameSite("Strict")
           .build();
@@ -145,7 +149,7 @@ public class AuthController {
     }
 
 
-    @PostMapping("/logout")
+    @PostMapping("/rt/logout")
     public ResponseEntity<?> logout(
             @CookieValue(name ="REFRESH_TOKEN", required = false) String refreshToken
     ) {
@@ -156,7 +160,7 @@ public class AuthController {
         ResponseCookie deleteCookie = ResponseCookie.from("REFRESH_TOKEN", "")
                 .httpOnly(true)
                 .secure(false) // TODO: auf true setzen, wenn HTTPS verwendet wird
-                .path("/api/auth/refresh-token")
+                .path("/api/auth/rt")
                 .maxAge(0)
                 .sameSite("Strict")
                 .build();
@@ -164,6 +168,18 @@ public class AuthController {
         return  ResponseEntity.ok()
                 .header("Set-Cookie", deleteCookie.toString())
                 .body(Map.of("message", "Erfolgreich abgemeldet."));
+    }
+
+
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteAccount(
+            @CurrentUserId UUID userId,
+            @Valid @RequestBody DeleteAccountReq deleteAccountReq
+    ) {
+        userService.deleteUserAccount(userId, deleteAccountReq.password());
+
+        return  ResponseEntity.ok()
+                .body(Map.of("message", "Benutzerkonto erfolgreich gelöscht."));
     }
 }
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ErrorMessage from "./ErrorMessage";
-import {zxcvbn, zxcvbnOptions } from "@zxcvbn-ts/core";
+import {zxcvbn, zxcvbnOptions, type ZxcvbnResult} from "@zxcvbn-ts/core";
 import * as common from "@zxcvbn-ts/language-common";
 import * as de from "@zxcvbn-ts/language-de";
 import { useNavigate } from 'react-router';
@@ -36,18 +36,30 @@ async function submitRegister(
 
     const newErrors: Errors = {};
 
+
+
     if (!formData.email) {
         newErrors.email = 'Email ist erforderlich';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
         newErrors.email = 'Ungültige Email-Adresse';
     }
 
-    const passwordStrength = zxcvbn(formData.password);
+    const passwordStrength : ZxcvbnResult = zxcvbn(formData.password);
     if (!formData.password) {
         newErrors.password = 'Passwort ist erforderlich';
-    } else if (passwordStrength.score < 3) {
-        newErrors.password = 'Passwort ist zu schwach';
     }
+    else {
+        switch (passwordStrength.score) {
+            case 0: newErrors.password = 'Passwort ist sehr schwach'; break;
+            case 1: newErrors.password = 'Passwort ist schwach'; break;
+            case 2: newErrors.password = 'Passwort ist akzeptabel'; break;
+            case 3: newErrors.password = 'Passwort ist stark'; break;
+            case 4: break;
+            default: break;
+        }
+    }
+
+
 
     if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -88,14 +100,11 @@ async function submitRegister(
 
 function RegisterPage() {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState<FormData>({
-        email: '',
-        password: ''
-    });
-
+    const [formData, setFormData] = useState<FormData>({email: '', password: ''});
     const [errors, setErrors] = useState<Errors>({});
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isSuccess, setIsSuccess] = useState<boolean>(false);
+    const [passwordData, setPasswordData] = useState<ZxcvbnResult | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target;
@@ -109,6 +118,10 @@ function RegisterPage() {
                 ...prev,
                 [name]: ''
             }));
+        }
+        if (name === 'password') {
+            const strength : ZxcvbnResult = zxcvbn(value);
+            setPasswordData(strength);
         }
     };
 
@@ -178,6 +191,17 @@ function RegisterPage() {
                         onChange={handleChange}
                         placeholder="Passwort eingeben"
                     />
+                    <progress max={4} value={passwordData?.score ?? 0} className="password-strength-bar"></progress>
+                    {passwordData && (
+                        <div className="password-feedback">
+                            {passwordData.feedback.warning && (
+                                <p className="warning"> ⚠️ {passwordData.feedback.warning}</p>
+                            )}
+                            {passwordData.feedback.suggestions.map((s, i) => (
+                                <p key={i} className="suggestion">💡 {s}</p>
+                            ))}
+                        </div>
+                    )}
                     <ErrorMessage message={errors.password} type="field" />
                 </div>
 

@@ -1,17 +1,16 @@
 import {useAuth} from "../utils/useAuth.ts";
-import {useNavigate} from "react-router";
+import {useNavigate, useSearchParams} from "react-router";
 import {useEffect, useState} from "react";
 import {apiFetch} from "../utils/apiFetch.ts";
 import Navbar from "./Navbar.tsx";
 import SearchBar from "./Searchbar.tsx";
+import ErrorMessage from "./ErrorMessage.tsx";
 
 interface PublicDocument {
     noteId: string;
     title: string;
     userId: string;
 }
-
-
 
 function UserDocumentsPage()  {
     const auth = useAuth();
@@ -20,9 +19,10 @@ function UserDocumentsPage()  {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [inputValue, setInputValue] = useState("");
-    const [query, setQuery] = useState("");
+    const [searchParams, setSearchParams] = useSearchParams();
 
     useEffect(() => {
+        const query = searchParams.get("q") || "";
         const fetchDocuments = async () => {
             try {
                 setIsLoading(true);
@@ -37,9 +37,10 @@ function UserDocumentsPage()  {
                 if (!response.ok) {
                     setError("Fehler beim Laden der Dokumente");
                 }
-
-                const data = await response.json();
-                setDocuments(data);
+                else {
+                    const data = await response.json();
+                    setDocuments(data);
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
             } finally {
@@ -48,11 +49,20 @@ function UserDocumentsPage()  {
         };
 
         fetchDocuments();
-    }, [auth, query]);
+    }, [auth, searchParams]);
 
     const handleCardClick = (noteId: string) => {
         navigate(`/documents/${noteId}`);
     };
+
+
+    const handleSearchSubmit = () => {
+        if (inputValue) {
+            setSearchParams({ q: inputValue });
+        } else {
+            setSearchParams({});
+        }
+    }
 
     if (isLoading) {
         return (
@@ -62,22 +72,17 @@ function UserDocumentsPage()  {
         );
     }
 
-    if (error) {
-        return (
-            <div className="public-documents-container">
-                <div className="error-message">⚠️ {error}</div>
-            </div>
-        );
-    }
 
     return (
         <>
             <Navbar/>
-            <SearchBar value={inputValue} onChange={setInputValue} onSubmit={() => setQuery(inputValue)} />
+            <SearchBar value={inputValue} onChange={setInputValue} onSubmit={handleSearchSubmit} />
             <div className="public-documents-container">
                 <h1 className="page-title">Meine Dokumente</h1>
 
-                {documents.length === 0 ? (
+                {error && <ErrorMessage message={error} type="general" />}
+
+                {!error && documents.length === 0 ? (
                     <div className="empty-state">
                         <p>Keine eigenen Dokumente vorhanden</p>
                     </div>
