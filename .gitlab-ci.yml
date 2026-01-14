@@ -1,7 +1,7 @@
 stages:
-  - build
   - test_backend
   - test_frontend
+  - build
 backend-test:
   stage: test_backend
   image: eclipse-temurin:25
