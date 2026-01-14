@@ -1,14 +1,54 @@
 # Dokumentation
 
 ## Beschreibung
+#### Inhalt der Anwendung
+Diese Anwendung ermöglicht das Erstellen von Notizen
+mittels Markdown-Syntax. Diese Notizen werden in HTML gerendert und angezeigt.
+Ein Benutzer kann sich mit einer E-Mail Adresse und Passwort registrieren und ebenso anmelden
+mit den gleichen Angaben. 
+Dabei haben wir sichergestellt, dass unsere Anwendung sicher ist vor Angriffen wie
+XSS, CSRF, SQL Injection, DoS-Attacken, User Enumeration und haben uns bei der Implementierung an die Vorgaben von OWASP gerichtet.
 
-- Gruppenmitglieder: 
+
+#### Gruppenmitglieder: 
   - Kaylin Althoff
   - Maxim Walter
+
+
+### Verwendete Technologien
+
+#### Backend:
+- **Spring Boot:** Wir haben Spring Boot verwendet, um ein stabiles Backend zu haben, was
+  durch Spring Security viele Sicherheitsfeatures mitbringt. Dabei war der SecurityContextFilter
+  nützlich, um die Authentifizierung und Autorisierung zu handhaben. Dazu haben wir JPA benutzt
+  um ORM zu implementieren und die Datenbankzugriffe zu erleichtern.
+- **Maven:** Als Build-Tool haben wir Maven verwendet, um die Abhängigkeiten zu verwalten und das Projekt zu bauen.
+- **Java 21** (Wir haben Java als Sprache verwendet, da Java eine sichere Programmiersprache ist und Spring Boot sehr gut unterstützt.)
+#### Frontend:
+- React
+- TypeScript
+
+#### Datenbank:
+- PostgreSQL
+
+#### Reverse Proxy 
+- Nginx
+
+#### Testing
+- Vitest (Frontend Unit Tests)
+- Spring Boot Test (Backend Unit Tests)
+
+#### Infrastruktur
+- GitLab
+- Docker
+
+
 
 ### Dependencies
 
 #### Backend
+
+JPA
 
 | Name                                | Version                      | Nutzen |
 |-------------------------------------|------------------------------|--------|
@@ -67,4 +107,44 @@
 
 ## Infrastruktur
 
+### CI/CD
+...
+
+### Verwendete IDE
+Wir haben ein Monorepository erstellt und IntelliJ IDEA Ultimate für unser gesamtes Projekt (Backend, Frontend, etc.) verwendet,
+da IntelliJ sowohl Java/Spring Boot als auch TypeScript/React sehr gut unterstützt und viele nützliche Features
+für die Entwicklung mitbringt. 
+
+### Struktur des Entwicklungsprozesses
+Wir haben GitLab verwendet und Issues erstellt,
+die wir jeweils in einem eigenen Branch bearbeitet haben. 
+Den Main-Branch haben wir geschützt, damit wir nur über die 
+Merge-Request die Änderungen aus dem Feature-branch übernehmen
+und ein direkter Push auf dem main-branch nicht möglich ist.
+Außerdem haben wir uns zusammen wöchentlich über Discord getroffen, um
+gemeinsam die Merge Requests durchzugehen, Probleme zu besprechen
+und unsere Aufgaben zu kommunizieren. 
+
+Für unser Projekt haben wir KI benutzt. Hauptsächlich für das
+Debugging bzw. die Fehlersuche. Wenn wir sicherheitsrelevante Features implementieren
+mussten und dabei KI verwendet haben, haben wir immer geschaut, ob der Vorschlag der KI
+mit den OWASP Vorgehen übereinstimmt und eigenständig überprüft, ob vorgeschlagene Libraries sicher und nicht veraltet sind.
+Für das Layout im Frontend habe ich mir die CSS Dateien generieren lassen, um Zeit
+zu sparen und weil hier kein Sicherheitsrisiko bestand.   
+
+
+
+
 ## Funktionen
+
+### Anmeldung
+
+### Registrierung
+
+### Autorisierung
+
+### Notizen
+
+### CI/CD Pipeline
+
+
