@@ -26,8 +26,16 @@ RUN npm run build
 FROM nginx:1.29.4-alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-COPY --from=build /app/dist /usr/share/nginx/html
 COPY --from=build /app/ssl /app/ssl
+COPY --from=build /app/dist /usr/share/nginx/html
+
+RUN touch /var/run/nginx.pid
+RUN chown -R nginx:nginx /app/ssl && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx/conf.d && \
+    chown nginx:nginx /var/run/nginx.pid
+
+USER nginx
 
 CMD ["nginx","-g","daemon off;"]
