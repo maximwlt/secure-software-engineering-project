@@ -30,10 +30,10 @@ backend-test:
     - docker run --entrypoint /app/mvnw  --name backend "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}" clean test
   after_script:
     - docker rm -f mailhog db backend
-  frontend-test:
-    stage: test_frontend
-    image: node:25.2.1-alpine
-    script:
-      - cd projekt/frontend
-      - npm install
-      - npm run test run
+frontend-test:
+  stage: test_frontend
+  image: node:25.2.1-alpine
+  script:
+    - cd projekt/frontend
+    - npm install
+    - npm run test run
