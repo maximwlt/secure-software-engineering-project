@@ -52,7 +52,7 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
                     const safeTitle = title ? DOMPurify.sanitize(title) : '';
                     const safeAlt = text ? DOMPurify.sanitize(text) : '';
                     return `<div class="image-wrapper">
-                                <img class="safe-markdown-image" src="${safeHref}" title="${safeTitle}" alt="${safeAlt}"/>
+                                <img nonce="{{CSP_NONCE}}" class="safe-markdown-image" src="${safeHref}" title="${safeTitle}" alt="${safeAlt}"/>
                             </div>`;
                 };
 
@@ -121,6 +121,7 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
             iframe.referrerPolicy = 'strict-origin-when-cross-origin';
             iframe.allowFullscreen = true;
             iframe.loading = 'lazy';
+            iframe.nonce = '{{CSP_NONCE}}';
 
             // Ersetze Platzhalter mit iframe
             placeholder.innerHTML = '';
