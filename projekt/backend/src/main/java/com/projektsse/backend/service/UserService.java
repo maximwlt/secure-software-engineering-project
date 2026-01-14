@@ -63,9 +63,8 @@ public class UserService {
         String title = "E-Mail Verifizierung";
         String message = String.format("""
         Bitte verifizieren Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:
-        http://localhost:8080/api/auth/verify-email?code=%s
+        https://localhost:8080/api/auth/verify-email?code=%s
         """, verificationCode);
-        // TODO: Domain anpassen, wenn HTTPS und Reverse Proxy eingerichtet wurden
 
 
         if (existsByEmail(userReqModel.email())) {

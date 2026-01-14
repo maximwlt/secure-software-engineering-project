@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { apiFetch } from '../utils/apiFetch';
 import ErrorMessage from './ErrorMessage';
-import Navbar from "./Navbar.tsx";
+import Navbar from './Navbar';
+import '../styling/CreateDocuments.css';
 
 interface FormData {
     title: string;
@@ -30,18 +31,15 @@ function CreateDocument() {
     const [errors, setErrors] = useState<Errors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ): void => {
         const { name, value, type } = e.target;
 
         if (type === 'checkbox') {
-            const checked = (e.target as HTMLInputElement).checked;
             setFormData(prev => ({
                 ...prev,
-                [name]: checked
+                [name]: (e.target as HTMLInputElement).checked
             }));
         } else {
             setFormData(prev => ({
@@ -50,7 +48,6 @@ function CreateDocument() {
             }));
         }
 
-        // Clear error when user types
         if (errors[name as keyof Errors]) {
             setErrors(prev => ({
                 ...prev,
@@ -63,13 +60,10 @@ function CreateDocument() {
         e.preventDefault();
 
         if (!auth.isAuthenticated) {
-            setErrors({
-                general: 'Sie müssen angemeldet sein, um ein Dokument zu erstellen.'
-            });
+            setErrors({ general: 'Sie müssen angemeldet sein, um ein Dokument zu erstellen.' });
             return;
         }
 
-        // Validation
         const newErrors: Errors = {};
         if (!formData.title.trim()) {
             newErrors.title = 'Titel ist erforderlich';
@@ -92,9 +86,7 @@ function CreateDocument() {
         try {
             const response = await apiFetch(auth, '/api/documents', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
 
@@ -104,16 +96,9 @@ function CreateDocument() {
             }
 
             const data = await response.json();
-
-            // Redirect zum erstellten Dokument
-            if (data.noteId) {
-                navigate(`/documents/${data.noteId}`);
-            } else {
-                navigate('/documents/public');
-            }
+            navigate(data.noteId ? `/documents/${data.noteId}` : '/documents/public');
 
         } catch (error) {
-            console.error("Submit error:", error);
             setErrors({
                 general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
             });
@@ -124,80 +109,63 @@ function CreateDocument() {
 
     return (
         <>
-            <Navbar/>
-            <div style={{maxWidth: '800px', margin: '2rem auto', padding: '0 1rem'}}>
+            <Navbar />
+            <div className="create-document-container">
                 <h1>Neues Dokument erstellen</h1>
 
-                <form onSubmit={handleSubmit}>
-                    <div style={{marginBottom: '1.5rem'}}>
-                        <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: 600}}>
-                            Titel *
-                        </label>
+                <form className="create-document-form" onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label className="form-label">Titel *</label>
                         <input
+                            className="form-input"
                             type="text"
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
                             placeholder="Dokumenttitel eingeben"
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                fontSize: '1rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '6px'
-                            }}/>
-                        <ErrorMessage message={errors.title} type="field"/>
+                        />
+                        <ErrorMessage message={errors.title} type="field" />
                     </div>
 
-                    <div style={{marginBottom: '1.5rem'}}>
-                        <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: 600}}>
+                    <div className="form-group">
+                        <label className="form-label">
                             Inhalt * (Markdown unterstützt)
                         </label>
                         <textarea
+                            className="form-textarea"
                             name="mdContent"
                             value={formData.mdContent}
                             onChange={handleChange}
-                            placeholder="Dokumentinhalt eingeben"
                             rows={15}
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                fontSize: '1rem',
-                                border: '1px solid #ddd',
-                                borderRadius: '6px',
-                                fontFamily: "'Courier New', monospace",
-                                resize: 'vertical'
-                            }}/>
-                        <ErrorMessage message={errors.content} type="field"/>
+                            placeholder="Dokumentinhalt eingeben"
+                        />
+                        <ErrorMessage message={errors.content} type="field" />
                     </div>
 
-                    <div style={{marginBottom: '1.5rem'}}>
-                        <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                    <div className="form-group">
+                        <label className="checkbox-label">
                             <input
                                 type="checkbox"
                                 name="isPrivate"
                                 checked={formData.isPrivate}
-                                onChange={handleChange}/>
-                            <span style={{fontWeight: 600}}>Privat sichtbar</span>
+                                onChange={handleChange}
+                            />
+                            Privat sichtbar
                         </label>
                     </div>
 
-                    <ErrorMessage message={errors.general} type="general"/>
+                    <ErrorMessage message={errors.general} type="general" />
 
                     <button
+                        className="submit-button"
                         type="submit"
                         disabled={isSubmitting || !auth.isAuthenticated}
-                        style={{
-                            padding: '0.75rem 1.5rem',
-                            backgroundColor: (isSubmitting || !auth.isAuthenticated) ? '#ccc' : '#2196f3',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: (isSubmitting || !auth.isAuthenticated) ? 'not-allowed' : 'pointer'
-                        }}
                     >
-                        {isSubmitting ? 'Wird erstellt...' :
-                            !auth.isAuthenticated ? 'Anmeldung erforderlich' : 'Dokument erstellen'}
+                        {isSubmitting
+                            ? 'Wird erstellt...'
+                            : !auth.isAuthenticated
+                                ? 'Anmeldung erforderlich'
+                                : 'Dokument erstellen'}
                     </button>
                 </form>
             </div>

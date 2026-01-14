@@ -121,6 +121,7 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
             iframe.referrerPolicy = 'strict-origin-when-cross-origin';
             iframe.allowFullscreen = true;
             iframe.loading = 'lazy';
+            // iframe.nonce = '{{CSP_NONCE}}';
 
             // Ersetze Platzhalter mit iframe
             placeholder.innerHTML = '';
