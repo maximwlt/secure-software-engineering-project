@@ -15,8 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.Arrays.stream;
-
 @Service
 public class NoteService {
 
@@ -74,5 +72,18 @@ public class NoteService {
         List<Note> notesEntities = noteRepository.searchUserNotes(userId, lowerCaseQuery);
         List<NoteModel> notes = notesEntities.stream().map(Note::toModel).toList();
         return notes;
+    }
+
+    public void deleteNote(UUID documentId, UUID userId) {
+        Note note = noteRepository.findById(documentId)
+                .orElseThrow(() -> new NoteNotFoundException("Notiz mit der ID " + documentId + " wurde nicht gefunden"));
+
+        // Ist authorisiert?
+        // Gleiche Exceptions um User Enumeration zu verhindern
+        if (!note.getOwner().getId().equals(userId)) {
+            throw new NoteNotFoundException("Notiz mit der ID " + documentId + " wurde nicht gefunden");
+        }
+
+        noteRepository.delete(note);
     }
 }

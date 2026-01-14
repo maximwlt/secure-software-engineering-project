@@ -15,6 +15,7 @@ public class MdSanitizer {
             .addTags("h1", "h2", "h3", "h4", "h5", "h6") // Überschriften zulassen
             .addTags("code", "pre", "br", "hr") // Codeblöcke und Zeilenumbrüche zulassen
             .addTags("table", "thead", "tbody", "tfoot", "tr", "td", "th") // Tabellen zulasssen
+            .addTags("blockquote") // Blockzitate zulassen
             .addTags("ul", "ol", "li"); // Listen zulassen
 
     private static final String NEWLINE_PLACEHOLDER = "___NEWLINE___";

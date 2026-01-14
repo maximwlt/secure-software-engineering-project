@@ -51,7 +51,9 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
                     const safeHref = DOMPurify.sanitize(href);
                     const safeTitle = title ? DOMPurify.sanitize(title) : '';
                     const safeAlt = text ? DOMPurify.sanitize(text) : '';
-                    return `<img src="${safeHref}" title="${safeTitle}" alt="${safeAlt}"/>`;
+                    return `<div class="image-wrapper">
+                                <img class="safe-markdown-image" src="${safeHref}" title="${safeTitle}" alt="${safeAlt}"/>
+                            </div>`;
                 };
 
                 // console.log("Parsing Markdown:", JSON.stringify(markdown));
@@ -67,6 +69,7 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
                         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                         'code', 'pre', 'br', 'hr',
                         'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th',
+                        'blockquote',
                         'ul', 'ol', 'li',
                         'a', 'img', 'div', 'button', 'span'
                     ],

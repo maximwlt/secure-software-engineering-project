@@ -30,39 +30,7 @@ function CreateDocument() {
     const [errors, setErrors] = useState<Errors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    /*
-    // Wenn nicht angemeldet: Fehlermeldung anzeigen
-    if (!isAuthenticated) {
-        return (
-            <div style={{
-                maxWidth: '600px',
-                margin: '3rem auto',
-                padding: '2rem',
-                textAlign: 'center'
-            }}>
-                <h1>Nicht angemeldet</h1>
-                <ErrorMessage
-                    message="Sie müssen angemeldet sein, um ein Dokument zu erstellen."
-                    type="general"
-                />
-                <button
-                    onClick={() => navigate('/login')}
-                    style={{
-                        marginTop: '1rem',
-                        padding: '0.75rem 1.5rem',
-                        fontSize: '1rem',
-                        backgroundColor: '#2196f3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    Zum Login
-                </button>
-            </div>
-        );
-    }*/
+
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
