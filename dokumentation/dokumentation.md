@@ -136,6 +136,27 @@ zu sparen und weil hier kein Sicherheitsrisiko bestand.
 ## Funktionen
 
 ### Anmeldung
+Der registrierte **und** verifizierte Nutzer kann sich mit seiner E-Mail Adresse
+und seinem Passwort anmelden. 
+Als Authentifizierungsmechanismus haben wir JSON Web Tokens (JWT) gewählt,
+um eine zustandslose Authentifizierung zu ermöglichen.
+Der JWT Token besitzt eine Gültigkeit von 10 Minuten und besitzt
+als sub-claim die Nutzer-UUID, um den Nutzer zu identifizieren.
+Hierbei werden **keine** persönlichen Daten im Token gespeichert, um Datenschutz einzuhalten.
+Als Signieralgorithmus haben wir `HS256` (HMAC mit SHA-256) gewählt, 
+Damit der Nutzer nach Ablauf
+des Tokens nicht erneut seine Anmeldedaten eingeben muss, haben wir Refresh Tokens
+implementiert, die eine Gültigkeit von 7 Tagen besitzen.
+
+
+
+
+Der JWT-Token  
+
+Der Client 
+
+
+ 
 
 ### Registrierung
 Um einen Nutzer registrieren zu können, muss dieser eine gültige E-Mail Adresse
@@ -238,12 +259,6 @@ Die Eingabefelder sind vor SQL Injections sicher, da wir JPA als Object-Relation
 welches Prepared Statements verwendet, anstatt String-Konkatenation für SQL Queries.
 Vor Stored-XSS sind die Eingabefelder geschützt, da unsere REST-API nur JSON-Daten akzeptiert
 und auch nur JSON-Daten zurückgibt. 
-
-**Benutzte Dependencies:**
-- zxcvbn: Für die Passwortstärke Validierung im Backend
-- zxcvbn-ts: Für die Passwortstärke Validierung im Frontend
-- bcprov-jdk18on: Für die Nutzung des Argon2id Password Encoders im Backend
-- spring-security-crypto: Für die Nutzung des Argon2id Password Encoders im Backend
 
 
 ### Autorisierung
