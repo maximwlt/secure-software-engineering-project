@@ -133,8 +133,6 @@ Für das Layout im Frontend habe ich mir fast alle CSS Dateien generieren lassen
 zu sparen und weil hier kein Sicherheitsrisiko bestand.
 
 
-
-
 ## Funktionen
 
 ### Anmeldung
@@ -148,7 +146,8 @@ Dabei werden zunächst die Daten in einer temporären Tabelle (Registration_Requ
 seine E-Mail Adresse bestätigt hat. Ist dies passiert, dann werden die Daten
 in die eigentliche Nutzertabelle (User) übertragen und der Eintrag in der temporären Tabelle gelöscht.
 Der Nutzer muss auf den Link in der E-Mail klicken, um die Registrierung abzuschließen. Dies muss innerhalb
-von 3 Stunden geschehen, da der Link sonst ungültig wird bzw. der Eintrag in der temporären Tabelle gelöscht wird.
+von 3 Stunden geschehen, da der Link sonst ungültig wird.
+Außerdem ist der Link nur einmalig verwendbar.
 Der Token für den Bestätigungslink muss sicher sein
 und zufällig generiert werden, um sicherzustellen, dass nur der Besitzer der E-Mail Adresse
 die Registrierung abschließen kann. Dabei sind für unseren Fall *Cryptographically Secure Pseudo-Random Number Generators* [CSPRNG](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html#secure-random-number-generation)
@@ -165,31 +164,60 @@ public String generateOpaqueToken() {
 Anmerkung: Die Sicherheit des Tokens ist nicht abhängig von der Länge des Tokens, sondern von der Entropie,
 also wie die Bytes zufällig generiert werden. Ein 32 Byte langer Token ist daher ausreichend sicher.
 
-Bei der Speicherung des URL-Tokens haben wir
-
-
-
-
-Verbesserung: Das gleiche Secret haben wir beim HMAC für die Refresh Tokens verwendet.
-Es wäre jedoch besser einen weiteren eigenen Secret zu erstellen, damit die
-_Schlüsseltrennung_ eingehalten wird.
-
-Das Secret haben wir in einer .env Datei gespeichert, die nicht ins Repository gepusht wird, welche
-in application.properties referenziert wird.
+Bei der Speicherung des URL-Tokens haben wir uns an die OWASP Vorgaben aus dem ["Passwort vergessen" Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html#implementing-password-reset-tokens) gehalten,
+obwohl es hier nicht um ein Passwort zurücksetzen geht, sondern um die Verifizierung der E-Mail Adresse.
+Als Angabe steht gibt OWASP _"stored securely"_ an und verweist auf das [Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html),
+jedoch ist langsame Hashen von Tokens nicht sinnvoll, da diese nur kurzlebig sind und die Performance
+beeinträchtigen würden. Daher haben wir uns entschieden, den Token mit SHA3-256 zu hashen.
+Die Kombination aus einem kryptografisch sicheren, zufällig generierten Token, dem 
+SHA3-256 Hash, der kurzlebigkeit des Tokens (3 Stunden) und der Einmaligkeit ist ausreichend sicher,
+um die E-Mail Verifizierung via URL Tokens umzusetzen.
+Speziell haben wir den SHA3-256 Algorithmus gewählt, da dieser aus der SHA3 Familie stammt,
+welche als langfristig sicherer gilt als die SHA2 Familie.
+Dafür haben wir folgenden Code implementiert:
+```java
+public String hashToken(String token) {
+    try {
+        MessageDigest digest = MessageDigest.getInstance("SHA3-256");
+        byte[] hashedBytes = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+        return base64Encoder.encodeToString(hashedBytes);
+    } catch (NoSuchAlgorithmException e) {
+        throw new RuntimeException("Error hashing token", e);
+    }
+}
+```
+Die MessageDigest Klasse ist Teil der Java Standardbibliothek und bietet eine einfache Möglichkeit,
+um Hashes mit verschiedenen Algorithmen zu generieren, weshalb keine externe Library benötigt wird.
 
 Um Datenschutz einzuhalten, könnte man, wenn
 innerhalb von 3 Stunden die E-Mail Adresse nicht bestätigt wird, die Daten
 löschen, indem man einen CronJob einrichtet, der täglich die unbestätigten
 Nutzer aus der temporären Tabelle löscht, was wir jedoch nicht implementiert haben.
-Ist die E-Mail Adresse bereits registriert **und** verifiziert und es wird erneut eine Registrierung mit dieser
+Ist die E-Mail Adresse bereits registriert **und** verifiziert bzw. der Account erfolgreich erstellt wurde, und es wird erneut eine Registrierung mit dieser
 E-Mail Adresse versucht, dann bekommt der Angreifer die gleiche Rückmeldung. Somit wird nicht verraten, dass
 die E-Mail Adresse bereits registriert ist. Dem Besitzer der E-Mail Adresse wird jedoch eine Warn-E-Mail gesendet
 Dieser Vorgang dient, um User Enumeration zu verhindern.
 
+Damit die Nutzer sichere Passwörter verwenden und vor Brute-Force Attacken geschützt sind,
+haben wir uns die zxcvbn Library integriert, sowohl im Backend als auch im Frontend und nur Passwörter mit einem Score von 4 (sehr stark) erlaubt.
+Passwörter mit einem Score von 0-3 werden abgelehnt und der Nutzer bekommt eine entsprechende Fehlermeldung.
+Dabei gelten Passwörter mit einer Stärke von 3 als erratbar in weniger als 10^10 Versuchen laut diesem [Artikel](https://dev.to/tooleroid/password-strength-testing-with-zxcvbn-a-deep-dive-into-modern-password-security-2hl8).
+Passwörter mit einem Score von 4 gelten als sehr stark und benötigen erhebliche Rechenressourcen, um diese zu erraten.
+Im Frontend werden dem Nutzer zusätzlich noch Tipps während der Passworteingabe angezeigt,
+wie er sein Passwort verbessern kann, um einen höheren Score zu erreichen.
+Anstatt die Passwortregeln (Mindestlänge, Sonderzeichen, etc.) selbst zu definieren,
+haben wir uns für zxcvbn entschieden, da diese Library eine gängige Muster, Passwortlisten/Wörterbücher und
+andere Faktoren berücksichtigt, um die Passwortstärke zu bewerten, die ansonsten de
+Hier ist jedoch anzumerken, dass die zxcvbn Library im Backend 
+weniger aktuell (letzter Release war 2017) ist und gepflegt wird als die TypeScript Version im Frontend (`zxcvbn-ts`),
+jedoch wollten wir die Passwortvalidierung im Backend und Frontend von den Libraries her konsistent halten.
+
 Ist nun eine Registrierung mit gültigen Daten erfolgt, wird das Passwort
-mit einem sicheren Algorithmus argon2id gehashed und in der Datenbank gespeichert. Dieser wird
-von OWASP als erste Wahl empfohlen. Bei argon2id ist das Salting bereits integriert.
-Es müssen lediglich die richtigen Parameter gesetzt werden, worauf wir uns an die [OWASP Empfehlung](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id) gehalten haben (siehe unten). <br>
+mit einem sicheren Algorithmus `argon2id` gehasht und in der Datenbank gespeichert. Dieser wird
+von OWASP als erste Wahl empfohlen ([Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)).
+Bei argon2id ist das Salting bereits integriert, denn
+es müssen lediglich die richtigen Parameter gesetzt werden, worauf wir uns an die [OWASP Empfehlung](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id) gehalten haben <br>
+
 **Argon2id Parameter:**
 - Saltlänge: 16 Bytes
 - Hashlänge: 32 Bytes
@@ -197,17 +225,35 @@ Es müssen lediglich die richtigen Parameter gesetzt werden, worauf wir uns an d
 - Iterationen: 3
 - Parellelismus: 1
 
+Hierbei liefert Spring Security Crypto eine eingebaute Unterstützung für Argon2id
+über den `Argon2PasswordEncoder`, welcher die oben genannten Parameter standardmäßig verwendet, jedoch 
+wird intern noch die Bouncy Castle Library benötigt, weshalb wir die `bcprov-jdk18on` Dependency
+hinzugefügt haben. Das Repository von Bouncy Castle wird regelmäßig gepflegt und ist nicht veraltet
+Hier ein Einblick aus dem Repository: [Bouncy Castle GitHub](https://github.com/bcgit/bc-java/graphs/commit-activity)
+
+Im Backend haben wir durch Bean Validation (@Min, @Max, @NotBlank, @StrongPassword (zxcvbn)) Min- und Max-Längen für die E-Mail Adresse und das Passwort festgelegt,
+und eine Grundabsicherung gegen DoS-Attacken implementiert, indem wir in der Reverse Proxy 
+maximal 1 Request pro Sekunde erlauben.
+Die Eingabefelder sind vor SQL Injections sicher, da wir JPA als Object-Relational-Mapper verwenden,
+welches Prepared Statements verwendet, anstatt String-Konkatenation für SQL Queries.
+Vor Stored-XSS sind die Eingabefelder geschützt, da unsere REST-API nur JSON-Daten akzeptiert
+und auch nur JSON-Daten zurückgibt. 
 
 **Benutzte Dependencies:**
 - zxcvbn: Für die Passwortstärke Validierung im Backend
 - zxcvbn-ts: Für die Passwortstärke Validierung im Frontend
-- ... (TODO)
+- bcprov-jdk18on: Für die Nutzung des Argon2id Password Encoders im Backend
+- spring-security-crypto: Für die Nutzung des Argon2id Password Encoders im Backend
 
 
 ### Autorisierung
 
 ### Funktionen der Anwendung
 #### Notiz
+
+- JPA eingehen, dass es SQL Injection verhindert durch vorgefertigte Methodennamen
+und bei Custom SQL-Queries via @Query Annotation Prepared Statementsverwendet werden,
+anstatt String Konkatenation.
 
 #### Social-Plugin
 
