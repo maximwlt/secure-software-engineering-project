@@ -194,7 +194,14 @@ Es müssen lediglich die richtigen Parameter gesetzt werden, worauf wir uns an d
 
 ### Autorisierung
 
-### Notizen
+### Funktionen der Anwendung
+#### Notiz
+
+#### Social-Plugin
+
+#### Suche
+
+#### Datenschutz
 
 ### CI/CD Pipeline
 
