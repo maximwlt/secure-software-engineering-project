@@ -35,7 +35,7 @@ XSS, CSRF, SQL Injection, DoS-Attacken, User Enumeration und haben uns bei der I
 - **PostgreSQL:** Wir haben PostgreSQL als relationale Datenbank verwendet, um die Benutzerdaten und Notizen zu speichern.
 Die Wahl fiel auf PostgreSQL, da es uns beiden vertraut ist.
 
-#### Testing {#tests}
+#### Testing
 - **Vitest:** Um Frontend Unit Tests zu schreiben, haben wir Vitest verwendet, da es gut mit Vite zusammenarbeitet und schnelle Tests ermöglicht.
 - **Spring Boot Test:** Um Backend Tests zu schreiben, haben wir Spring Boot Test verwendet, damit wir die mitgelieferten Testfunktionen von Spring Boot nutzen können. Hierbei haben wir keine Integrationstest
 verwendet, sondern simple Unit Tests geschrieben.
@@ -108,7 +108,49 @@ verwendet, sondern simple Unit Tests geschrieben.
 ## Infrastruktur
 
 ### CI/CD
-...
+Für die CI Pipeline musste ein eigener Runner angelegt werden, da das GitLab der THM keinen Docker-fähigen Runner bereitstellt.
+Dafür wurde ein [passendes Docker image](https://hub.docker.com/r/gitlab/gitlab-runner/) von gitlab verwendet und wie folgt konfiguriert.
+
+```shell
+docker run -d --name gitlab-runner --restart always \
+  -v <path to docker socket>:/var/run/docker.sock \
+  -v gitlab-runner-config:/etc/gitlab-runner \
+  -v gitlab-runner-var-lib-docker:/etc/gitlab-runner \
+  gitlab/gitlab-runner:alpine
+```
+
+```toml
+# config.toml in gitlab-runner-config volume
+[[runners]]
+    url = "https://git.thm.de"
+    token = "<gitlab-runner-token>"
+    executor = "docker"
+    request_concurrency = 3
+    [runners.docker]
+        tls_verify = false
+        host = "unix:///var/run/docker.sock"
+        image = "docker:29.1.2-cli"
+        privileged = true
+        disable_cache = false
+        volumes = ["/certs/client", "/cache", "gitlab-runner-var-lib-docker:/var/lib/docker"]
+```
+
+Für den Dependabot wurde das image [dependabot-gitlab/dependabot](https://gitlab.com/dependabot-gitlab/dependabot) genutzt. 
+Dabei handelt es sich zwar um ein inoffizielles Projekt, das allerdings viel verwendet und konstant weiterentwickelt wird mit mehreren fast täglichen Commits. 
+
+Als Version wurde die v3.75.0-alpha.1 gewählt, da es die aktuellste lauffähige Version war.
+```shell
+curl -o depandabot-compose.yml https://gitlab.com/dependabot-gitlab/dependabot/-/raw/v3.75.0-alpha.1/docker-compose.yml
+docker compose -f depandabot-compose.yml up -d
+```
+Der dependabot benötigt einen Access Token mit der Rolle `Developer` und den Scopes `api` und `read_registry`.
+```yaml
+# notwendige Anpassungen in dependabot-compose.yml
+# ...
+SETTINGS__GITLAB_ACCESS_TOKEN: "<gitlab-access-token>"
+SETTINGS__GITLAB_URL: https://git.thm.de
+# ...
+```
 
 ### Verwendete IDE
 Wir haben ein Monorepository erstellt und IntelliJ IDEA Ultimate für unser gesamtes Projekt (Backend, Frontend, etc.) verwendet,
