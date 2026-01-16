@@ -6,7 +6,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,14 +20,11 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
-    private final ApplicationContext context;
 
     public JwtFilter(JwtService jwtService,
-                     UserDetailsService userDetailsService,
-                     ApplicationContext context) {
+                     UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
-        this.context = context;
     }
 
     @Override
@@ -46,8 +42,6 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         String jwt = authHeader.substring(7);
         String userId = jwtService.extractUserId(jwt);
-        System.out.println("JWT: " + jwt);
-        System.out.println("UserID: " + userId);
 
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
