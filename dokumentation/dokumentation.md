@@ -51,24 +51,24 @@ verwendet, sondern simple Unit Tests geschrieben.
 
 (TODO: MUSS ANGEPASST WERDEN)
 
-| Name                                | Version                      | Nutzen |
-|-------------------------------------|------------------------------|--------|
-| spring-boot-starter-data-jpa        | 4.0.0 (parent)               |        |
-| spring-boot-starter-security        | 4.0.0 (parent)               |        |
-| spring-security-crypto              | 7.0.2                        |        |
-| zxcvbn                              |                              |        |
-| bcprov-jdk18on                      | 1.83                         |        |
-| spring-boot-starter-validation      | 4.0.0 (parent)               |        |
-| spring-boot-starter-webmvc          | 4.0.0 (parent)               |        |
-| jjwt-api                            | 0.13.0                       |        |
-| jjwt-impl                           | 0.13.0                       |        |
-| jjwt-jackson                        | 0.13.0                       |        |
-| postgresql                          | managed by Spring Boot 4.0.0 |        |
-| spring-boot-starter-mail            | 4.0.0                        |        |
-| spring-boot-starter-data-jpa-test   | 4.0.0 (parent, test)         |        |
-| spring-boot-starter-security-test   | 4.0.0 (parent, test)         |        |
-| spring-boot-starter-validation-test | 4.0.0 (parent, test)         |        |
-| spring-boot-starter-webmvc-test     | 4.0.0 (parent, test)         |        |
+| Name                                | Version                      | Nutzen                            |
+|-------------------------------------|------------------------------|-----------------------------------|
+| spring-boot-starter-data-jpa        | 4.0.0 (parent)               |                                   |
+| spring-boot-starter-security        | 4.0.0 (parent)               |                                   |
+| spring-security-crypto              | 7.0.2                        |                                   |
+| zxcvbn                              |                              | Passwortvalidierung               |
+| bcprov-jdk18on                      | 1.83                         | Nutzung von Argon2PasswordEncoder |
+| spring-boot-starter-validation      | 4.0.0 (parent)               |                                   |
+| spring-boot-starter-webmvc          | 4.0.0 (parent)               |                                   |
+| jjwt-api                            | 0.13.0                       |                                   |
+| jjwt-impl                           | 0.13.0                       |                                   |
+| jjwt-jackson                        | 0.13.0                       |                                   |
+| postgresql                          | managed by Spring Boot 4.0.0 |                                   |
+| spring-boot-starter-mail            | 4.0.0                        |                                   |
+| spring-boot-starter-data-jpa-test   | 4.0.0 (parent, test)         |                                   |
+| spring-boot-starter-security-test   | 4.0.0 (parent, test)         |                                   |
+| spring-boot-starter-validation-test | 4.0.0 (parent, test)         |                                   |
+| spring-boot-starter-webmvc-test     | 4.0.0 (parent, test)         |                                   |
 
 <br>
 
@@ -147,7 +147,8 @@ gesendet, um die E-Mail Adresse zu verifizieren und um sicherzugehen, dass die v
 Dabei werden zunächst die Daten in einer temporären Tabelle (Registration_Request) gespeichert, bis der Nutzer
 seine E-Mail Adresse bestätigt hat. Ist dies passiert, dann werden die Daten
 in die eigentliche Nutzertabelle (User) übertragen und der Eintrag in der temporären Tabelle gelöscht.
-Der Nutzer muss auf den Link in der E-Mail klicken, um die Registrierung abzuschließen.
+Der Nutzer muss auf den Link in der E-Mail klicken, um die Registrierung abzuschließen. Dies muss innerhalb
+von 3 Stunden geschehen, da der Link sonst ungültig wird bzw. der Eintrag in der temporären Tabelle gelöscht wird.
 Der Token für den Bestätigungslink muss sicher sein
 und zufällig generiert werden, um sicherzustellen, dass nur der Besitzer der E-Mail Adresse
 die Registrierung abschließen kann. Dabei sind für unseren Fall *Cryptographically Secure Pseudo-Random Number Generators* [CSPRNG](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html#secure-random-number-generation)
@@ -163,7 +164,18 @@ public String generateOpaqueToken() {
 ```
 Anmerkung: Die Sicherheit des Tokens ist nicht abhängig von der Länge des Tokens, sondern von der Entropie,
 also wie die Bytes zufällig generiert werden. Ein 32 Byte langer Token ist daher ausreichend sicher.
-Gespeichert wird der Token mit SHA3-256...
+
+Bei der Speicherung des URL-Tokens haben wir
+
+
+
+
+Verbesserung: Das gleiche Secret haben wir beim HMAC für die Refresh Tokens verwendet.
+Es wäre jedoch besser einen weiteren eigenen Secret zu erstellen, damit die
+_Schlüsseltrennung_ eingehalten wird.
+
+Das Secret haben wir in einer .env Datei gespeichert, die nicht ins Repository gepusht wird, welche
+in application.properties referenziert wird.
 
 Um Datenschutz einzuhalten, könnte man, wenn
 innerhalb von 3 Stunden die E-Mail Adresse nicht bestätigt wird, die Daten
