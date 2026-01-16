@@ -60,13 +60,10 @@ verwendet, sondern simple Unit Tests geschrieben.
 | bcprov-jdk18on                 | 1.83             | BouncyCastle Crypto Provider (starke Kryptografie, RSA, AES, etc.) |
 | spring-boot-starter-validation | 4.0.0 (parent)   | Bean Validation (Jakarta Validation / Hibernate Validator)         |
 | spring-boot-starter-web        | 4.0.0 (parent)   | REST APIs, Embedded Server, JSON (Spring MVC)                      |
-| spring-boot-starter-webmvc     | 4.0.0 (parent)   | Reines Spring MVC (meist bereits in starter-web enthalten)         |
 | java-jwt                       | 4.5.0            | Erstellung & Validierung von JWTs (Auth0)                          |
 | postgresql                     | 4x.x.x (managed) | PostgreSQL JDBC Treiber                                            |
 | spring-boot-starter-mail       | 4.0.1            | E-Mail-Versand via JavaMail                                        |
-| spring-boot-restclient         | 4.0.0 (parent)   | HTTP Client für REST-Aufrufe (RestClient)                          |
 | spring-boot-starter-test       | 4.0.0 (parent)   | Test-Frameworks (JUnit, Mockito, AssertJ, etc.)                    |
-| spring-security-test           | 6/7.x (managed)  | Security-spezifische Test-Unterstützung                            |
 
 <br>
 
@@ -74,32 +71,42 @@ verwendet, sondern simple Unit Tests geschrieben.
 
 **Production** <br>
 
-| Name           | Version | Nutzen |
-|----------------|---------|--------|
-|@zxcvbn-ts/core | 3.0.4   |        |
-|@zxcvbn-ts/language-common | 3.0.4   |        |
-|@zxcvbn-ts/language-de | 3.0.2   |        |
-|dompurify       | 3.3.1   |        |
-|marked          | 17.0.1  |        |
-|react           | 19.2.0  |        |
-|react-dom       | 19.2.0  |        |
-|react-router    | 7.11.0  |        |
+| Name                       | Version | Nutzen                                                                                     |
+|----------------------------|---------|--------------------------------------------------------------------------------------------|
+| @zxcvbn-ts/core            | ^3.0.4  | Kernbibliothek zur Bewertung der Passwortstärke (zxcvbn in TypeScript).                    |
+| @zxcvbn-ts/language-common | ^3.0.4  | Gemeinsame Sprach- und Musterdefinitionen für zxcvbn (z. B. Namen, Tastaturmuster).        |
+| @zxcvbn-ts/language-de     | ^3.0.2  | Deutsche Sprachdaten für zxcvbn (z. B. deutsche Wörter, Namen).                            |
+| dompurify                  | ^3.3.1  | Sanitizing von HTML zur Vermeidung von XSS-Angriffen (z. B. bei User-Input oder Markdown). |
+| jwt-decode                 | ^4.0.0  | Dekodieren von JWTs im Frontend (z. B. Auslesen von Claims, Ablaufzeit).                   |
+| marked                     | ^17.0.1 | Markdown-Parser zum Umwandeln von Markdown in HTML.                                        |
+| react                      | ^19.2.3 | Core-Bibliothek für den Aufbau der UI mit Komponenten.                                     |
+| react-dom                  | ^19.2.3 | Rendering von React-Komponenten in den DOM (Browser).                                      |
+| react-router               | ^7.12.0 | Client-seitiges Routing (Navigation zwischen Seiten/Views).                                |
+
 
 **Development** <br>
-| Name               | Version | Nutzen |
-|--------------------|---------|--------|
-|@vitejs/plugin-react | 5.1.1   |        |
-|vite                | 7.2.4   |        |
-|typescript          | ~5.9.3  |        |
-|typescript-eslint  | 8.46.4  |        |
-|eslint              | 9.39.1  |        |
-|eslint/js              | 9.39.1  |        |
-|eslint-plugin-react-hooks | 7.0.1   |        |
-|eslint-plugin-react-refresh | 0.4.24  |        |
-|@types/node         | 24.10.1|        |
-|@types/react        | 19.2.5 |        |
-|@types/react-dom    | 19.2.3 |        |
-|globals            | 16.5.0 |        |
+| Name                               | Version    | Nutzen |
+|------------------------------------|------------|--------|
+| @eslint/js                         | ^9.39.2    | Offizielle ESLint-Regeln für JavaScript. |
+| @testing-library/jest-dom          | ^6.9.1     | Zusätzliche DOM-Matcher für Tests (z. B. toBeInTheDocument). |
+| @testing-library/react             | ^16.3.1    | Utilities zum Testen von React-Komponenten aus Usersicht. |
+| @testing-library/user-event        | ^14.6.1    | Simulation realistischer Benutzerinteraktionen (Clicks, Tastatur). |
+| @types/node                        | ^25.0.6    | TypeScript-Typdefinitionen für Node.js. |
+| @types/react                       | ^19.2.8    | TypeScript-Typdefinitionen für React. |
+| @types/react-dom                   | ^19.2.3    | TypeScript-Typdefinitionen für ReactDOM. |
+| @vitejs/plugin-react               | ^5.1.2     | Vite-Plugin für React (Fast Refresh, JSX-Support). |
+| @vitest/coverage-v8                | ^4.0.16    | Code-Coverage für Vitest basierend auf V8. |
+| eslint                             | ^9.39.2    | Linter zur statischen Codeanalyse und Einhaltung von Code-Standards. |
+| eslint-plugin-react-hooks          | ^7.0.1     | ESLint-Regeln für korrekte Verwendung von React Hooks. |
+| eslint-plugin-react-refresh        | ^0.4.26    | ESLint-Unterstützung für React Fast Refresh. |
+| eslint-plugin-vitest-globals       | ^1.5.0    | Stellt Vitest-Globals (describe, it, expect) für ESLint bereit. |
+| globals                            | ^17.0.0    | Sammlung globaler Variablen (Browser, Node, etc.) für ESLint. |
+| jsdom                              | ^27.4.0    | DOM-Implementierung für Tests außerhalb des Browsers. |
+| typescript                         | ~5.9.3    | TypeScript-Compiler für typisierte JavaScript-Entwicklung. |
+| typescript-eslint                  | ^8.46.4    | Integration von TypeScript in ESLint. |
+| vite                               | ^7.2.4    | Build-Tool und Dev-Server für moderne Frontend-Projekte. |
+| vitest                             | ^4.0.16   | Schnelles Test-Framework für Vite-basierte Projekte. |
+
 
 
 
