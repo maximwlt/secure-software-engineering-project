@@ -19,12 +19,12 @@ XSS, CSRF, SQL Injection, DoS-Attacken, User Enumeration und haben uns bei der I
 - **Spring Boot:** Wir haben Spring Boot verwendet, um ein stabiles Backend zu haben, was
   durch Spring Security viele Sicherheitsfeatures mitbringt. Dabei war der SecurityContextFilter
   nützlich, um die Authentifizierung und Autorisierung zu handhaben. Dazu haben wir JPA benutzt,
-  um ORM zu implementieren und die Datenbankzugriffe zu erleichtern. 
+  um ORM zu nutzen bzw. die Datenbankzugriffe zu erleichtern. 
 - **Maven:** Als Build-Tool haben wir Maven verwendet, um die Abhängigkeiten zu verwalten und das Projekt zu bauen.
 - **Java 21** Wir haben Java als Sprache verwendet, da Java eine sichere Programmiersprache ist und diese in Spring Boot gebraucht wird.
 
 #### Frontend:
-- **React:**  Wir habe React verwendet, um einfache Komponenten zu erstellen und eine Single-Page-Application (SPA) zu bauen.
+- **React:**  Wir haben React verwendet, um einfache Komponenten zu erstellen und eine Single-Page-Application (SPA) zu bauen.
 - **Vite:** Als Build-Tool haben wir Vite verwendet, um das Frontend zu bauen und die Abhängigkeiten zu verwalten, da
     Vite schneller als andere Build-Tools ist und es veraltet ist, Create-React-App für neue Projekte zu verwenden.
 - **TypeScript:** Wir haben statt JavaScript als Programmiersprache TypeScript verwendet, um typsicheren Code im Frontend zu schreiben.
@@ -148,10 +148,10 @@ Dabei werden zunächst die Daten in einer temporären Tabelle (Registration_Requ
 seine E-Mail Adresse bestätigt hat. Ist dies passiert, dann werden die Daten
 in die eigentliche Nutzertabelle (User) übertragen und der Eintrag in der temporären Tabelle gelöscht.
 Der Nutzer muss auf den Link in der E-Mail klicken, um die Registrierung abzuschließen.
-Der Token für die Bestätigungslink muss sicher sein
+Der Token für den Bestätigungslink muss sicher sein
 und zufällig generiert werden, um sicherzustellen, dass nur der Besitzer der E-Mail Adresse
 die Registrierung abschließen kann. Dabei sind für unseren Fall *Cryptographically Secure Pseudo-Random Number Generators* [CSPRNG](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html#secure-random-number-generation)
-wichtig. In Java nutzt man daher die `java.security.SecureRandom` Library, um sichere Zufallszahlen zu generieren.
+wichtig. In Java nutzt man daher die `java.security.SecureRandom` Library, um kryptografisch sichere Zufallszahlen zu generieren.
 
 Folgender Code zeigt die Generierung eines sicheren, zufälligen Tokens mit 256 Bit (32 Bytes) Länge
 ```java
@@ -161,30 +161,30 @@ public String generateOpaqueToken() {
     return base64Encoder.encodeToString(randomBytes);
 }
 ```
-Anmerkung: Die Sicherheits des Tokens ist nicht abhängig von der Länge des Tokens, sondern von der Entropie,
-also wie die Bytes zufällig generiert werden.
-Der Token wird mit SHA3-256 gehashed. 
+Anmerkung: Die Sicherheit des Tokens ist nicht abhängig von der Länge des Tokens, sondern von der Entropie,
+also wie die Bytes zufällig generiert werden. Ein 32 Byte langer Token ist daher ausreichend sicher.
+Gespeichert wird der Token mit SHA3-256...
 
-
-
-Um das ganze Datenschtuz gerecht zu halten, könnte man, wenn
+Um Datenschutz einzuhalten, könnte man, wenn
 innerhalb von 3 Stunden die E-Mail Adresse nicht bestätigt wird, die Daten
-löschen, indem man einen CronJob einrichtet, der regelmäßig die unbestätigten
-Nutzer löscht.
-
+löschen, indem man einen CronJob einrichtet, der täglich die unbestätigten
+Nutzer aus der temporären Tabelle löscht, was wir jedoch nicht implementiert haben.
 Ist die E-Mail Adresse bereits registriert **und** verifiziert und es wird erneut eine Registrierung mit dieser
-E-Mail Adresse versucht, dann bekommt der Angreifer , ohne jedoch zu verraten, dass die E-Mail Adresse bereits vergeben ist.
-Dem Besitzer der E-Mail Adresse wird jedoch eine Warn-E-Mail gesendet, dass
+E-Mail Adresse versucht, dann bekommt der Angreifer die gleiche Rückmeldung. Somit wird nicht verraten, dass
+die E-Mail Adresse bereits registriert ist. Dem Besitzer der E-Mail Adresse wird jedoch eine Warn-E-Mail gesendet
 Dieser Vorgang dient, um User Enumeration zu verhindern.
 
-Um Datenschutz einzuhalten, könnten abgelaufene Tokens bzw. User (aus Registration_Request Tabelle) per CronJob, die nach einer
-bestimmten Zeit immmer zyklisch ausgeführt werden, gelöscht werden, was wir jedoch nicht implementiert haben.
+Ist nun eine Registrierung mit gültigen Daten erfolgt, wird das Passwort
+mit einem sicheren Algorithmus argon2id gehashed und in der Datenbank gespeichert. Dieser wird
+von OWASP als erste Wahl empfohlen. Bei argon2id ist das Salting bereits integriert.
+Es müssen lediglich die richtigen Parameter gesetzt werden, worauf wir uns an die [OWASP Empfehlung](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id) gehalten haben (siehe unten). <br>
+**Argon2id Parameter:**
+- Saltlänge: 16 Bytes
+- Hashlänge: 32 Bytes
+- Speicher: 12288 MiB
+- Iterationen: 3
+- Parellelismus: 1
 
-Das Passwort wird mit argon2id gehashed uns gesalzen, und die Konfiguration haben wir aus der Empfehlung von OWASP entnommen:
-- Memory: 65536 KB
-- Iterations: 3
-- Parallelism: 4
-- 
 
 **Benutzte Dependencies:**
 - zxcvbn: Für die Passwortstärke Validierung im Backend
