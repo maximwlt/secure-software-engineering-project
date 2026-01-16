@@ -49,26 +49,24 @@ verwendet, sondern simple Unit Tests geschrieben.
 ### Dependencies
 #### Backend
 
-(TODO: MUSS ANGEPASST WERDEN)
 
-| Name                                | Version                      | Nutzen                            |
-|-------------------------------------|------------------------------|-----------------------------------|
-| spring-boot-starter-data-jpa        | 4.0.0 (parent)               |                                   |
-| spring-boot-starter-security        | 4.0.0 (parent)               |                                   |
-| spring-security-crypto              | 7.0.2                        |                                   |
-| zxcvbn                              |                              | Passwortvalidierung               |
-| bcprov-jdk18on                      | 1.83                         | Nutzung von Argon2PasswordEncoder |
-| spring-boot-starter-validation      | 4.0.0 (parent)               |                                   |
-| spring-boot-starter-webmvc          | 4.0.0 (parent)               |                                   |
-| jjwt-api                            | 0.13.0                       |                                   |
-| jjwt-impl                           | 0.13.0                       |                                   |
-| jjwt-jackson                        | 0.13.0                       |                                   |
-| postgresql                          | managed by Spring Boot 4.0.0 |                                   |
-| spring-boot-starter-mail            | 4.0.0                        |                                   |
-| spring-boot-starter-data-jpa-test   | 4.0.0 (parent, test)         |                                   |
-| spring-boot-starter-security-test   | 4.0.0 (parent, test)         |                                   |
-| spring-boot-starter-validation-test | 4.0.0 (parent, test)         |                                   |
-| spring-boot-starter-webmvc-test     | 4.0.0 (parent, test)         |                                   |
+| Dependency (ArtifactId)        | Version          | Nutzen                                                             |
+|--------------------------------|------------------|--------------------------------------------------------------------|
+| spring-boot-starter-data-jpa   | 4.0.0 (parent)   | JPA & Hibernate für Datenbankzugriff und ORM                       |
+| spring-boot-starter-security   | 4.0.0 (parent)   | Basis für Authentifizierung & Autorisierung                        |
+| spring-security-crypto         | 7.0.0            | Kryptografische Utilities (PasswordEncoder, Hashing, etc.)         |
+| jsoup                          | 1.22.1           | HTML-Parsing & Sanitizing (z. B. Schutz vor XSS)                   |
+| zxcvbn                         | 1.9.0            | Bewertung der Passwortstärke                                       |
+| bcprov-jdk18on                 | 1.83             | BouncyCastle Crypto Provider (starke Kryptografie, RSA, AES, etc.) |
+| spring-boot-starter-validation | 4.0.0 (parent)   | Bean Validation (Jakarta Validation / Hibernate Validator)         |
+| spring-boot-starter-web        | 4.0.0 (parent)   | REST APIs, Embedded Server, JSON (Spring MVC)                      |
+| spring-boot-starter-webmvc     | 4.0.0 (parent)   | Reines Spring MVC (meist bereits in starter-web enthalten)         |
+| java-jwt                       | 4.5.0            | Erstellung & Validierung von JWTs (Auth0)                          |
+| postgresql                     | 4x.x.x (managed) | PostgreSQL JDBC Treiber                                            |
+| spring-boot-starter-mail       | 4.0.1            | E-Mail-Versand via JavaMail                                        |
+| spring-boot-restclient         | 4.0.0 (parent)   | HTTP Client für REST-Aufrufe (RestClient)                          |
+| spring-boot-starter-test       | 4.0.0 (parent)   | Test-Frameworks (JUnit, Mockito, AssertJ, etc.)                    |
+| spring-security-test           | 6/7.x (managed)  | Security-spezifische Test-Unterstützung                            |
 
 <br>
 
@@ -269,12 +267,26 @@ und auch nur JSON-Daten zurückgibt.
 - JPA eingehen, dass es SQL Injection verhindert durch vorgefertigte Methodennamen
 und bei Custom SQL-Queries via @Query Annotation Prepared Statementsverwendet werden,
 anstatt String Konkatenation.
+Vor allem bei der Suche
+
 
 #### Social-Plugin
 
 #### Suche
 
 #### Datenschutz
+Unsere Anwendung ist datenschutzkonform gestaltet. Wir speichern nur die notwendigsten Daten,
+nämlich die E-Mail Adresse, das gehashte Passwort und die Notizen und löschen alle temporären Daten
+wie die Registration_Request Einträge, sobald der Nutzer seine E-Mail Adresse verifiziert hat.
+Der Nutzer kann jederzeit seine Notizen löschen und seinen Account löschen, wodurch alle seine Daten aus der Datenbank entfernt werden
+und kein Backup mehr existiert oder Soft-Delete durchgeführt wird.
+Außerdem haben wir im Social Plugin darauf geachtet, dass das iframe mit dem Youtube Video
+erst geladen wird, wenn der Nutzer auf den "_Externe Inhalte laden_" Button klickt, um keine Daten ungefragt an Youtube zu senden,
+bevor der Nutzer dem zugestimmt hat.
+Beim Login haben wir dem Nutzer darauf hingewiesen, dass eine Zustimmung zur Verwendung von notwendigen Cookies benötigt wird,
+um die Authentifizierung zu ermöglichen.
+In der JWT Payload haben wir keine persönlichen Daten gespeichert, sondern nur die Nutzer-UUID
+und den Hash des Fingerprints.
 
 ### CI/CD Pipeline
 
