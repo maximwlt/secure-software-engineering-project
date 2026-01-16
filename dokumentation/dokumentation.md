@@ -1,5 +1,5 @@
 # Dokumentation
-
+[[_TOC_]]
 ## Beschreibung
 #### Inhalt der Anwendung
 Diese Anwendung ermöglicht das Erstellen von Notizen
@@ -28,23 +28,21 @@ XSS, CSRF, SQL Injection, DoS-Attacken, User Enumeration und haben uns bei der I
 - **Vite:** Als Build-Tool haben wir Vite verwendet, um das Frontend zu bauen und die Abhängigkeiten zu verwalten, da
     Vite schneller als andere Build-Tools ist und es veraltet ist, Create-React-App für neue Projekte zu verwenden.
 - **TypeScript:** Wir haben statt JavaScript als Programmiersprache TypeScript verwendet, um typsicheren Code im Frontend zu schreiben.
+- **Nginx:** Wurde gewählt um das Frontend zu hosten, da es gleichzeitig auch als Reverse-Proxy für das Backend konfiguriert werden kann.
+    Außerdem wurde es auch mit einem *Rate-Limit* und einer *Content Security Policy* versehen.
 
 #### Datenbank:
 - **PostgreSQL:** Wir haben PostgreSQL als relationale Datenbank verwendet, um die Benutzerdaten und Notizen zu speichern.
 Die Wahl fiel auf PostgreSQL, da es uns beiden vertraut ist.
 
-#### Reverse Proxy
-- **Nginx:** ...
-
-#### Testing
+#### Testing {#tests}
 - **Vitest:** Um Frontend Unit Tests zu schreiben, haben wir Vitest verwendet, da es gut mit Vite zusammenarbeitet und schnelle Tests ermöglicht.
 - **Spring Boot Test:** Um Backend Tests zu schreiben, haben wir Spring Boot Test verwendet, damit wir die mitgelieferten Testfunktionen von Spring Boot nutzen können. Hierbei haben wir keine Integrationstest
 verwendet, sondern simple Unit Tests geschrieben.
 
 #### Infrastruktur
 - **GitLab:** ...
-- **Docker:** ...
-
+- **Docker:** Ist durch die Projektbeschreibung vorgegeben. Wird zum builden und ausführen der Anwendung und ihrer Komponenten verwendet.
 
 ### Dependencies
 #### Backend
@@ -88,6 +86,7 @@ verwendet, sondern simple Unit Tests geschrieben.
 |react-router    | 7.11.0  |        |
 
 **Development** <br>
+
 | Name               | Version | Nutzen |
 |--------------------|---------|--------|
 |@vitejs/plugin-react | 5.1.1   |        |
@@ -214,7 +213,4 @@ Es müssen lediglich die richtigen Parameter gesetzt werden, worauf wir uns an d
 #### Suche
 
 #### Datenschutz
-
-### CI/CD Pipeline
-
 
