@@ -8,61 +8,102 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HexFormat;
 
 @Service
 public class JwtService {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.access-token-expiration}")
-    private long accessTokenExpiration; // In Minuten
-
-    JwtService() { }
+    private int accessTokenExpiration; // In Minuten
 
     private Algorithm getAlgorithm() {
         byte[] keyBytes = Base64.getDecoder().decode(secret);
         return Algorithm.HMAC256(keyBytes);
     }
 
-    public String generateAccessToken(String userId) {
+    /**
+     * Generiert einen zufälligen Fingerprint (50 Bytes, Hex-kodiert)
+     */
+    public String generateFingerprint() {
+        byte[] randomBytes = new byte[50];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        return HexFormat.of().formatHex(randomBytes);
+    }
+
+    /**
+     * Berechnet SHA3-256 Hash des Fingerprints
+     */
+    public String hashFingerprint(String fingerprint) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA3-256");
+            byte[] hashBytes = digest.digest(fingerprint.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hashBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA3-256 nicht verfügbar", e);
+        }
+    }
+
+    /**
+     * Generiert Access Token mit Fingerprint-Hash im Claim
+     */
+    public String generateAccessToken(String userId, String fingerprintHash) {
         Instant now = Instant.now();
         return JWT.create()
                   .withSubject(userId)
                   .withIssuedAt(now)
                   .withExpiresAt(now.plus(accessTokenExpiration, ChronoUnit.MINUTES))
                   .withNotBefore(now)
+                  .withClaim("fgp", fingerprintHash) // Fingerprint-Hash
                   .sign(getAlgorithm());
     }
 
-    public String extractUsername(String token) {
-        return verifyAndDecode(token).getSubject();
-    }
+    /**
+     * Verifiziert Token mit Fingerprint aus Cookie
+     */
+    public DecodedJWT verifyTokenWithFingerprint(String token, String fingerprintFromCookie) {
+        String fingerprintHash = hashFingerprint(fingerprintFromCookie);
 
-    public String extractUserId(String token) {
-        return extractUsername(token);
-    }
-
-    public Date extractExpiration(String token) {
-        return verifyAndDecode(token).getExpiresAt();
-    }
-
-    private DecodedJWT verifyAndDecode(String token) {
         JWTVerifier verifier = JWT.require(getAlgorithm())
+                                  .withClaim("fgp", fingerprintHash)
                                   .build();
         return verifier.verify(token);
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public String extractUserId(String token) {
+        return verifyAndDecode(token).getSubject();
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+
+    private DecodedJWT verifyAndDecode(String token) {
+        JWTVerifier verifier = JWT.require(getAlgorithm()).build();
+        return verifier.verify(token);
+    }
+
+    public boolean isTokenValid(String token, String fingerprintFromCookie, UserDetails userDetails) {
+        try {
+            DecodedJWT decoded = verifyTokenWithFingerprint(token, fingerprintFromCookie);
+            String userId = decoded.getSubject();
+            boolean isExpired = decoded.getExpiresAt().before(new Date());
+            return userId.equals(userDetails.getUsername()) && !isExpired;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public int getAccessTokenExpiration() {
+        return accessTokenExpiration;
     }
 }
