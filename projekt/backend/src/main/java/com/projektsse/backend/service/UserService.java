@@ -63,7 +63,7 @@ public class UserService {
         String title = "E-Mail Verifizierung";
         String message = String.format("""
         Bitte verifizieren Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:
-        https://localhost:8080/api/auth/verify-email?code=%s
+        http://localhost:8080/api/auth/verify-email?code=%s
         """, verificationCode);
 
 
