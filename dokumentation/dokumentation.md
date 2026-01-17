@@ -50,20 +50,20 @@ verwendet, sondern simple Unit Tests geschrieben.
 #### Backend
 
 
-| Dependency (ArtifactId)        | Version          | Nutzen                                                             |
-|--------------------------------|------------------|--------------------------------------------------------------------|
-| spring-boot-starter-data-jpa   | 4.0.0 (parent)   | JPA & Hibernate für Datenbankzugriff und ORM                       |
-| spring-boot-starter-security   | 4.0.0 (parent)   | Basis für Authentifizierung & Autorisierung                        |
-| spring-security-crypto         | 7.0.0            | Kryptografische Utilities (PasswordEncoder, Hashing, etc.)         |
-| jsoup                          | 1.22.1           | HTML-Parsing & Sanitizing (z. B. Schutz vor XSS)                   |
-| zxcvbn                         | 1.9.0            | Bewertung der Passwortstärke                                       |
-| bcprov-jdk18on                 | 1.83             | BouncyCastle Crypto Provider (starke Kryptografie, RSA, AES, etc.) |
-| spring-boot-starter-validation | 4.0.0 (parent)   | Bean Validation (Jakarta Validation / Hibernate Validator)         |
-| spring-boot-starter-web        | 4.0.0 (parent)   | REST APIs, Embedded Server, JSON (Spring MVC)                      |
-| java-jwt                       | 4.5.0            | Erstellung & Validierung von JWTs (Auth0)                          |
-| postgresql                     | 4x.x.x (managed) | PostgreSQL JDBC Treiber                                            |
-| spring-boot-starter-mail       | 4.0.1            | E-Mail-Versand via JavaMail                                        |
-| spring-boot-starter-test       | 4.0.0 (parent)   | Test-Frameworks (JUnit, Mockito, AssertJ, etc.)                    |
+| Dependency (ArtifactId)        | Version          | Nutzen                                                            |
+|--------------------------------|------------------|-------------------------------------------------------------------|
+| spring-boot-starter-data-jpa   | 4.0.0 (parent)   | JPA & Hibernate für Datenbankzugriff und ORM                      |
+| spring-boot-starter-security   | 4.0.0 (parent)   | Basis für Authentifizierung & Autorisierung                       |
+| spring-security-crypto         | 7.0.0            | Kryptografische Utilities (PasswordEncoder, Hashing, etc.)        |
+| jsoup                          | 1.22.1           | HTML-Parsing & Sanitizing (z. B. Schutz vor XSS)                  |
+| zxcvbn                         | 1.9.0            | Bewertung der Passwortstärke                                      |
+| bcprov-jdk18on                 | 1.83             | BouncyCastle Crypto Provider (Nutzung von Argon2idPassworEncoder) |
+| spring-boot-starter-validation | 4.0.0 (parent)   | Bean Validation (Jakarta Validation / Hibernate Validator)        |
+| spring-boot-starter-web        | 4.0.0 (parent)   | REST APIs, Embedded Server, JSON (Spring MVC)                     |
+| java-jwt                       | 4.5.0            | Erstellung & Validierung von JWTs (Auth0)                         |
+| postgresql                     | 4x.x.x (managed) | PostgreSQL JDBC Treiber                                           |
+| spring-boot-starter-mail       | 4.0.1            | E-Mail-Versand via JavaMail                                       |
+| spring-boot-starter-test       | 4.0.0 (parent)   | Test-Frameworks (JUnit, Mockito, AssertJ, etc.)                   |
 
 <br>
 
@@ -226,7 +226,23 @@ Die JWT Library `java-jwt` von Auth0 wird verwendet, um die Tokens zu erstellen 
 
 **Refresh Token**
 
+**Fingerprint Cookie**
+Zusätzlich zum JWT Access Token wird ein __Secure_Fgp Cookie gesetzt, der einen zufällig generierten Fingerprint enthält.
+Dieser Fingerprint wird gehasht (SHA-256) und im JWT Token als custom-claim gespeichert.
+Der Fingerprint Cookie ist httpOnly, Secure und SameSite
+
 **CSRF Token**
+Der CSRF Token und der entsprechende XSRF-TOKEN Cookie werden von Spring Security automatisch generiert und verwaltet,
+weil wir CSRF in der SecurityFilterChain mit `.spa()` konfiguriert haben.
+
+CSRF-Schutz brauchen wir immer wenn wir JWT Access Tokens schicken, da wir den **__Secure-Fgp** Cookie mitschicken,
+damit der Server den Hash des Fingerprints im JWT Token mit dem Cookie vergleichen kann. Der 
+Der CSRF Token wird im XSRF-TOKEN Cookie gespeichert und im `X-XSRF-TOKEN` Header bei Anfragen
+an den Server mitgeschickt. Als Attribute für den Cookie haben wir `Secure`, `SameSite=Strict` und `Path=/` gesetzt.
+Wichtig ist hier, dass der Cookie nicht httpOnly ist, da der Client (Frontend) den Token auslesen
+und im Header mitsenden muss.
+
+
 
 **Ablauf**
 1. Der Nutzer sendet eine POST-Anfrage an den `/login` Endpoint mit seiner E-Mail Adresse und Passwort.
@@ -254,47 +270,21 @@ Sicherheits analyisieren
 
 Das System ist sicher vor CSRF-Angriffen, da der JWT
 
-
-```java
- @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-
-        http
-            .cors(AbstractHttpConfigurer::disable)
-            .csrf(csrf -> csrf
-                    .ignoringRequestMatchers(
-                            "/api/auth/login",
-                            "/api/auth/register",
-                            "/api/auth/verify-email",
-                            "/api/documents/public",
-                            "/api/documents/public/search"
-                    )
-                  .spa()
-            )
-            .sessionManagement( session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .exceptionHandling(ex -> ex
-                    .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
-                    .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
-            )
-            .authorizeHttpRequests(auth -> auth
-                   .requestMatchers(
-                           "/api/documents/public",
-                           "/api/documents/public/search",
-                            "/api/auth/register",
-                            "/api/auth/login",
-                            "/api/auth/verify-email",
-                            "/api/auth/rt/refresh-token",
-                            "/api/auth/rt/logout"
-                   ).permitAll().anyRequest().authenticated()
-            )
-            .formLogin(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
+Frei zugängliche Routen sind im SecurityFilterChain wie folgt konfiguriert bzw. wird hier kein JWT Access Token erwartet,
+die restlichen Routen benötigen eine Authentifizierung:
+```text
+   .requestMatchers(
+           "/api/documents/public",
+           "/api/documents/public/search",
+            "/api/auth/register",
+            "/api/auth/login",
+            "/api/auth/verify-email",
+            "/api/auth/rt/refresh-token",
+            "/api/auth/rt/logout"
+   ).permitAll().anyRequest().authenticated()
 ```
+
+Für F
 
  
 
