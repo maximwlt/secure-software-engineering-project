@@ -136,6 +136,9 @@ mussten und dabei KI verwendet haben, haben wir immer geschaut, ob der Vorschlag
 mit den OWASP Vorgehen übereinstimmt und eigenständig überprüft, ob vorgeschlagene Libraries gepflegt und nicht veraltet sind.
 Für das Layout im Frontend habe ich mir fast alle CSS Dateien generieren lassen, um Zeit
 zu sparen und weil hier kein Sicherheitsrisiko bestand.
+Außerdem haben wir darauf geachtet, dass unsere .env Datei nicht ins Repository gelangt,
+indem wir eine .gitignore Datei erstellt haben, die diese Datei ignoriert und die application.properties
+die sensiblen Daten aus der .env Datei liest.
 
 
 ## Funktionen
@@ -143,23 +146,108 @@ zu sparen und weil hier kein Sicherheitsrisiko bestand.
 ### Anmeldung
 Der registrierte **und** verifizierte Nutzer kann sich mit seiner E-Mail Adresse
 und seinem Passwort anmelden. 
-Als Authentifizierungsmechanismus haben wir JSON Web Tokens (JWT) gewählt,
-um eine zustandslose Authentifizierung zu ermöglichen.
+Als Authentifizierungsmechanismus haben wir JSON Web Tokens (JWT) gewählt
+mit rotierenden Refreshtokens, um besser gegen Token Replay-Angriffe geschützt zu sein.
 Der JWT Token besitzt eine Gültigkeit von 10 Minuten und besitzt
-als sub-claim die Nutzer-UUID, um den Nutzer zu identifizieren.
+als sub-claim die Nutzer-UUID, um den Nutzer zu identifizieren und einen
+custom-claim für den Hash des Fingerprints.
 Hierbei werden **keine** persönlichen Daten im Token gespeichert, um Datenschutz einzuhalten.
 Als Signieralgorithmus haben wir `HS256` (HMAC mit SHA-256) gewählt, 
 Damit der Nutzer nach Ablauf
 des Tokens nicht erneut seine Anmeldedaten eingeben muss, haben wir Refresh Tokens
 implementiert, die eine Gültigkeit von 7 Tagen besitzen.
 
+Hierbei wird der JWT Accesstoken im Speicher (Memory) des Clients gehalten, anstelle
+von LocalStorage oder SessionStorage, um Angriffe durch XSS zu erschweren.
+
+Um Ressourcen bzw Routen abzufragen, die eine Authentifizierung benötigen,
+muss der Client...
+
+**JSON Web Token**
+Der JWT wird mit dem `HS256` Algorithmus signiert und besitzt folgende Claims:
+- **sub**: Nutzer-UUID (eindeutige Identifikation des Nutzers)
+- **iat**: Issued At (Zeitpunkt der Token-Erstellung)
+- **exp**: Expiration Time (Ablaufzeitpunkt des Tokens, 10 Minuten nach Erstellung)
+- **fgp**: SHA-256 Hash des Fingerprints (custom-claim, der den Hash vom __Secure_Fgp Cookie enthält)
+
+Da wir keine sensiblen Daten im JWT speichern, ist es nicht nötig die Inhalte des JWTs zu verschlüsseln,
+sondern die Signierung mittels Secret Key reicht aus.
+Dieses Secret haben wir uns aus der Openssl in der Linux-Konsole mit dem Befehl `openssl rand -hex 64`generieren
+lassen. Dies erzeugt einen 512 Bit (64 Byte) langen zufälligen Hex-String, der ausreichend sicher ist,
+um als Secret Key für die HMAC-Signierung zu dienen.
+
+**Refresh Token**
+
+**CSRF Token**
+
+**Ablauf**
+1. Der Nutzer sendet eine POST-Anfrage an den `/login` Endpoint mit seiner E-Mail Adresse und Passwort.
+2. Der Server überprüft die Anmeldedaten. Wenn diese korrekt sind, werden folgende Schritte durchgeführt:
+    - Set-Cookie: REFRESH_TOKEN=Mx5eqY0gxOkGT3ZDj7VuZty_WSOgLgYPhtB-VCHRzbI, httpOnly, Secure, SameSite=Strict, Path=/api/auth/rt MaxAge 7 Tage
+    - Set-Cookie: __Secure_Fgp, httpOnly, Secure, SameSite=Strict, Path=/ MaxAge 10 Minuten (<= Access Token Gültigkeit)
+    - Set-Cookie: XSRF-TOKEN, Secure, SameSite=Strict, Path MaxAge
+    - Response Body: { accessToken: }
+
+   - Dieser Fingerprint wird gehasht (SHA-256) und im JWT Token als custom-claim gespeichert.
+   - Ein JWT Token wird erstellt, der die Nutzer-UUID (sub-claim) und den Hash des Fingerprints (custom-claim) enthält.
+   - Ein Refresh Token wird generiert und in der Datenbank zusammen mit der Nutzer-UUID und dem Ablaufdatum gespeichert.
+   - Spring setzt ein 
+3. Möchte ein Nutzer eine geschützte Ressource abrufen, sendet der Client den JWT Access Token im Authorization Header mit.
 
 
+Felder durchgehen:
 
-Der JWT-Token  
+Wenn JWT abgelaufen dann,
 
-Der Client 
+Wenn Logout dann,
 
+Sicherheits analyisieren
+
+
+Das System ist sicher vor CSRF-Angriffen, da der JWT
+
+
+```java
+ @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+
+        http
+            .cors(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf
+                    .ignoringRequestMatchers(
+                            "/api/auth/login",
+                            "/api/auth/register",
+                            "/api/auth/verify-email",
+                            "/api/documents/public",
+                            "/api/documents/public/search"
+                    )
+                  .spa()
+            )
+            .sessionManagement( session -> session
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+                    .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
+            )
+            .authorizeHttpRequests(auth -> auth
+                   .requestMatchers(
+                           "/api/documents/public",
+                           "/api/documents/public/search",
+                            "/api/auth/register",
+                            "/api/auth/login",
+                            "/api/auth/verify-email",
+                            "/api/auth/csrf",
+                            "/api/auth/rt/refresh-token",
+                            "/api/auth/rt/logout"
+                   ).permitAll().anyRequest().authenticated()
+            )
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+```
 
  
 
@@ -278,6 +366,7 @@ Vor allem bei der Suche
 
 
 #### Social-Plugin
+
 
 #### Suche
 
