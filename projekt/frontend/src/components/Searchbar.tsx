@@ -5,12 +5,14 @@ import "../styling/Searchbar.css";
 type SearchBarProps = {
     value: string;
     onChange: (v: string) => void;
-    onSubmit: () => void;
+    onSubmit: (s: string) => void;
 };
+const PATTERN : RegExp = /^[a-zA-Z0-9äöüÄÖÜß\s-_.]*$/;
+const MAX_LENGTH = 50;
 
 function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
     const [error, setError] = useState<string | null>(null);
-    const MAX_LENGTH = 50;
+
 
     const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -20,7 +22,11 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
             setError(`Die Suchanfrage darf maximal ${MAX_LENGTH} Zeichen lang sein.`);
             return;
         }
-        onSubmit();
+        if (!PATTERN.test(value)) {
+            setError("Die Suchanfrage enthält ungültige Zeichen. Nur Buchstaben, Zahlen und Leerzeichen sind erlaubt.");
+            return;
+        }
+        onSubmit(encodeURIComponent(value.trim()));
 
     };
 
@@ -33,7 +39,7 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
                     name="searchQuery"
                     placeholder="Eingabe..."
                     value={value}
-                    maxLength={50}
+                    maxLength={MAX_LENGTH}
                     onChange={(e) => onChange(e.target.value)}
                 />
                 <button

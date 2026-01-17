@@ -1,8 +1,6 @@
 package com.projektsse.backend.config;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,14 +10,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfFilter;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
-
 
 @Configuration
 @EnableWebSecurity
@@ -32,16 +22,26 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        CookieCsrfTokenRepository repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repo.setCookieCustomizer(cookie -> {
+            cookie.secure(true);
+            cookie.sameSite("Strict");
+            cookie.path("/");
+        });
 
         http
             .cors(AbstractHttpConfigurer::disable)
             .csrf(csrf -> csrf
-                    .requireCsrfProtectionMatcher( req -> {
-                        String uri = req.getRequestURI();
-                        return uri.equals("/api/auth/rt/logout") || uri.equals("/api/auth/rt/refresh-token");
-                    })
-                  .spa()
+                    .ignoringRequestMatchers(
+                            "/api/auth/login",
+                            "/api/auth/register",
+                            "/api/auth/verify-email",
+                            "/api/documents/public",
+                            "/api/documents/public/search"
+                    )
+                    .spa()
+                    .csrfTokenRepository(repo)
             )
             .sessionManagement( session -> session
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -57,15 +57,12 @@ public class SecurityConfig {
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/verify-email",
-                            "/api/auth/csrf",
                             "/api/auth/rt/refresh-token",
                             "/api/auth/rt/logout"
                    ).permitAll().anyRequest().authenticated()
             )
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
-            //.addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
-            // .addFilterBefore(new CsrfCookieFilter(), CsrfFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

@@ -24,20 +24,17 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final EmailService emailService;
-    private final RefreshTokenHasher verificationTokenHasher;
     private final RegistrationRepository registrationRepository;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        TokenService tokenService,
                        EmailService emailService,
-                       RefreshTokenHasher verificationTokenHasher,
                        RegistrationRepository registrationRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
         this.emailService = emailService;
-        this.verificationTokenHasher = verificationTokenHasher;
         this.registrationRepository = registrationRepository;
     }
 
@@ -49,7 +46,7 @@ public class UserService {
         return new Registration_Request(
                 userReqModel.email(),
                 passwordEncoder.encode(userReqModel.password()),
-                verificationTokenHasher.hash(verificationCode),
+                tokenService.hashVerificationToken(verificationCode),
                 Instant.now().plus(3, HOURS)
         );
     }
@@ -63,7 +60,7 @@ public class UserService {
         String title = "E-Mail Verifizierung";
         String message = String.format("""
         Bitte verifizieren Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:
-        https://localhost:8080/api/auth/verify-email?code=%s
+        http://localhost:8080/api/auth/verify-email?code=%s
         """, verificationCode);
 
 
@@ -86,7 +83,7 @@ public class UserService {
         //Optional<User> user = userRepository.findByVerificationCode(code);
         Optional<Registration_Request> regReq = registrationRepository
                 .findByVerificationCodeAndVerificationCodeExpiryAfter(
-                        verificationTokenHasher.hash(code),
+                        tokenService.hashVerificationToken(code),
                         Instant.now()
                 );
 
