@@ -217,7 +217,7 @@ Der JWT wird mit dem `HS256` Algorithmus signiert und besitzt folgende Claims:
 Die Signierung der JSON Web Tokens (JWT) erfolgt mittels HMAC mit einem starken, kryptografisch zufällig erzeugten geheimen Schlüssel.
 Der Secret Key wurde mit dem OpenSSL‑Tool in der Linux‑Konsole mithilfe des Befehls `openssl rand -hex 64` generiert.
 Dieser Befehl erzeugt 64 Bytes (512 Bit) kryptografisch sicheren Zufalls (CSPRNG), der als Hex‑String ausgegeben wird (144 Zeichen).
-Das entspricht den [OWASP Anforderungen](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html#weak-token-secret), dass das secret mindestens 64 Zeichen und krpytografisch sicher generiert sein muss.
+Das entspricht den [OWASP Anforderungen](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html#weak-token-secret), dass der Secret Key mindestens 64 Zeichen und krpytografisch sicher generiert sein muss.
 Dieses Secret wird in einer .env Datei gespeichert und nicht ins Repository gepusht und wird von der `application.properties`-Datei gelesen.
 Die JWT Library `java-jwt` von Auth0 wird verwendet, um die Tokens zu erstellen und zu validieren. Auth0 bietet eine große 
 [Dokumentation](https://auth0.com/docs) und die Library wird regelmäßig gepflegt mit einem [aktuellen Release](https://github.com/auth0/java-jwt/releases/tag/4.5.0) im Januar 2026 mit der Version 4.5.0.
@@ -449,11 +449,11 @@ Zu allen ecosystems ist konfiguriert, dass vor vurnabilities gewarnt werden soll
 Alle fünf jobs sind auf tägliche runs konfiguriert, wie in [CI/CD](#cicd) beschrieben, konnte das vom dependabot aber nicht immer eingehalten werden.
 
 #### Schwachstellen u. ihre Vorbeugungen
-| Schwachstelle                                       | Vorbeugung                                                                                                                 |
-|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| Schwachstelle                                       | Vorbeugung                                                                                                                  |
+|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
 | unauthorisierter Zugang zum Repository durch Tokens | Nutzen von vertrauenswürdigen, lokal ausgeführten Diensten, minimum Zugriffsrechte & Tokens werden nicht mehrfach verwendet |
-| potenzieller root-Zugriff durch Docker              | Docker rootless konfigurieren & mit neuem User ausgeführt                                                                  |
-| Zugriff auf Variablen in der Pipeline               | keine Variablen mit Secrets angelegt                                                                                       |
+| potenzieller root-Zugriff durch Docker              | Docker rootless konfigurieren & mit neuem User ausgeführt                                                                   |
+| Zugriff auf Variablen in der Pipeline               | keine Variablen mit Secrets angelegt                                                                                        |
 
 #### Datenschutz
 Die einzigen personenbezogenen Daten die im Repository verwendet werden sind die Namen der Entwickler*innen und deren Usernamen. 
