@@ -23,7 +23,7 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
             return;
         }
         if (!PATTERN.test(value)) {
-            setError("Die Suchanfrage enthält ungültige Zeichen.");
+            setError("Die Suchanfrage enthält ungültige Zeichen. Nur Buchstaben, Zahlen und Leerzeichen sind erlaubt.");
             return;
         }
         onSubmit(encodeURIComponent(value.trim()));
