@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -22,6 +23,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        CookieCsrfTokenRepository repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repo.setCookieCustomizer(cookie -> {
+            cookie.secure(true);
+            cookie.sameSite("Strict");
+            cookie.path("/");
+        });
 
         http
             .cors(AbstractHttpConfigurer::disable)
@@ -33,7 +40,8 @@ public class SecurityConfig {
                             "/api/documents/public",
                             "/api/documents/public/search"
                     )
-                  .spa()
+                    .spa()
+                    .csrfTokenRepository(repo)
             )
             .sessionManagement( session -> session
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -49,15 +57,12 @@ public class SecurityConfig {
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/verify-email",
-                            "/api/auth/csrf",
                             "/api/auth/rt/refresh-token",
                             "/api/auth/rt/logout"
                    ).permitAll().anyRequest().authenticated()
             )
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
-            //.addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
-            // .addFilterBefore(new CsrfCookieFilter(), CsrfFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

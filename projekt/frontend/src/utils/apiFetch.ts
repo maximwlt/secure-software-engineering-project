@@ -21,17 +21,16 @@ export async function apiFetch(
     }
 
     // CSRF Header
-    /*
     const csrf = getCookie(CSRF_COOKIE);
     if (csrf) {
         headers[CSRF_HEADER] = csrf;
     }
-    */
+
 
     const response = await fetch(input, {
         ...init,
         headers,
-        // credentials: "include",
+        credentials: "include",  // Cookies mitsenden (CSRF-Cookie und __Secure_Fgp)
     });
 
     if (response.status !== 401) {

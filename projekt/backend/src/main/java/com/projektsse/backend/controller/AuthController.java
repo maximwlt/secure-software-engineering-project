@@ -174,8 +174,17 @@ public class AuthController {
                 .sameSite("Strict")
                 .build();
 
+        ResponseCookie deleteFingerprintCookie = ResponseCookie.from("__Secure-Fgp", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
         return  ResponseEntity.ok()
                 .header("Set-Cookie", deleteCookie.toString())
+                .header("Set-Cookie", deleteFingerprintCookie.toString())
                 .body(Map.of("message", "Erfolgreich abgemeldet."));
     }
 
