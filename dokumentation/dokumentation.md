@@ -1,5 +1,5 @@
 # Dokumentation
-
+[[_TOC_]]
 ## Beschreibung
 #### Inhalt der Anwendung
 Diese Anwendung ermöglicht das Erstellen von Notizen
@@ -28,13 +28,12 @@ XSS, CSRF, SQL Injection, DoS-Attacken, User Enumeration und haben uns bei der I
 - **Vite:** Als Build-Tool haben wir Vite verwendet, um das Frontend zu bauen und die Abhängigkeiten zu verwalten, da
     Vite schneller als andere Build-Tools ist und es veraltet ist, Create-React-App für neue Projekte zu verwenden.
 - **TypeScript:** Wir haben statt JavaScript als Programmiersprache TypeScript verwendet, um typsicheren Code im Frontend zu schreiben.
+- **Nginx:** Wurde gewählt um das Frontend zu hosten, da es gleichzeitig auch als Reverse-Proxy für das Backend konfiguriert werden kann.
+    Außerdem wurde es auch mit einem *Rate-Limit* und einer *Content Security Policy* versehen.
 
 #### Datenbank:
 - **PostgreSQL:** Wir haben PostgreSQL als relationale Datenbank verwendet, um die Benutzerdaten und Notizen zu speichern.
 Die Wahl fiel auf PostgreSQL, da es uns beiden vertraut ist.
-
-#### Reverse Proxy
-- **Nginx:** ...
 
 #### Testing
 - **Vitest:** Um Frontend Unit Tests zu schreiben, haben wir Vitest verwendet, da es gut mit Vite zusammenarbeitet und schnelle Tests ermöglicht.
@@ -43,8 +42,7 @@ verwendet, sondern simple Unit Tests geschrieben.
 
 #### Infrastruktur
 - **GitLab:** ...
-- **Docker:** ...
-
+- **Docker:** Ist durch die Projektbeschreibung vorgegeben. Wird zum builden und ausführen der Anwendung und ihrer Komponenten verwendet.
 
 ### Dependencies
 #### Backend
@@ -85,6 +83,7 @@ verwendet, sondern simple Unit Tests geschrieben.
 
 
 **Development** <br>
+
 | Name                               | Version    | Nutzen |
 |------------------------------------|------------|--------|
 | @eslint/js                         | ^9.39.2    | Offizielle ESLint-Regeln für JavaScript. |
@@ -114,7 +113,52 @@ verwendet, sondern simple Unit Tests geschrieben.
 ## Infrastruktur
 
 ### CI/CD
-...
+Für die CI Pipeline musste ein eigener Runner angelegt werden, da das GitLab der THM keinen Docker-fähigen Runner bereitstellt.
+Dafür wurde ein [passendes Docker image](https://hub.docker.com/r/gitlab/gitlab-runner/) von gitlab verwendet und wie folgt konfiguriert.
+
+```shell
+docker run -d --name gitlab-runner --restart always \
+  -v <path to docker socket>:/var/run/docker.sock \
+  -v gitlab-runner-config:/etc/gitlab-runner \
+  -v gitlab-runner-var-lib-docker:/etc/gitlab-runner \
+  gitlab/gitlab-runner:alpine
+```
+
+```toml
+# config.toml in gitlab-runner-config volume
+[[runners]]
+    url = "https://git.thm.de"
+    token = "<gitlab-runner-token>"
+    executor = "docker"
+    request_concurrency = 3
+    [runners.docker]
+        tls_verify = false
+        host = "unix:///var/run/docker.sock"
+        image = "docker:29.1.2-cli"
+        privileged = true
+        disable_cache = false
+        volumes = ["/certs/client", "/cache", "gitlab-runner-var-lib-docker:/var/lib/docker"]
+```
+
+Für den Dependabot wurde das image [dependabot-gitlab/dependabot](https://gitlab.com/dependabot-gitlab/dependabot) genutzt. 
+Dabei handelt es sich zwar um ein inoffizielles Projekt, das allerdings viel verwendet und konstant weiterentwickelt wird mit mehreren fast täglichen Commits. 
+
+Als Version wurde die v3.75.0-alpha.1 gewählt, da es die aktuellste lauffähige Version war.
+```shell
+curl -o depandabot-compose.yml https://gitlab.com/dependabot-gitlab/dependabot/-/raw/v3.75.0-alpha.1/docker-compose.yml
+docker compose -f depandabot-compose.yml up -d
+```
+Der dependabot benötigt einen Access Token mit der Rolle `Developer` und den Scopes `api` und `read_registry`.
+```yaml
+# notwendige Anpassungen in dependabot-compose.yml
+# ...
+SETTINGS__GITLAB_ACCESS_TOKEN: "<gitlab-access-token>"
+SETTINGS__GITLAB_URL: https://git.thm.de
+# ...
+```
+
+Beide Systeme (runner und dependabot) waren nicht durchgänging verfügbar, da diese lokal auf einem der Laptops der Entwickler*innen ausgeführt wurden.
+Ein seperates Gerät wäre für die Entwicklung besser gewesen, stand allerdings nicht zur Verfügung.
 
 ### Verwendete IDE
 Wir haben ein Monorepository erstellt und IntelliJ IDEA Ultimate für unser gesamtes Projekt (Backend, Frontend, etc.) verwendet,
@@ -385,5 +429,30 @@ In der JWT Payload haben wir keine persönlichen Daten gespeichert, sondern nur 
 und den Hash des Fingerprints.
 
 ### CI/CD Pipeline
+#### Technische Umsetzung
+Wie im Abschnitt [CI/CD](#cicd) beschrieben, wird ein gitlab-runner und ein dependabot verwendet und entsprechend konfiguriert.
 
+Die .gitlab-ci.yml beschreibt, welche jobs wann durchgeführt werden. 
+Insgesamt sind drei jobs konfiguriert: backend-test, frontend-test und der build-job.
+backend-test und frontend-test werden bei jedem push durchgeführt, unabhängig vom branch.
+Der build-job läuft nur auf dem main branch und wenn ein Commit Tag angelegt wird, was unter anderem bei Releases passiert.
 
+Wie in [Testing](#testing) beschrieben werden für die Tests Vitest und Spring Boot Test verwendet. 
+backend-test und frontend-test nutzen docker images (eclipse-temurin & node), unter denen diese Tests ausgeführt werden können.
+build-job nutzt docker-in-docker (dind) um mit `docker compose` das Projekt zu builden und in die Container Registry zu pushen.
+
+Der dependabot ist auf vier verschiedene package-ecosystems konfiguriert: docker, docker-compose, maven & npm.
+Aufgrund dessen, dass es zwei unterschiedliche Dockerfiles im Projekt gibt laufen allerdings zwei jobs für docker, fünf insgesamt.
+Zu allen ecosystems ist konfiguriert, dass vor vurnabilities gewarnt werden soll.
+Alle fünf jobs sind auf tägliche runs konfiguriert, wie in [CI/CD](#cicd) beschrieben, konnte das vom dependabot aber nicht immer eingehalten werden.
+
+#### Schwachstellen u. ihre Vorbeugungen
+| Schwachstelle                                       | Vorbeugung                                                                                                                 |
+|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| unauthorisierter Zugang zum Repository durch Tokens | Nutzen von vertrauenswürdigen, lokal ausgeführten Diensten, minimum Zugriffsrechte & Tokens werden nicht mehrfach verwendet |
+| potenzieller root-Zugriff durch Docker              | Docker rootless konfigurieren & mit neuem User ausgeführt                                                                  |
+| Zugriff auf Variablen in der Pipeline               | keine Variablen mit Secrets angelegt                                                                                       |
+
+#### Datenschutz
+Die einzigen personenbezogenen Daten die im Repository verwendet werden sind die Namen der Entwickler*innen und deren Usernamen. 
+Zum Schutz dieser Daten greifen die Vorbeugungen aus Zeile 1 in der Tabelle oben.
