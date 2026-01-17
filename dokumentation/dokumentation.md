@@ -84,27 +84,27 @@ verwendet, sondern simple Unit Tests geschrieben.
 
 **Development** <br>
 
-| Name                               | Version    | Nutzen |
-|------------------------------------|------------|--------|
-| @eslint/js                         | ^9.39.2    | Offizielle ESLint-Regeln für JavaScript. |
-| @testing-library/jest-dom          | ^6.9.1     | Zusätzliche DOM-Matcher für Tests (z. B. toBeInTheDocument). |
-| @testing-library/react             | ^16.3.1    | Utilities zum Testen von React-Komponenten aus Usersicht. |
-| @testing-library/user-event        | ^14.6.1    | Simulation realistischer Benutzerinteraktionen (Clicks, Tastatur). |
-| @types/node                        | ^25.0.6    | TypeScript-Typdefinitionen für Node.js. |
-| @types/react                       | ^19.2.8    | TypeScript-Typdefinitionen für React. |
-| @types/react-dom                   | ^19.2.3    | TypeScript-Typdefinitionen für ReactDOM. |
-| @vitejs/plugin-react               | ^5.1.2     | Vite-Plugin für React (Fast Refresh, JSX-Support). |
-| @vitest/coverage-v8                | ^4.0.16    | Code-Coverage für Vitest basierend auf V8. |
-| eslint                             | ^9.39.2    | Linter zur statischen Codeanalyse und Einhaltung von Code-Standards. |
-| eslint-plugin-react-hooks          | ^7.0.1     | ESLint-Regeln für korrekte Verwendung von React Hooks. |
-| eslint-plugin-react-refresh        | ^0.4.26    | ESLint-Unterstützung für React Fast Refresh. |
-| eslint-plugin-vitest-globals       | ^1.5.0    | Stellt Vitest-Globals (describe, it, expect) für ESLint bereit. |
-| globals                            | ^17.0.0    | Sammlung globaler Variablen (Browser, Node, etc.) für ESLint. |
-| jsdom                              | ^27.4.0    | DOM-Implementierung für Tests außerhalb des Browsers. |
-| typescript                         | ~5.9.3    | TypeScript-Compiler für typisierte JavaScript-Entwicklung. |
-| typescript-eslint                  | ^8.46.4    | Integration von TypeScript in ESLint. |
-| vite                               | ^7.2.4    | Build-Tool und Dev-Server für moderne Frontend-Projekte. |
-| vitest                             | ^4.0.16   | Schnelles Test-Framework für Vite-basierte Projekte. |
+| Name                         | Version | Nutzen                                                               |
+|------------------------------|---------|----------------------------------------------------------------------|
+| @eslint/js                   | ^9.39.2 | Offizielle ESLint-Regeln für JavaScript.                             |
+| @testing-library/jest-dom    | ^6.9.1  | Zusätzliche DOM-Matcher für Tests (z. B. toBeInTheDocument).         |
+| @testing-library/react       | ^16.3.1 | Utilities zum Testen von React-Komponenten aus Usersicht.            |
+| @testing-library/user-event  | ^14.6.1 | Simulation realistischer Benutzerinteraktionen (Clicks, Tastatur).   |
+| @types/node                  | ^25.0.6 | TypeScript-Typdefinitionen für Node.js.                              |
+| @types/react                 | ^19.2.8 | TypeScript-Typdefinitionen für React.                                |
+| @types/react-dom             | ^19.2.3 | TypeScript-Typdefinitionen für ReactDOM.                             |
+| @vitejs/plugin-react         | ^5.1.2  | Vite-Plugin für React (Fast Refresh, JSX-Support).                   |
+| @vitest/coverage-v8          | ^4.0.16 | Code-Coverage für Vitest basierend auf V8.                           |
+| eslint                       | ^9.39.2 | Linter zur statischen Codeanalyse und Einhaltung von Code-Standards. |
+| eslint-plugin-react-hooks    | ^7.0.1  | ESLint-Regeln für korrekte Verwendung von React Hooks.               |
+| eslint-plugin-react-refresh  | ^0.4.26 | ESLint-Unterstützung für React Fast Refresh.                         |
+| eslint-plugin-vitest-globals | ^1.5.0  | Stellt Vitest-Globals (describe, it, expect) für ESLint bereit.      |
+| globals                      | ^17.0.0 | Sammlung globaler Variablen (Browser, Node, etc.) für ESLint.        |
+| jsdom                        | ^27.4.0 | DOM-Implementierung für Tests außerhalb des Browsers.                |
+| typescript                   | ~5.9.3  | TypeScript-Compiler für typisierte JavaScript-Entwicklung.           |
+| typescript-eslint            | ^8.46.4 | Integration von TypeScript in ESLint.                                |
+| vite                         | ^7.2.4  | Build-Tool und Dev-Server für moderne Frontend-Projekte.             |
+| vitest                       | ^4.0.16 | Schnelles Test-Framework für Vite-basierte Projekte.                 |
 
 
 
@@ -283,7 +283,6 @@ Das System ist sicher vor CSRF-Angriffen, da der JWT
                             "/api/auth/register",
                             "/api/auth/login",
                             "/api/auth/verify-email",
-                            "/api/auth/csrf",
                             "/api/auth/rt/refresh-token",
                             "/api/auth/rt/logout"
                    ).permitAll().anyRequest().authenticated()
@@ -405,6 +404,9 @@ und auch nur JSON-Daten zurückgibt.
 ### Funktionen der Anwendung
 #### Notiz
 
+
+Ein Nutzer kann eine Notiz erstellen und löschen. Notizen anderer Nutzer sowohl private als auch öffentliche
+können eingesehen werden, jedoch werden 
 - JPA eingehen, dass es SQL Injection verhindert durch vorgefertigte Methodennamen
 und bei Custom SQL-Queries via @Query Annotation Prepared Statementsverwendet werden,
 anstatt String Konkatenation.
@@ -412,9 +414,14 @@ Vor allem bei der Suche
 
 
 #### Social-Plugin
-
+Wenn 
+Genauere Codedetail gibt es in der `SafeMarkdown.tsx` zu finden. 
+Unser Social-Plugin 
 
 #### Suche
+Wir haben die Suche in zwei Suchleisten aufgeteilt: Eine für öffentliche Notizen aller Nutzer
+und eine für die privaten Notizen des angemeldeten Nutzers.
+Der 
 
 #### Datenschutz
 Unsere Anwendung ist datenschutzkonform gestaltet. Wir speichern nur die notwendigsten Daten,
