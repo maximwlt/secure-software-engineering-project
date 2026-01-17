@@ -170,11 +170,13 @@ Der JWT wird mit dem `HS256` Algorithmus signiert und besitzt folgende Claims:
 - **exp**: Expiration Time (Ablaufzeitpunkt des Tokens, 10 Minuten nach Erstellung)
 - **fgp**: SHA-256 Hash des Fingerprints (custom-claim, der den Hash vom __Secure_Fgp Cookie enthält)
 
-Da wir keine sensiblen Daten im JWT speichern, ist es nicht nötig die Inhalte des JWTs zu verschlüsseln,
-sondern die Signierung mittels Secret Key reicht aus.
-Dieses Secret haben wir uns aus der Openssl in der Linux-Konsole mit dem Befehl `openssl rand -hex 64`generieren
-lassen. Dies erzeugt einen 512 Bit (64 Byte) langen zufälligen Hex-String, der ausreichend sicher ist,
-um als Secret Key für die HMAC-Signierung zu dienen.
+Die Signierung der JSON Web Tokens (JWT) erfolgt mittels HMAC mit einem starken, kryptografisch zufällig erzeugten geheimen Schlüssel.
+Der Secret Key wurde mit dem OpenSSL‑Tool in der Linux‑Konsole mithilfe des Befehls `openssl rand -hex 64` generiert.
+Dieser Befehl erzeugt 64 Bytes (512 Bit) kryptografisch sicheren Zufalls (CSPRNG), der als Hex‑String ausgegeben wird (144 Zeichen).
+Das entspricht den [OWASP Anforderungen](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html#weak-token-secret), dass das secret mindestens 64 Zeichen und krpytografisch sicher generiert sein muss.
+Dieses Secret wird in einer .env Datei gespeichert und nicht ins Repository gepusht und wird von der `application.properties`-Datei gelesen.
+Die JWT Library `java-jwt` von Auth0 wird verwendet, um die Tokens zu erstellen und zu validieren. Auth0 bietet eine große 
+[Dokumentation](https://auth0.com/docs) und die Library wird regelmäßig gepflegt mit einem [aktuellen Release](https://github.com/auth0/java-jwt/releases/tag/4.5.0) im Januar 2026 mit der Version 4.5.0.
 
 **Refresh Token**
 
