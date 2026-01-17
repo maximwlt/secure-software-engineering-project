@@ -152,6 +152,9 @@ SETTINGS__GITLAB_URL: https://git.thm.de
 # ...
 ```
 
+Beide Systeme (runner und dependabot) waren nicht durchgänging verfügbar, da diese lokal auf einem der Laptops der Entwickler*innen ausgeführt wurden.
+Ein seperates Gerät wäre für die Entwicklung besser gewesen, stand allerdings nicht zur Verfügung.
+
 ### Verwendete IDE
 Wir haben ein Monorepository erstellt und IntelliJ IDEA Ultimate für unser gesamtes Projekt (Backend, Frontend, etc.) verwendet,
 da IntelliJ sowohl Java/Spring Boot als auch TypeScript/React sehr gut unterstützt und viele nützliche Features
@@ -256,3 +259,31 @@ Es müssen lediglich die richtigen Parameter gesetzt werden, worauf wir uns an d
 
 #### Datenschutz
 
+### CI/CD Pipeline
+#### Technische Umsetzung
+Wie im Abschnitt [CI/CD](#cicd) beschrieben, wird ein gitlab-runner und ein dependabot verwendet und entsprechend konfiguriert.
+
+Die .gitlab-ci.yml beschreibt, welche jobs wann durchgeführt werden. 
+Insgesamt sind drei jobs konfiguriert: backend-test, frontend-test und der build-job.
+backend-test und frontend-test werden bei jedem push durchgeführt, unabhängig vom branch.
+Der build-job läuft nur auf dem main branch und wenn ein Commit Tag angelegt wird, was unter anderem bei Releases passiert.
+
+Wie in [Testing](#testing) beschrieben werden für die Tests Vitest und Spring Boot Test verwendet. 
+backend-test und frontend-test nutzen docker images (eclipse-temurin & node), unter denen diese Tests ausgeführt werden können.
+build-job nutzt docker-in-docker (dind) um mit `docker compose` das Projekt zu builden und in die Container Registry zu pushen.
+
+Der dependabot ist auf vier verschiedene package-ecosystems konfiguriert: docker, docker-compose, maven & npm.
+Aufgrund dessen, dass es zwei unterschiedliche Dockerfiles im Projekt gibt laufen allerdings zwei jobs für docker, fünf insgesamt.
+Zu allen ecosystems ist konfiguriert, dass vor vurnabilities gewarnt werden soll.
+Alle fünf jobs sind auf tägliche runs konfiguriert, wie in [CI/CD](#cicd) beschrieben, konnte das vom dependabot aber nicht immer eingehalten werden.
+
+#### Schwachstellen u. ihre Vorbeugungen
+| Schwachstelle                                       | Vorbeugung                                                                                                                 |
+|-----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| unauthorisierter Zugang zum Repository durch Tokens | Nutzen von vertrauenswürdigen, lokal ausgeführten Diensten, minimum Zugriffsrechte & Tokens werden nicht mehrfach verwendet |
+| potenzieller root-Zugriff durch Docker              | Docker rootless konfigurieren & mit neuem User ausgeführt                                                                  |
+| Zugriff auf Variablen in der Pipeline               | keine Variablen mit Secrets angelegt                                                                                       |
+
+#### Datenschutz
+Die einzigen personenbezogenen Daten die im Repository verwendet werden sind die Namen der Entwickler*innen und deren Usernamen. 
+Zum Schutz dieser Daten greifen die Vorbeugungen aus Zeile 1 in der Tabelle oben.
