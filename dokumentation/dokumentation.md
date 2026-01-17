@@ -9,6 +9,8 @@ mit den gleichen Angaben.
 Dabei haben wir sichergestellt, dass unsere Anwendung sicher ist vor Angriffen wie
 XSS, CSRF, SQL Injection, DoS-Attacken, User Enumeration und haben uns bei der Implementierung an die Vorgaben von OWASP gerichtet.
 
+![Anwendung Aufbau](NoteAppStructure.png)
+
 #### Gruppenmitglieder: 
   - Kaylin Althoff
   - Maxim Walter
