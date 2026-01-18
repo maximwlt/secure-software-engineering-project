@@ -7,13 +7,9 @@ import com.projektsse.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.test.json.JsonComparator;
 import org.springframework.test.web.servlet.client.RestTestClient;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 
-import static org.junit.jupiter.api.Assertions.*;
 
-@ControllerAdvice
 class AuthControllerTest {
 
     private RestTestClient client;

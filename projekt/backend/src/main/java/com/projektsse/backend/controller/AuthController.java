@@ -9,7 +9,6 @@ import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.TokenService;
 import com.projektsse.backend.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -73,39 +72,49 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login (@Valid @RequestBody LoginReq loginReq) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq) {
 
         userService.authenticateUser(loginReq.email(), loginReq.password());
 
         String userId = userService.getUserIdByEmail(loginReq.email()).toString();
-        String accessToken = jwtService.generateAccessToken(userId);
+
+        // Fingerprint generieren
+        String fingerprint = jwtService.generateFingerprint();
+        String fingerprintHash = jwtService.hashFingerprint(fingerprint);
+
+        // Token mit Fingerprint-Hash erstellen
+        String accessToken = jwtService.generateAccessToken(userId, fingerprintHash);
         String refreshToken = tokenService.createRefreshToken(userId);
 
-        Duration durationDays = Duration.ofDays(7); // CSRF-Token und Refresh-Token Gültigkeit
+        Duration durationDays = Duration.ofDays(7);
+        Duration accessTokenDuration = Duration.ofMinutes(jwtService.getAccessTokenExpiration()); // Gleich wie JWT Expiry
 
-        // HTTP-only Cookie für Refresh Token setzen
-        ResponseCookie refreshTokenCookie = ResponseCookie.from(
-                "REFRESH_TOKEN", refreshToken
-        ).httpOnly(true)
-          .secure(false) // TODO: auf true setzen, wenn HTTPS verwendet wird
-          .path("/api/auth/rt")
-          .maxAge(durationDays) // 7 Tage
-          .sameSite("Strict")
-          .build();
+        // Fingerprint Cookie (HttpOnly, Secure, SameSite=Strict)
+        ResponseCookie fingerprintCookie = ResponseCookie.from("__Secure-Fgp", fingerprint)
+                                                         .httpOnly(true)
+                                                         .secure(true)
+                                                         .path("/")
+                                                         .maxAge(accessTokenDuration) // Max-Age <= JWT Expiry
+                                                         .sameSite("Strict")
+                                                         .build();
 
+        // Refresh Token Cookie
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("REFRESH_TOKEN", refreshToken)
+                                                          .httpOnly(true)
+                                                          .secure(true)
+                                                          .path("/api/auth/rt")
+                                                          .maxAge(durationDays)
+                                                          .sameSite("Strict")
+                                                          .build();
 
         return ResponseEntity.ok()
-                .header("Set-Cookie", refreshTokenCookie.toString())
-                .body(new AuthResponse(accessToken));
+                             .header("Set-Cookie", fingerprintCookie.toString())
+                             .header("Set-Cookie", refreshTokenCookie.toString())
+                             .body(new AuthResponse(accessToken));
     }
 
-
-
     @PostMapping("/rt/refresh-token")
-    public ResponseEntity<?> refreshToken(
-            @CookieValue(name = "REFRESH_TOKEN") String refreshToken
-    ) {
-
+    public ResponseEntity<?> refreshToken(@CookieValue(name = "REFRESH_TOKEN") String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Kein Refresh-Token Cookie vorhanden."));
@@ -115,37 +124,37 @@ public class AuthController {
 
         if (userIdOpt.isEmpty()) {
             ResponseCookie deleteCookie = ResponseCookie.from("REFRESH_TOKEN", "")
-                                                        .httpOnly(true)
-                                                        .secure(false) // TODO: true bei HTTPS
-                                                        .path("/api/auth/rt")
-                                                        .maxAge(0)
-                                                        .sameSite("Strict")
-                                                        .build();
+                                                        .httpOnly(true).secure(true).path("/api/auth/rt")
+                                                        .maxAge(0).sameSite("Strict").build();
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                                  .header("Set-Cookie", deleteCookie.toString())
                                  .body(Map.of("message", "Refresh-Token ungültig oder abgelaufen."));
         }
+
         String userId = userIdOpt.get();
 
-        String newAccessToken = jwtService.generateAccessToken(userId);
+        // Neuen Fingerprint generieren
+        String newFingerprint = jwtService.generateFingerprint();
+        String newFingerprintHash = jwtService.hashFingerprint(newFingerprint);
+
+        String newAccessToken = jwtService.generateAccessToken(userId, newFingerprintHash);
         String newRefreshToken = tokenService.rotateRefreshToken(refreshToken);
 
-        ResponseCookie refreshTokenCookie = ResponseCookie.from(
-                "REFRESH_TOKEN", newRefreshToken
-        ).httpOnly(true)
-          .secure(false) // TODO: auf true setzen, wenn HTTPS verwendet wird
-          .path("/api/auth/rt")
-          .maxAge(Duration.ofDays(7)) // 7 Tage
-          .sameSite("Strict")
-          .build();
+        Duration accessTokenDuration = Duration.ofMinutes(10);
+
+        ResponseCookie fingerprintCookie = ResponseCookie.from("__Secure-Fgp", newFingerprint)
+                                                         .httpOnly(true).secure(true).path("/")
+                                                         .maxAge(accessTokenDuration).sameSite("Strict").build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("REFRESH_TOKEN", newRefreshToken)
+                                                          .httpOnly(true).secure(true).path("/api/auth/rt")
+                                                          .maxAge(Duration.ofDays(7)).sameSite("Strict").build();
 
         return ResponseEntity.ok()
-                .header("Set-Cookie", refreshTokenCookie.toString())
-                .body(new AuthResponse(newAccessToken));
-
-        // CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-        // request.setAttribute("NEW_CSRF_TOKEN", csrfToken.getToken());
+                             .header("Set-Cookie", fingerprintCookie.toString())
+                             .header("Set-Cookie", refreshTokenCookie.toString())
+                             .body(new AuthResponse(newAccessToken));
     }
 
 
@@ -159,14 +168,23 @@ public class AuthController {
 
         ResponseCookie deleteCookie = ResponseCookie.from("REFRESH_TOKEN", "")
                 .httpOnly(true)
-                .secure(false) // TODO: auf true setzen, wenn HTTPS verwendet wird
+                .secure(true)
                 .path("/api/auth/rt")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        ResponseCookie deleteFingerprintCookie = ResponseCookie.from("__Secure-Fgp", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
                 .maxAge(0)
                 .sameSite("Strict")
                 .build();
 
         return  ResponseEntity.ok()
                 .header("Set-Cookie", deleteCookie.toString())
+                .header("Set-Cookie", deleteFingerprintCookie.toString())
                 .body(Map.of("message", "Erfolgreich abgemeldet."));
     }
 

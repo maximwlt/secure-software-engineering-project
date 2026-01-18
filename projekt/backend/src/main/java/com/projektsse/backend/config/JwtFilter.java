@@ -3,10 +3,10 @@ package com.projektsse.backend.config;
 import com.projektsse.backend.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,19 +16,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+
+    private static final String FINGERPRINT_COOKIE_NAME = "__Secure-Fgp";
+
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
-    private final ApplicationContext context;
 
-    public JwtFilter(JwtService jwtService,
-                     UserDetailsService userDetailsService,
-                     ApplicationContext context) {
+    public JwtFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
-        this.context = context;
     }
 
     @Override
@@ -44,31 +44,61 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+
         String jwt = authHeader.substring(7);
-        String userId = jwtService.extractUserId(jwt);
 
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        // Fingerprint aus Cookie extrahieren
+        String fingerprint = extractFingerprintFromCookie(request);
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
-
-
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userId, // <--- Im CurrentUserIdResolver wird dieser Wert ausgelesen mit getName()
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+        if (fingerprint == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing fingerprint cookie");
+            return;
         }
+
+        try {
+            String userId = jwtService.extractUserId(jwt);
+
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+
+                if (jwtService.isTokenValid(jwt, fingerprint, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userId,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token or fingerprint");
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token validation failed");
+            return;
+        }
+
         filterChain.doFilter(request, response);
+    }
+
+    private String extractFingerprintFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            return null;
+        }
+        return Arrays.stream(request.getCookies())
+                     .filter(c -> FINGERPRINT_COOKIE_NAME.equals(c.getName()))
+                     .map(Cookie::getValue)
+                     .findFirst()
+                     .orElse(null);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/api/v1/auth/") ||
-                path.equals("/api/v1/auth");
+        return path.startsWith("/api/auth/register") ||
+                path.startsWith("/api/auth/login") ||
+                path.startsWith("/api/auth/verify-email") ||
+                path.startsWith("/api/documents/public");
     }
 }

@@ -1,74 +1,109 @@
 package com.projektsse.backend.service;
 
-import com.projektsse.backend.repository.UserRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-// Alternativ andere Library: "org.springframework.security.oauth2.jwt"
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import javax.crypto.SecretKey;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
-import java.util.function.Function;
+import java.util.HexFormat;
 
 @Service
 public class JwtService {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.access-token-expiration}")
-    private long accessTokenExpiration;
+    private int accessTokenExpiration; // In Minuten
 
-    JwtService(UserRepository userRepository, TokenService tokenService) { }
-
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private Algorithm getAlgorithm() {
+        byte[] keyBytes = Base64.getDecoder().decode(secret);
+        return Algorithm.HMAC256(keyBytes);
     }
 
-    public String generateAccessToken(String userId) {
-        return Jwts.builder()
-                .subject(userId)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
-                .signWith(getSigningKey())
-                .compact();
+    /**
+     * Generiert einen zufälligen Fingerprint (50 Bytes, Hex-kodiert)
+     */
+    public String generateFingerprint() {
+        byte[] randomBytes = new byte[50];
+        SECURE_RANDOM.nextBytes(randomBytes);
+        return HexFormat.of().formatHex(randomBytes);
     }
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+    /**
+     * Berechnet SHA3-256 Hash des Fingerprints
+     */
+    public String hashFingerprint(String fingerprint) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA3-256");
+            byte[] hashBytes = digest.digest(fingerprint.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hashBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA3-256 nicht verfügbar", e);
+        }
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+    /**
+     * Generiert Access Token mit Fingerprint-Hash im Claim
+     */
+    public String generateAccessToken(String userId, String fingerprintHash) {
+        Instant now = Instant.now();
+        return JWT.create()
+                  .withSubject(userId)
+                  .withIssuedAt(now)
+                  .withExpiresAt(now.plus(accessTokenExpiration, ChronoUnit.MINUTES))
+                  .withNotBefore(now)
+                  .withClaim("fgp", fingerprintHash) // Fingerprint-Hash
+                  .sign(getAlgorithm());
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                   .verifyWith(getSigningKey())
-                   .build()
-                   .parseSignedClaims(token)
-                   .getPayload();
-    }
-    public String extractUserId(String jwt) {
-        return extractUsername(jwt);
+    /**
+     * Verifiziert Token mit Fingerprint aus Cookie
+     */
+    public DecodedJWT verifyTokenWithFingerprint(String token, String fingerprintFromCookie) {
+        String fingerprintHash = hashFingerprint(fingerprintFromCookie);
+
+        JWTVerifier verifier = JWT.require(getAlgorithm())
+                                  .withClaim("fgp", fingerprintHash)
+                                  .build();
+        return verifier.verify(token);
     }
 
-    public boolean isTokenValid(String jwt, UserDetails userDetails) {
-        String username = extractUsername(jwt);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(jwt);
+    public String extractUserId(String token) {
+        return verifyAndDecode(token).getSubject();
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+
+    private DecodedJWT verifyAndDecode(String token) {
+        JWTVerifier verifier = JWT.require(getAlgorithm()).build();
+        return verifier.verify(token);
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    public boolean isTokenValid(String token, String fingerprintFromCookie, UserDetails userDetails) {
+        try {
+            DecodedJWT decoded = verifyTokenWithFingerprint(token, fingerprintFromCookie);
+            String userId = decoded.getSubject();
+            boolean isExpired = decoded.getExpiresAt().before(new Date());
+            return userId.equals(userDetails.getUsername()) && !isExpired;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
+    public int getAccessTokenExpiration() {
+        return accessTokenExpiration;
+    }
 }
