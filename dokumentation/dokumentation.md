@@ -465,7 +465,15 @@ und auch nur JSON-Daten zurückgibt.
 
 
 ### Autorisierung
-...
+Wir haben speziell keine Rollen implementiert, da wir eine Zweiergruppe sind.
+Bei dem Löschen einer Notiz haben wir jedoch überprüft, ob der angemeldete Nutzer
+der Besitzer der Notiz ist, um unbefugtes Löschen zu verhindern.
+Alternativ hätten wir Rollen wie `USER` und `ADMIN` implementieren können,
+wobei `ADMIN` alle Notizen löschen kann und `USER` nur seine eigenen Notizen löschen kann.
+Die JWT-Payload müsste dann um einen `roles`-Claim erweitert werden.
+Dies hatten wir jedoch nicht umgesetzt.
+
+
 ### Funktionen der Anwendung
 #### Notiz
 
