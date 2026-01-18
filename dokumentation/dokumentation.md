@@ -49,7 +49,7 @@ verwendet, sondern simple Unit Tests geschrieben.
 
 #### Infrastruktur
 - **GitLab:** Wir haben das *GitLab* der *THM* gewählt, aus persönlicher Präferenz.
-- **Docker:** Ist durch die Projektbeschreibung vorgegeben. Wird zum builden und ausführen der Anwendung und ihrer Komponenten verwendet.
+- **Docker:** Ist durch die Projektbeschreibung vorgegeben. Wird zum Builden und Ausführen der Anwendung und ihrer Komponenten verwendet.
 
 ### Dependencies
 #### Backend
@@ -112,7 +112,6 @@ verwendet, sondern simple Unit Tests geschrieben.
 | typescript-eslint            | ^8.46.4 | Integration von TypeScript in ESLint.                                |
 | vite                         | ^7.2.4  | Build-Tool und Dev-Server für moderne Frontend-Projekte.             |
 | vitest                       | ^4.0.16 | Schnelles Test-Framework für Vite-basierte Projekte.                 |
-
 
 
 
@@ -426,8 +425,18 @@ Unser Social-Plugin
 [//]: # (TODO)
 #### Suche
 Wir haben die Suche in zwei Suchleisten aufgeteilt: Eine für öffentliche Notizen aller Nutzer
-und eine für die privaten Notizen des angemeldeten Nutzers.
-Der 
+und eine für die privaten und öffentlichen Notizen des angemeldeten Nutzers einzusehen.
+Jedoch können nur die Notizübersichten durchsucht werden, nicht der Inhalt der Notizen selbst.
+Beim Anklicken einer Notiz der Übersicht wird die komplette Notiz geladen und angezeigt.
+Die Suche ist so implementiert, dass SQL Injection verhindert wird, indem JPA
+Prepared Statements verwendet, anstatt von String-Konkatenation für SQL Queries.
+Vor Stored-XSS sind die Suchfelder geschützt, da unsere REST-API nur JSON-Daten akzeptiert
+und auch nur JSON-Daten zurückgibt.
+Die Suche für öffentliche Notizen ist über den Endpoint `/api/documents/public/search` erreichbar
+und es werden sowohl Titel der Notiz als auch der Inhalt durchsucht.
+Die Suche für private und öffentliche Notizen des angemeldeten Nutzers ist über den Endpoint
+`/api/documents/search` erreichbar und es werden ebenfalls Titel und Inhalt durchsucht.
+
 
 #### Datenschutz
 Unsere Anwendung ist datenschutzkonform gestaltet. Wir speichern nur die notwendigsten Daten,
