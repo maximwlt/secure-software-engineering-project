@@ -7,7 +7,7 @@ type SearchBarProps = {
     onChange: (v: string) => void;
     onSubmit: (s: string) => void;
 };
-const PATTERN : RegExp = /^[a-zA-Z0-9äöüÄÖÜß\s-_.]*$/;
+// const PATTERN : RegExp = /^[a-zA-Z0-9äöüÄÖÜß\s-_.]*$/;
 const MAX_LENGTH = 50;
 
 function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
@@ -22,10 +22,10 @@ function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
             setError(`Die Suchanfrage darf maximal ${MAX_LENGTH} Zeichen lang sein.`);
             return;
         }
-        if (!PATTERN.test(value)) {
-            setError("Die Suchanfrage enthält ungültige Zeichen. Nur Buchstaben, Zahlen und Leerzeichen sind erlaubt.");
-            return;
-        }
+        //if (!PATTERN.test(value)) {
+         //   setError("Die Suchanfrage enthält ungültige Zeichen. Nur Buchstaben, Zahlen und Leerzeichen sind erlaubt.");
+        //    return;
+        // }
         onSubmit(encodeURIComponent(value.trim()));
 
     };
