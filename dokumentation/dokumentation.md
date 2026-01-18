@@ -325,32 +325,28 @@ Wichtig ist hier, dass der Cookie **nicht** httpOnly ist, da der Client (Fronten
 und im Header mitsenden muss.
 
 
-**Ablauf**
-1. Der Nutzer sendet eine POST-Anfrage an den `/login` Endpoint mit seiner E-Mail Adresse und Passwort.
-2. Der Server überprüft die Anmeldedaten. Wenn diese korrekt sind, werden folgende Schritte durchgeführt:
-    - Set-Cookie: REFRESH_TOKEN=< token >, httpOnly, Secure, SameSite=Strict, Path=/api/auth/rt MaxAge 7 Tage
-    - Set-Cookie: __Secure_Fgp, httpOnly, Secure, SameSite=Strict, Path=/ MaxAge 10 Minuten (<= Access Token Gültigkeit)
-    - Set-Cookie: XSRF-TOKEN, Secure, SameSite=Strict, Path MaxAge
-    - Response Body: { accessToken: }
+Der Ablauf eines Loginanfrage (`POST /api/login`) wird in folgendem Sequenzdiagramm dargestellt:
+![Login Sequenzdiagramm](images/Login.png)
+Ist der Login erfolgreich, werden drei Cookies gesetzt:
+- __Secure_Fgp (HttpOnly, Secure, SameSite=Strict, Path=/): Fingerprint Cookie
+- RefreshToken (HttpOnly, Secure, SameSite=Strict, Path=/api/auth/rt): Refresh Token Cookie
+- XSRF-TOKEN (Secure, SameSite=Strict, Path=/): CSRF Token Cookie
+Der JWT Access Token wird im Body mitgesendet und im Frontend in einer React State Variable gespeichert (In-Memory).
 
-   - Dieser Fingerprint wird gehasht (SHA-256) und im JWT Token als custom-claim gespeichert.
-   - Ein JWT Token wird erstellt, der die Nutzer-UUID (sub-claim) und den Hash des Fingerprints (custom-claim) enthält.
-   - Ein Refresh Token wird generiert und in der Datenbank zusammen mit der Nutzer-UUID und dem Ablaufdatum gespeichert.
-   - Spring setzt ein 
-3. Möchte ein Nutzer eine geschützte Ressource abrufen, sendet der Client den JWT Access Token im Authorization Header mit.
+Wenn JWT abgelaufen dann, läuft der Ablauf zum Anfordern eines neuen JWT Access Tokens mit dem Refresh Token wie folgt ab (`POST /api/auth/rt/refresh-token`): <br>
+![Refresh Token Sequenzdiagramm](images/RefreshToken.png)
 
-[//]: # (TODO: Ablauf vervollständigen)
+Für einen erfolgreichen Logout, muss der RefreshToken-Cookie, der XSRF-TOKEN-Cookie
+der X-XSRF-TOKEN-Header gesetzt sein. Dann wird der Refresh Token aus der Datenbank gelöscht,
+der RefreshToken-Cookie wird gelöscht und der Fingerprint-Cookie. Der JWT Access Token wird im Frontend gelöscht,
+indem er aus der Variablen entfernt wird (wegen In-Memory Speicherung).
 
-Felder durchgehen:
-
-Wenn JWT abgelaufen dann,
-
-Logout...
+Um Datenschutz einzuhalten, wird dem Nutzer bei der Anmeldung
+ein Hinweis gegeben, dass notwendige Cookies verwendet werden. Ist 
+diese Anmerkung angekreuzt bzw. zugestimmt, kann der Nutzer sich anmelden.
 
 
-
-Frei zugängliche Routen sind im SecurityFilterChain wie folgt konfiguriert bzw. wird hier kein JWT Access Token erwartet,
-die restlichen Routen benötigen eine Authentifizierung:
+Frei zugängliche Routen sind im SecurityFilterChain wie folgt konfiguriert bzw. wird hier kein JWT Access Token erwartet:
 ```text
    .requestMatchers(
            "/api/documents/public",
@@ -469,7 +465,7 @@ und auch nur JSON-Daten zurückgibt.
 
 
 ### Autorisierung
-
+...
 ### Funktionen der Anwendung
 #### Notiz
 
