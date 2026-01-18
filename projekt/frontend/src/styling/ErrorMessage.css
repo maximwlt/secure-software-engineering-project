@@ -1,0 +1,17 @@
+.error-message {
+    color: red;
+}
+
+.error-message--field {
+    font-size: 0.875rem;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.error-message--general {
+    background-color: #fee;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 15px 0;
+    border: 1px solid #f99;
+}

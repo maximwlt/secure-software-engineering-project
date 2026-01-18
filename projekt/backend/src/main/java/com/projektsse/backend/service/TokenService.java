@@ -9,6 +9,8 @@ import com.projektsse.backend.repository.entities.User;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
@@ -87,5 +89,24 @@ public class TokenService {
             return Optional.of(userId.toString());
         }
     }
+
+    public String hashVerificationToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA3-256");
+            byte[] hashedBytes = digest.digest(token.getBytes());
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(hashedBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA3-256 algorithm not available", e);
+        }
+    }
+
+
+//    public boolean verifyToken(String token, String storedHash) throws NoSuchAlgorithmException {
+//        String tokenHash = hashVerificationToken(token);
+//        return MessageDigest.isEqual(
+//                tokenHash.getBytes(),
+//                storedHash.getBytes()
+//        );
+//    }
 
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import '../styling/ErrorMessage.css';
 
 interface ErrorMessageProps {
     message?: string;
@@ -8,25 +9,10 @@ interface ErrorMessageProps {
 const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, type = 'field' }) => {
     if (!message) return null;
 
-    const styles = {
-        field: {
-            color: 'red',
-            fontSize: '0.875rem',
-            marginTop: '4px',
-            marginBottom: '8px'
-        },
-        general: {
-            color: 'red',
-            backgroundColor: '#fee',
-            padding: '10px',
-            borderRadius: '4px',
-            margin: '15px 0',
-            border: '1px solid #f99'
-        }
-    };
+    const className = `error-message error-message--${type}`;
 
     return (
-        <div style={styles[type]}>
+        <div className={className}>
             {type === 'general' && '⚠️ '}
             {message}
         </div>
