@@ -422,20 +422,27 @@ Wenn
 Genauere Codedetail gibt es in der `SafeMarkdown.tsx` zu finden. 
 Unser Social-Plugin 
 
-[//]: # (TODO)
+
 #### Suche
 Wir haben die Suche in zwei Suchleisten aufgeteilt: Eine für öffentliche Notizen aller Nutzer
 und eine für die privaten und öffentlichen Notizen des angemeldeten Nutzers einzusehen.
-Jedoch können nur die Notizübersichten durchsucht werden, nicht der Inhalt der Notizen selbst.
+Jedoch werden nur die Notizübersichten angezeigt werden, nicht der Inhalt der Notizen selbst.
 Beim Anklicken einer Notiz der Übersicht wird die komplette Notiz geladen und angezeigt.
-Die Suche ist so implementiert, dass SQL Injection verhindert wird, indem JPA
-Prepared Statements verwendet, anstatt von String-Konkatenation für SQL Queries.
+Bei der Verwendung der vorgefertigten Methodennamen von JPA werden automatisch Prepared Statements verwendet.
+Bei Custom SQL-Queries via `@Query` Annotation werden ebenfalls Prepared Statements verwendet. Hier 
+haben wir aber beachtet, named-Parameter, statt String Konkatenation zu verwenden.
+Somit sind die Suchfelder vor SQL Injection geschützt.
 Vor Stored-XSS sind die Suchfelder geschützt, da unsere REST-API nur JSON-Daten akzeptiert
-und auch nur JSON-Daten zurückgibt.
+und auch nur JSON-Daten zurückgibt und eine CSP von Nginx gesetzt ist und kein InnerHTML verwendet wird.
 Die Suche für öffentliche Notizen ist über den Endpoint `/api/documents/public/search` erreichbar
 und es werden sowohl Titel der Notiz als auch der Inhalt durchsucht.
 Die Suche für private und öffentliche Notizen des angemeldeten Nutzers ist über den Endpoint
 `/api/documents/search` erreichbar und es werden ebenfalls Titel und Inhalt durchsucht.
+Dabei sind die Query-Parameter in der URL zu sehen. Diese werden zwar in der Frontend-URL angezeigt,
+via React Router, jedoch wird die Suche via POST-Anfrage an den Server richtig enkodiert durch
+`encodeURIComponent()`.
+Hier ein Auszug aus dem Debug-Log
+`2026-01-18T11:26:37.281Z DEBUG 1 --- [backend] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /api/documents/public/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E%20%3Cscript%3Ealert`
 
 
 #### Datenschutz
