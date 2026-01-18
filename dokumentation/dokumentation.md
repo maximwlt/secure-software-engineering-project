@@ -9,7 +9,7 @@ mit den gleichen Angaben anmelden.
 Dabei haben wir sichergestellt, dass unsere Anwendung sicher ist vor Angriffen wie
 XSS, CSRF, SQL Injection, DoS-Attacken, User Enumeration und haben uns bei der Implementierung an die Empfehlungen von OWASP gerichtet.
 
-![Anwendung Aufbau](NoteAppStructure.png)
+![Anwendung Aufbau](images/NoteAppStructure.png)
 Diese Grafik zeigt den Aufbau der Anwendung. 
 Das Frontend ist nach außen geöffnet und dient als proxy für das Backend.
 Mithilfe von docker sind die Datenbank und das Backend nicht direkt nach außen erreichbar. 
@@ -211,8 +211,9 @@ Damit der Nutzer nach Ablauf
 des Tokens nicht erneut seine Anmeldedaten eingeben muss, haben wir Refresh Tokens
 implementiert, die eine Gültigkeit von 7 Tagen besitzen.
 
-Hierbei wird der JWT Accesstoken im Speicher (Memory) des Clients gehalten, anstelle
-von LocalStorage oder SessionStorage, um Angriffe durch XSS zu erschweren.
+Die Speicherung des JWT Access Tokens erfolgt im Speicher (Memory) des Clients.
+bzw. in einer React State Variable, die den Komponenten überreicht werden.
+Somit vermeiden wir die Speicherung im LocalStorage oder SessionStorage, um Angriffe durch XSS zu erschweren.
 
 Um Ressourcen bzw Routen abzufragen, die eine Authentifizierung benötigen,
 muss der Client...
@@ -408,20 +409,95 @@ und auch nur JSON-Daten zurückgibt.
 ### Funktionen der Anwendung
 #### Notiz
 
-[//]: # (TODO: vervollständigen)
-Ein Nutzer kann eine Notiz erstellen und löschen. Notizen anderer Nutzer sowohl private als auch öffentliche
-können eingesehen werden, jedoch werden 
-- JPA eingehen, dass es SQL Injection verhindert durch vorgefertigte Methodennamen
-und bei Custom SQL-Queries via @Query Annotation Prepared Statementsverwendet werden,
-anstatt String Konkatenation.
-Vor allem bei der Suche
+Ein angemeldeter Nutzer kann Notizen erstellen und löschen.
+Dabei kann ein Titel, der Inhalt, als Markdown mit grundlegenden HTML-Elementen geschrieben werden, 
+und die Sichtbarkeit (privat/öffentlich) der Notiz festgelegt werden.
+Wenn der Nutzer eine Notiz erstellt, wird der Titel und der Inhalt der Notiz
+im Backend mit der `jsoup` Library gesäubert, um vor Stored-XSS Angriffen zu schützen.
+Hierbei haben wir zwei verschiedene Whitelists definiert:
+- Im Titel wird nur Text erlaubt und kein HTML erlaubt und später kein HTML gerendert bzw kein Markdown unterstützt
+- Im Inhalt sind Markdown Elemente unterstützt und nur grundlegende HTML-Tags erlaubt
 
-[//]: # (TODO)
-#### Social-Plugin
-Wenn 
-Genauere Codedetail gibt es in der `SafeMarkdown.tsx` zu finden. 
-Unser Social-Plugin 
+Hier ein Ausschnitt aus Jsoup Whitelist für den Titel der Notiz:
+```java
+    public String sanitizeTitle(String title) {
+        if (title == null) return "";
+        Cleaner cleaner = new Cleaner(Safelist.none());
+        return cleaner.clean(Jsoup.parse(title)).text();
+    }
+```
+Hier ein Ausschnitt aus der Jsoup Whitelist für den Inhalt der Notiz:
+```java
+private static final Safelist MARKDOWN_SAFELIST = Safelist.simpleText() // b, em, i, strong, u zulassen
+        .addTags("h1", "h2", "h3", "h4", "h5", "h6") // Überschriften zulassen
+        .addTags("code", "pre", "br", "hr") // Codeblöcke und Zeilenumbrüche zulassen
+        .addTags("table", "thead", "tbody", "tfoot", "tr", "td", "th") // Tabellen zulasssen
+        .addTags("blockquote") // Blockzitate zulassen
+        .addTags("ul", "ol", "li"); // Listen zulassen
+```
+Anschließend wird die angelegte Notiz in der Datenbank gespeichert.
+Wenn jetzt ein Nutzer die Notiz abruft, wird die bereits gesäuberte Notiz
+im Frontend mit der `marked` Library von Markdown in HTML umgewandelt. Hierbei
+haben wir dem `marked` Parser ein benutzerdefiniertes Vorgehen bei
+dem eingebetteten YouTube Link implementiert, um ein Social-Plugin zu realisieren.
+Wenn `![Video](embed:https://www.youtube.com/watch?v=video-id)` im Markdown steht,
+dann wird ein `<iframe>` mit dem YouTube Video generiert, nachdem der Nutzer 
+auf den "_Externe Inhalte laden_" Button klickt, was zuvor generiert wird.
+Dies verhindert, dass Daten ungefragt an YouTube gesendet werden, bevor der Nutzer dem zugestimmt hat.
+Als Whitelist für Videodomains werden nur YouTube Links erlaubt.
+Ohne das `embed:` Präfix wird ein normales `<img>` Tag generiert.
 
+Nach dem Parsen ist nur noch HTML übrig, welches von `DOMPurify` gesanitized werden muss.
+
+Hier sind die DOMPurify Einstellungen im Frontend, um den mit `marked` generierten HTML-Inhalt zu säubern:
+```typescript
+const clean = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+        'b', 'em', 'i', 'strong', 'u', 'p',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'code', 'pre', 'br', 'hr',
+        'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th',
+        'blockquote',
+        'ul', 'ol', 'li',
+        'a', 'img', 'div', 'button', 'span'
+    ],
+    ALLOWED_ATTR: [
+        'href', 'src', 'alt', 'title', 'target', 'rel',
+        'class', 'data-video-id', 'data-title', 'type'
+    ],
+    ALLOWED_URI_REGEXP: /^https?:/i
+});
+```
+Diese Liste ist identisch mit der Jsoup Whitelist im Backend nur mit mehr Erlaubnis. Es werden, die vom `marked` Parser generierten Links(`a` Tags) und Bilder (`img` Tags) und
+ihre entsprechenden Attribute (`src`,`href`, etc.) im Frontend erlaubt
+um `[Link](url)` und `![Text](image-url)` Markdown-Syntax zu unterstützen. 
+Auch `button` Tags sind erlaubt, um den Button für das Social-Plugin zu rendern.
+und einige Attribute für den eingebetteten YouTube Link.
+Hier ist nicht `iframe` erlaubt, da wir es mit document.createElement
+dynamisch erstellen, wenn der Nutzer auf den Button klickt und keine eigenen
+Attribute benötigt, sondern lediglich die Youtube Video ID. Somit haben
+wir bessere Kontrolle über die Erstellung des iframes.
+
+Somit ist die Darstellung der Markdown-Notizen in HTML sicher vor XSS-Angriffen
+
+Der zuvor beschriebene Ablauf lässt sich in folgender Grafik zusammenfassen:
+![Bild](images/Notizerstellung.jpg)
+
+Notizen anderer Nutzer sowohl private als auch öffentliche
+können eingesehen werden durch die Angabe der Notiz-UUID in der URL (Bsp.: `documents/e3f4a1b2-5c6d-4e7f-8a9b-0c1d2e3f4a5b`),
+jedoch nur wenn man authentifiziert ist. Die Übersicht aller öffentlichen Notizen
+sind jedoch für alle Nutzer einsehbar, auch ohne Anmeldung. Für das Löschen einer Notiz
+muss man autorisiert sein bzw. der Besitzer der Notiz sein.
+
+
+
+#### Social-Plugin 
+Unser Social-Plugin ermöglicht es, dass eingebettete YouTube-Videos erst geladen werden,
+wenn der Nutzer auf den "_Externe Inhalte laden_" Button klickt.
+Dies verhindert, dass Daten ungefragt an YouTube gesendet werden, bevor der Nutzer dem zugestimmt hat.
+Beim Klicken auf den Button wird das iframe mit dem YouTube Video dynamisch erstellt und in den DOM eingefügt,
+wie bereits zuvor im Abschnitt Notiz beschrieben.
+Genauere Codedetail gibt es in der `SafeMarkdown.tsx` zu finden.
 
 #### Suche
 Wir haben die Suche in zwei Suchleisten aufgeteilt: Eine für öffentliche Notizen aller Nutzer
@@ -441,7 +517,7 @@ Die Suche für private und öffentliche Notizen des angemeldeten Nutzers ist üb
 Dabei sind die Query-Parameter in der URL zu sehen. Diese werden zwar in der Frontend-URL angezeigt,
 via React Router, jedoch wird die Suche via POST-Anfrage an den Server richtig enkodiert durch
 `encodeURIComponent()`.
-Hier ein Auszug aus dem Debug-Log
+Hier ein Auszug aus dem Backend Debug-Log
 `2026-01-18T11:26:37.281Z DEBUG 1 --- [backend] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /api/documents/public/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E%20%3Cscript%3Ealert`
 
 

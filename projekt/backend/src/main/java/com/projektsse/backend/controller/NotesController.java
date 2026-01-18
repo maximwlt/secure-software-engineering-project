@@ -6,7 +6,6 @@ import com.projektsse.backend.models.NoteModel;
 import com.projektsse.backend.service.NoteService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -37,7 +36,7 @@ public class NotesController {
             @RequestParam("q")
             @NotBlank
             @Size(max = 50)
-            @Pattern(regexp = "^[a-zA-Z0-9 äöüÄÖÜß!?.,-]*$", message = "Query contains invalid characters")
+            //@Pattern(regexp = "^[a-zA-Z0-9 äöüÄÖÜß!?.,-]*$", message = "Query contains invalid characters")
             String query
     ) {
         List<NoteModel> notes = noteService.searchPublicNotes(query);
@@ -61,7 +60,7 @@ public class NotesController {
             @RequestParam("q")
             @NotBlank
             @Size(max = 50)
-            @Pattern(regexp = "^[a-zA-Z0-9 äöüÄÖÜß!?.,-]*$", message = "Query contains invalid characters")
+            // @Pattern(regexp = "^[a-zA-Z0-9 äöüÄÖÜß!?.,-]*$", message = "Query contains invalid characters")
             String query,
             @CurrentUserId UUID userId
     ) {
