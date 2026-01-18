@@ -200,59 +200,129 @@ Für die Bewertung des Projekts wird die .env Datei, kurz vor Abgabe, trotzdem g
 ### Anmeldung
 Der registrierte **und** verifizierte Nutzer kann sich mit seiner E-Mail Adresse
 und seinem Passwort anmelden. 
-Als Authentifizierungsmechanismus haben wir JSON Web Tokens (JWT) gewählt
-mit rotierenden Refreshtokens, um besser gegen Token Replay-Angriffe geschützt zu sein.
-Der JWT Token besitzt eine Gültigkeit von 10 Minuten und besitzt
-als sub-claim die Nutzer-UUID, um den Nutzer zu identifizieren und einen
-custom-claim für den Hash des Fingerprints.
-Hierbei werden **keine** persönlichen Daten im Token gespeichert, um Datenschutz einzuhalten.
-Als Signieralgorithmus haben wir `HS256` (HMAC mit SHA-256) gewählt, 
-Damit der Nutzer nach Ablauf
-des Tokens nicht erneut seine Anmeldedaten eingeben muss, haben wir Refresh Tokens
-implementiert, die eine Gültigkeit von 7 Tagen besitzen.
+Als Authentifizierungsmechanismus haben wir JSON Web Tokens (JWT) gewählt, der als
+kurzlebiger Access Token fungiert, zusammen
+mit rotierenden langlebigen Refresh Tokens als HttpOnly-Cookies.
 
-Die Speicherung des JWT Access Tokens erfolgt im Speicher (Memory) des Clients.
+Die Speicherung des JWT Access Tokens erfolgt **im Speicher (Memory)** des Clients.
 bzw. in einer React State Variable, die den Komponenten überreicht werden.
 Somit vermeiden wir die Speicherung im LocalStorage oder SessionStorage, um Angriffe durch XSS zu erschweren.
+Ein Nachteil davon ist, dass der Token bei einem Seiten-Reload verloren geht, womit der Nutzer
+seinen Refresh Token verwenden muss, um einen neuen Access Token anzufordern.
 
-Um Ressourcen bzw Routen abzufragen, die eine Authentifizierung benötigen,
-muss der Client...
-
-[//]: # (TODO: Satz oben vervollständigen)
-
-**JSON Web Token**
+**JSON Web Token** <br>
 Der JWT wird mit dem `HS256` Algorithmus signiert und besitzt folgende Claims:
 - **sub**: Nutzer-UUID (eindeutige Identifikation des Nutzers)
 - **iat**: Issued At (Zeitpunkt der Token-Erstellung)
 - **exp**: Expiration Time (Ablaufzeitpunkt des Tokens, 10 Minuten nach Erstellung)
 - **fgp**: SHA-256 Hash des Fingerprints (custom-claim, der den Hash vom __Secure_Fgp Cookie enthält)
 
+Hierbei werden **keine** persönlichen Daten im Token gespeichert, um Datenschutz einzuhalten.
+Der JWT Access Token wird im Authorization Header bei Anfragen an geschützte Endpunkte mitgeschickt.
 Die Signierung der JSON Web Tokens (JWT) erfolgt mittels HMAC mit einem starken, kryptografisch zufällig erzeugten geheimen Schlüssel.
 Der Secret Key wurde mit dem OpenSSL‑Tool in der Linux‑Konsole mithilfe des Befehls `openssl rand -hex 64` generiert.
-Dieser Befehl erzeugt 64 Bytes (512 Bit) kryptografisch sicheren Zufalls (CSPRNG), der als Hex‑String ausgegeben wird (144 Zeichen).
+Dieser Befehl erzeugt 64 Bytes (512 Bit) kryptografisch sicheren Zufalls (**CSPRNG)**, der als Hex‑String ausgegeben wird (144 Zeichen).
 Das entspricht den [OWASP Anforderungen](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html#weak-token-secret), dass der Secret Key mindestens 64 Zeichen und kryptografisch sicher generiert sein muss.
-Dieses Secret wird in einer .env Datei gespeichert und nicht ins Repository gepusht und wird von der `application.properties`-Datei gelesen.
+Dieses Secret wird in einer .env Datei (`JWT_SECRET`) gespeichert und nicht ins Repository gepusht und wird von der `application.properties`-Datei gelesen.
 Die JWT Library `java-jwt` von Auth0 wird verwendet, um die Tokens zu erstellen und zu validieren. Auth0 bietet eine große 
 [Dokumentation](https://auth0.com/docs) und die Library wird regelmäßig gepflegt mit einem [aktuellen Release](https://github.com/auth0/java-jwt/releases/tag/4.5.0) im Januar 2026 mit der Version 4.5.0.
 
-**Refresh Token**
+**Refresh Token** <br>
+Der Refresh Token ist ein zufällig generierter, kryptografisch sicherer Token (CSPRNG)
+und dient dazu, nach Ablauf des kurzlebigen JWT Access Tokens einen neuen Access Token zu erhalten,
+ohne dass sich der Nutzer erneut einloggen muss.
+Der RefreshToken wird mittels HMAC SHA-256 zusammen mit dem Secret Key
+(`REFRESH_TOKEN_HMAC_SECRET` aus der .env) gehasht, um sicherzustellen, dass der gespeicherte Wert in der Datenbank nicht
+für Brute-Force mit Rainbow-Tables missbraucht werden kann, falls ein Angreifer Zugriff auf die Datenbank erhält. Denn
+dieser könnte eigene Werte generieren und diese mit den gehashten Werten in der Datenbank vergleichen.
+Mit HMAC wird jedoch zusätzliche Sicherheit geboten, da es einen geheimen Schlüssel verwendet, um den Hash zu generieren,
+obwohl wir bereits durch die Generierung des Refresh Tokens mit CSPRNG eine hohe Entropie haben.
 
-**Fingerprint Cookie**
-Zusätzlich zum JWT Access Token wird ein __Secure_Fgp Cookie gesetzt, der einen zufällig generierten Fingerprint enthält.
-Dieser Fingerprint wird gehasht (SHA-256) und im JWT Token als custom-claim gespeichert.
-Der Fingerprint Cookie ist httpOnly, Secure und SameSite
+Nun wird dieser gehashte Refresh Token zusammen mit der Nutzer-UUID und dem Ablaufdatum in der Datenbank gespeichert.
 
-**CSRF Token**
-Der CSRF Token und der entsprechende XSRF-TOKEN Cookie werden von Spring Security automatisch generiert und verwaltet,
-weil wir CSRF in der SecurityFilterChain mit `.spa()` konfiguriert haben.
+Die Implementierung des Hashings sieht wie folgt aus:
+```java
+    private static final String HMAC_ALGORITHM = "HmacSHA256"; // Alternativ: Hashfunktion aus der SHA-3 Familie: HmacSHA3-256
+    private final SecretKeySpec secretKeySpec;
+
+    public RefreshTokenHasher(@Value("${refreshToken.value}") String hmacSecret) {
+        this.secretKeySpec = new SecretKeySpec(hmacSecret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM);
+    }
+
+    public String hash(String refreshToken) {
+        try {
+            Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+            mac.init(secretKeySpec);
+            byte[] hashed = mac.doFinal(refreshToken.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(hashed);
+        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+            throw new RuntimeException("HMAC not initialized", e);
+        }
+
+    }
+```
+
+Der RefreshToken wird nur beim Anmelden gesetzt und beim Anfordern eines neuen Access Tokens rotiert.
+Der Wert wird als HttpOnly-Cookie mit den Attributen `Secure`, `SameSite=Strict` und `Path=/api/auth/rt` gesetzt
+und ist maximal 7 Tage gültig. 
+Mitgeschickt muss dieser Cookie nur bei der Anfrage an den `/api/auth/rt/refresh-token` Endpoint,
+und bei `api/auth/rt/logout`, also beim Logout und beim Refreshen. Hier wurde CSRF-Schutz beachtet.
+Bei dem `/api/auth/rt/refresh-token`-Endpoint zum Anfordern eines neuen Access Tokens mit dem aktuellen Refresh Token,
+wird der Refresh Token aus dem HttpOnly-Cookie ausgelesen und validiert. Ist dies
+der Fall wird dieser gelöscht und ein neuer Refresh Token generiert, der in der Datenbank
+gespeichert wird und als neuer HttpOnly-Cookie zurückgeschickt wird. Somit
+kann mit einem RefreshToken nur einmal ein neuer Access Token angefordert werden,
+was Token Replay Angriffe verhindert.
+
+**Fingerprint Cookie** <br>
+Zusätzlich zum JWT Access Token wird ein __Secure_Fgp Cookie gesetzt, der einen zufällig generierten Fingerprint enthält (CSPRNG).
+Dieser Fingerprint wird gehasht (SHA-256) und im Body des JWT Token als custom-claim gespeichert.
+Der eigentliche Fingerprint Wert wird als HttpOnly-Cookie (Secure und SameSite=Strict) gesetzt.
+Dieser Fingerprint wird benötigt, um [Token Sidejacking](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html#token-sidejacking)
+zu verhindern. Ein Angreifer, der den JWT Access Token stiehlt, kann diesen nicht verwenden,
+da ihm der Fingerprint Cookie fehlt.
+
+**CSRF Token** <br>
+Der CSRF-Token bzw. der entsprechende XSRF-TOKEN Cookie wird von Spring Security automatisch generiert und verwaltet,
+weil wir CSRF in der SecurityFilterChain mit `.spa()` und den `CookieCsrfTokenRepository` konfiguriert haben.
+Außerdem ist im unten angegebenen Ausschnitt der SecurityFilterChain zu sehen, dass 
+einige Endpunkte vom CSRF-Schutz ausgenommen sind, wo keine Cookies mitgesendet werden.
+
+```text
+CookieCsrfTokenRepository repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
+repo.setCookieCustomizer(cookie -> {
+    cookie.secure(true);
+    cookie.sameSite("Strict");
+    cookie.path("/");
+});
+
+http
+    .cors(AbstractHttpConfigurer::disable)
+    .csrf(csrf -> csrf
+            .ignoringRequestMatchers(
+                    "/api/auth/login",
+                    "/api/auth/register",
+                    "/api/auth/verify-email",
+                    "/api/documents/public",
+                    "/api/documents/public/search"
+            )
+            .spa()
+            .csrfTokenRepository(repo)
+    )
+```
 
 CSRF-Schutz brauchen wir immer wenn wir JWT Access Tokens schicken, da wir den **__Secure-Fgp** Cookie mitschicken,
-damit der Server den Hash des Fingerprints im JWT Token mit dem Cookie vergleichen kann. Der 
+damit der Server den Hash des Fingerprints im JWT Token mit dem Wert aus dem Cookie (Klartext, wovon Hash berechnet wird) vergleichen kann.
+Und wir brauchen CSRF-Schutz, wenn der Nutzer einen neuen JWT Access Token anfordert mit dem Refresh Token.
+Da man in beiden Fällen Cookies mitschickt, muss CSRF-Schutz implementiert sein.
 Der CSRF Token wird im XSRF-TOKEN Cookie gespeichert und im `X-XSRF-TOKEN` Header bei Anfragen
-an den Server mitgeschickt. Als Attribute für den Cookie haben wir `Secure`, `SameSite=Strict` und `Path=/` gesetzt.
-Wichtig ist hier, dass der Cookie nicht httpOnly ist, da der Client (Frontend) den Token auslesen
-und im Header mitsenden muss.
+an den Server mitgeschickt zusammen mit dem Cookie, der dann beide Werte aus Header und Cookie vergleicht.
+OWASP nennt das Prinzip **Double Submit Cookie Pattern**. OWASP empfiehlt noch ein zusätzliches Signieren, was wir jedoch nicht implementiert haben.
 
+Mit jeder neuen Anfrage an den Server wird automatisch der CSRF Token im XSRF-TOKEN Cookie aktualisiert.
+Als Attribute für den Cookie haben wir `Secure`, `SameSite=Strict` und `Path=/` gesetzt.
+Wichtig ist hier, dass der Cookie **nicht** httpOnly ist, da der Client (Frontend) den Token auslesen
+und im Header mitsenden muss.
 
 
 **Ablauf**
@@ -275,12 +345,9 @@ Felder durchgehen:
 
 Wenn JWT abgelaufen dann,
 
-Wenn Logout dann,
-
-Sicherheits analyisieren
+Logout...
 
 
-Das System ist sicher vor CSRF-Angriffen, da der JWT
 
 Frei zugängliche Routen sind im SecurityFilterChain wie folgt konfiguriert bzw. wird hier kein JWT Access Token erwartet,
 die restlichen Routen benötigen eine Authentifizierung:
@@ -296,9 +363,6 @@ die restlichen Routen benötigen eine Authentifizierung:
    ).permitAll().anyRequest().authenticated()
 ```
 
-Für F
-
- 
 
 ### Registrierung
 Um einen Nutzer registrieren zu können, muss dieser eine gültige E-Mail Adresse
