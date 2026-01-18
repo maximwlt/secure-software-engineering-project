@@ -24,8 +24,8 @@ Dadurch kann man von außen nicht auf die Datenbank zugreifen und einige Absiche
 
 #### Backend:
 - **Spring Boot:** Wir haben *Spring Boot* verwendet, um ein stabiles Backend zu haben, was
-  durch *Spring Security* viele Sicherheitsfeatures mitbringt. Dabei war der *SecurityContextFilter*
-  nützlich, um die Authentifizierung und Autorisierung zu handhaben. Dazu haben wir *JPA* benutzt,
+  durch *Spring Security* viele Sicherheitsfeatures mitbringt. Dabei war der *SecurityFilterChain*
+  nützlich, um die Authentifizierun handzuhaben. Dazu haben wir *JPA* benutzt,
   um *ORM* zu nutzen bzw. die Datenbankzugriffe zu erleichtern. 
 - **Maven:** Als Build-Tool haben wir *Maven* verwendet, um die Abhängigkeiten zu verwalten und das Projekt zu bauen.
 - **Java** Wir haben *Java* als Sprache verwendet, da *Java* eine sichere Programmiersprache ist und diese in *Spring Boot* gebraucht wird.
@@ -60,14 +60,14 @@ verwendet, sondern simple Unit Tests geschrieben.
 | spring-boot-starter-data-jpa   | 4.0.0 (parent)   | JPA & Hibernate für Datenbankzugriff und ORM                      |
 | spring-boot-starter-security   | 4.0.0 (parent)   | Basis für Authentifizierung & Autorisierung                       |
 | spring-security-crypto         | 7.0.0            | Kryptografische Utilities (PasswordEncoder, Hashing, etc.)        |
-| jsoup                          | 1.22.1           | HTML-Parsing & Sanitizing (z. B. Schutz vor XSS)                  |
+| jsoup                          | 1.22.1           | HTML-Parsing & Sanitizing (Schutz vor XSS)                        |
 | zxcvbn                         | 1.9.0            | Bewertung der Passwortstärke                                      |
 | bcprov-jdk18on                 | 1.83             | BouncyCastle Crypto Provider (Nutzung von Argon2idPassworEncoder) |
 | spring-boot-starter-validation | 4.0.0 (parent)   | Bean Validation (Jakarta Validation / Hibernate Validator)        |
 | spring-boot-starter-web        | 4.0.0 (parent)   | REST APIs, Embedded Server, JSON (Spring MVC)                     |
 | java-jwt                       | 4.5.0            | Erstellung & Validierung von JWTs (Auth0)                         |
 | postgresql                     | 4x.x.x (managed) | PostgreSQL JDBC Treiber                                           |
-| spring-boot-starter-mail       | 4.0.1            | E-Mail-Versand via JavaMail                                       |
+| spring-boot-starter-mail       | 4.0.1            | E-Mail-Versand-Simulation via MailHog                             |
 | spring-boot-starter-test       | 4.0.0 (parent)   | Test-Frameworks (JUnit, Mockito, AssertJ, etc.)                   |
 
 <br>
@@ -82,8 +82,8 @@ verwendet, sondern simple Unit Tests geschrieben.
 | @zxcvbn-ts/language-common | ^3.0.4  | Gemeinsame Sprach- und Musterdefinitionen für zxcvbn (z. B. Namen, Tastaturmuster).        |
 | @zxcvbn-ts/language-de     | ^3.0.2  | Deutsche Sprachdaten für zxcvbn (z. B. deutsche Wörter, Namen).                            |
 | dompurify                  | ^3.3.1  | Sanitizing von HTML zur Vermeidung von XSS-Angriffen (z. B. bei User-Input oder Markdown). |
-| jwt-decode                 | ^4.0.0  | Dekodieren von JWTs im Frontend (z. B. Auslesen von Claims, Ablaufzeit).                   |
-| marked                     | ^17.0.1 | Markdown-Parser zum Umwandeln von Markdown in HTML.                                        |
+| jwt-decode                 | ^4.0.0  | Dekodieren von JWTs im Frontend (nur einmalig verwendet)                                   |
+| marked                     | ^17.0.1 | Markdown-Parser zum Umwandeln von Markdown in HTML mit Möglichkeit zur Konfiguration       |
 | react                      | ^19.2.3 | Core-Bibliothek für den Aufbau der UI mit Komponenten.                                     |
 | react-dom                  | ^19.2.3 | Rendering von React-Komponenten in den DOM (Browser).                                      |
 | react-router               | ^7.12.0 | Client-seitiges Routing (Navigation zwischen Seiten/Views).                                |
@@ -112,7 +112,6 @@ verwendet, sondern simple Unit Tests geschrieben.
 | typescript-eslint            | ^8.46.4 | Integration von TypeScript in ESLint.                                |
 | vite                         | ^7.2.4  | Build-Tool und Dev-Server für moderne Frontend-Projekte.             |
 | vitest                       | ^4.0.16 | Schnelles Test-Framework für Vite-basierte Projekte.                 |
-
 
 
 
@@ -274,13 +273,15 @@ gespeichert wird und als neuer HttpOnly-Cookie zurückgeschickt wird. Somit
 kann mit einem RefreshToken nur einmal ein neuer Access Token angefordert werden,
 was Token Replay Angriffe verhindert.
 
-**Fingerprint Cookie** <br>
+**Fingerprint Cookie (__Secure_Fgp)** <br>
 Zusätzlich zum JWT Access Token wird ein __Secure_Fgp Cookie gesetzt, der einen zufällig generierten Fingerprint enthält (CSPRNG).
 Dieser Fingerprint wird gehasht (SHA-256) und im Body des JWT Token als custom-claim gespeichert.
-Der eigentliche Fingerprint Wert wird als HttpOnly-Cookie (Secure und SameSite=Strict) gesetzt.
+Der eigentliche Fingerprintwert (als Klartext) wird im HttpOnly-Cookie (Secure und SameSite=Strict) gesetzt.
 Dieser Fingerprint wird benötigt, um [Token Sidejacking](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html#token-sidejacking)
 zu verhindern. Ein Angreifer, der den JWT Access Token stiehlt, kann diesen nicht verwenden,
-da ihm der Fingerprint Cookie fehlt.
+da ihm der Fingerprint Cookie fehlt. Wenn der Server nun eine Anfrage mit einem JWT Access Token erhält
+und dem __Secure_Fgp Cookie, wird der Hash des Fingerprints im JWT Token berechnet und mit dem
+Hash im JWT Token verglichen. Stimmen beide Werte überein, ist die Anfrage gültig.
 
 **CSRF Token** <br>
 Der CSRF-Token bzw. der entsprechende XSRF-TOKEN Cookie wird von Spring Security automatisch generiert und verwaltet,
