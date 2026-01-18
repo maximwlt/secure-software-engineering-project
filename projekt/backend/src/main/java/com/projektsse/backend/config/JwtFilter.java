@@ -99,7 +99,6 @@ public class JwtFilter extends OncePerRequestFilter {
         return path.startsWith("/api/auth/register") ||
                 path.startsWith("/api/auth/login") ||
                 path.startsWith("/api/auth/verify-email") ||
-                path.startsWith("/api/auth/csrf") ||
                 path.startsWith("/api/documents/public");
     }
 }
