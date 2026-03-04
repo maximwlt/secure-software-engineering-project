@@ -30,7 +30,8 @@ public class UserService {
                        PasswordEncoder passwordEncoder,
                        TokenService tokenService,
                        EmailService emailService,
-                       RegistrationRepository registrationRepository) {
+                       RegistrationRepository registrationRepository)
+    {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
@@ -70,7 +71,7 @@ public class UserService {
                     "Wenn Sie das nicht waren, können Sie diese Nachricht ignorieren.";
         }
 
-        emailService.sendVerificationEmail(
+        emailService.sendMail(
                 user.getEmail(),
                 title,
                 message
@@ -136,5 +137,9 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Benutzer nicht gefunden."));
         authenticateUser(user.getEmail(), password);
         userRepository.delete(user);
+    }
+
+    public void saveUser(User user) {
+        userRepository.save(user);
     }
 }

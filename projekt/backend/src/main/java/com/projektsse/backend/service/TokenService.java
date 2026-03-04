@@ -100,6 +100,10 @@ public class TokenService {
         }
     }
 
+    public void deleteAllRefreshTokensForUser(String userId) {
+        refreshTokenRepository.deleteAllByUserId(UUID.fromString(userId));
+    }
+
 
 //    public boolean verifyToken(String token, String storedHash) throws NoSuchAlgorithmException {
 //        String tokenHash = hashVerificationToken(token);
