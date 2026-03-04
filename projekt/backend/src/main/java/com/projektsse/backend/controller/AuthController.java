@@ -1,21 +1,19 @@
 package com.projektsse.backend.controller;
 
-import com.projektsse.backend.controller.dto.AuthResponse;
-import com.projektsse.backend.controller.dto.DeleteAccountReq;
-import com.projektsse.backend.controller.dto.LoginReq;
-import com.projektsse.backend.controller.dto.RegisterReq;
+import com.projektsse.backend.controller.dto.*;
 import com.projektsse.backend.interfaces.CurrentUserId;
 import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.service.JwtService;
+import com.projektsse.backend.service.PasswortResetService;
 import com.projektsse.backend.service.TokenService;
 import com.projektsse.backend.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import jakarta.validation.constraints.Pattern;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,14 +27,17 @@ import java.util.UUID;
 @Validated
 public class AuthController {
 
-    UserService userService;
-    JwtService jwtService;
-    TokenService tokenService;
+    private final UserService userService;
+    private final JwtService jwtService;
+    private final TokenService tokenService;
+    private final PasswortResetService passwortResetService;
 
-    public AuthController(UserService userService, JwtService jwtService, TokenService tokenService) {
+    public AuthController(UserService userService, JwtService jwtService, TokenService tokenService, PasswortResetService passwortResetService) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.tokenService = tokenService;
+        this.passwortResetService = passwortResetService;
+
     }
 
     @PostMapping("/register")
@@ -199,6 +200,28 @@ public class AuthController {
         return  ResponseEntity.ok()
                 .body(Map.of("message", "Benutzerkonto erfolgreich gelöscht."));
     }
+
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody EmailPasswordReset emailPasswordReset) {
+        passwortResetService.createPasswordReset(emailPasswordReset);
+        return ResponseEntity.ok(Map.of("message", "Wenn ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail mit Anweisungen zum Zurücksetzen des Passworts gesendet"));
+    }
+
+    @GetMapping("/reset-password")
+    public ResponseEntity<?> handleResetLink(@RequestParam String token) {
+        passwortResetService.validateToken(token);
+        return ResponseEntity.ok(Map.of("message", "Token ist gültig. Sie können nun ein neues Passwort festlegen."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> verifyPasswordReset(@Valid @RequestBody PasswordResetRequest passwordResetReq) {
+        passwortResetService.verifyPasswordReset(passwordResetReq);
+        return ResponseEntity.ok(Map.of("message", "Passwort erfolgreich zurückgesetzt."));
+    }
+
+
+
 }
 
 
