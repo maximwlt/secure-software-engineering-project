@@ -1,0 +1,53 @@
+services:
+  db:
+    container_name: database
+    image: postgres:18
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  backend:
+    image: "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}"
+    container_name: backend-app
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend/src:/app/src
+    ports:
+      - "8090:8080"
+    env_file:
+      - .env
+
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - "db:database"
+      - "mailhog:mailhog"
+    restart: on-failure
+
+  frontend:
+    image: "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
+    build: frontend
+    container_name: frontend-app
+    depends_on:
+      backend:
+        condition: service_started
+    links:
+      - "backend:backend"
+    ports:
+      - "8080:8080"
+      - "8081:8081"

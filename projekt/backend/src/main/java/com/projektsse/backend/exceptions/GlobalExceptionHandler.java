@@ -2,8 +2,12 @@ package com.projektsse.backend.exceptions;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.hibernate.StaleObjectStateException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,6 +26,8 @@ import java.util.stream.Collectors;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail handleIllegalArgumentException(IllegalArgumentException ex) {
@@ -87,24 +93,6 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-//    /**
-//     * Handler for expired, invalid or non-existing password reset tokens.
-//     * The response includes a detailed error message and a 404 status code, indicating that the requested resource (valid token) was not found.
-//     * The error message should be kept constant to avoid giving potential attackers clues about the validity of tokens.
-//     * @param ex the WrongTokenException thrown when a password reset token is invalid, expired, or already used
-//     * @return ResponseEntity with error details and 404 status code
-//     */
-//    @ExceptionHandler(WrongTokenException.class)
-//    public ResponseEntity<ErrorResponse> handleErrorPWReset(WrongTokenException ex) {
-//        ErrorResponse errorResponse = ErrorResponse.of(
-//                HttpStatus.NOT_FOUND.value(),
-//                "Password-Reset failed",
-//                ex.getMessage(),
-//                "/api/auth/reset-password"
-//        );
-//        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
-//    }
-
     /**
      * Handler for expired, invalid or non-existing password reset tokens.
      * The response includes a detailed error message and a 404 status code, indicating that the requested resource (valid token) was not found.
@@ -117,6 +105,24 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Password-Reset failed");
         problemDetail.setInstance(URI.create("/api/auth/reset-password"));
+        return problemDetail;
+    }
+
+
+    @ExceptionHandler(StaleObjectStateException.class)
+    public ProblemDetail handleStaleObjectStateException() {
+        log.error("StaleObjectStateException: Optimistic locking failure detected. The resource has been modified by another process.");
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problemDetail.setTitle("Conflict");
+        problemDetail.setDetail("The resource you are trying to modify has been changed by another process. Please refresh and try again.");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ProblemDetail handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        problemDetail.setTitle("Unsupported Media Type");
+        problemDetail.setDetail(ex.getMessage());
         return problemDetail;
     }
 }

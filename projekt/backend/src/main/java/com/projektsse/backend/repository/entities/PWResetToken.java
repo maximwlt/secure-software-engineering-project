@@ -36,7 +36,6 @@ public class PWResetToken {
     public PWResetToken() {}
 
     public PWResetToken(String tokenHash, Instant expiresAt, Instant createdAt, User user) {
-        this.id = UUID.randomUUID();
         this.tokenHash = tokenHash;
         this.expiresAt = expiresAt;
         this.usedAt = null;

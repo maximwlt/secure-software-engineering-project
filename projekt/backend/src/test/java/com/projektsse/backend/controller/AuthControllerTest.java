@@ -2,6 +2,7 @@ package com.projektsse.backend.controller;
 
 import com.projektsse.backend.controller.dto.RegisterReq;
 import com.projektsse.backend.service.JwtService;
+import com.projektsse.backend.service.PasswortResetService;
 import com.projektsse.backend.service.TokenService;
 import com.projektsse.backend.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,13 +17,15 @@ class AuthControllerTest {
     private UserService userService;
     private JwtService jwtService;
     private TokenService tokenService;
+    private PasswortResetService passwortResetService;
 
     @BeforeEach
     void setUp() {
         userService = Mockito.mock(UserService.class);
         jwtService = Mockito.mock(JwtService.class);
         tokenService = Mockito.mock(TokenService.class);
-        client = RestTestClient.bindToController(new AuthController(userService, jwtService, tokenService)).build();
+        passwortResetService = Mockito.mock(PasswortResetService.class);
+        client = RestTestClient.bindToController(new AuthController(userService, jwtService, tokenService, passwortResetService)).build();
     }
 
     @Test

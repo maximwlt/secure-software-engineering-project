@@ -82,7 +82,7 @@ public class PasswortResetService {
      */
     public PWResetTokenResponse validateToken(String token) {
         String hashedToken = tokenService.hashVerificationToken(token);
-        Optional<PWResetToken> pwResetTokenOpt = passwordResetRepository.findPWResetTokenBy(hashedToken);
+        Optional<PWResetToken> pwResetTokenOpt = passwordResetRepository.findPWResetTokenByTokenHash(hashedToken);
         if (pwResetTokenOpt.isEmpty()) {
             log.warn("Password reset token not found");
             throw new WrongTokenException("Invalid or expired password reset token");
