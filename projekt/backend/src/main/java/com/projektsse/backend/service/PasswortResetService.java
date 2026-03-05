@@ -82,7 +82,7 @@ public class PasswortResetService {
      */
     public PWResetTokenResponse validateToken(String token) {
         String hashedToken = tokenService.hashVerificationToken(token);
-        Optional<PWResetToken> pwResetTokenOpt = passwordResetRepository.findPWResetTokenByTokenHash(hashedToken);
+        Optional<PWResetToken> pwResetTokenOpt = passwordResetRepository.findByTokenHash(hashedToken);
         if (pwResetTokenOpt.isEmpty()) {
             log.warn("Password reset token not found");
             throw new WrongTokenException("Invalid or expired password reset token");
@@ -107,11 +107,13 @@ public class PasswortResetService {
      * @param pwResetTokenResponse The response model containing the password reset token information, including the associated user.
      */
     private void invalidateToken(PWResetTokenResponse pwResetTokenResponse) {
-        PWResetToken tokenEntity = passwordResetRepository.findById(pwResetTokenResponse.user().getId())
+        PWResetToken tokenEntity = passwordResetRepository.findByTokenHash(
+                        pwResetTokenResponse.token())
                 .orElseThrow(() -> new WrongTokenException("Invalid or expired password reset token"));
         tokenEntity.setUsedAt(Instant.now());
         passwordResetRepository.save(tokenEntity);
     }
+
 
 
     /**
@@ -119,16 +121,22 @@ public class PasswortResetService {
      * @param passwordResetReq The password reset request containing the new password and the raw token provided by the user.
      */
     public void verifyPasswordReset(@Valid PasswordResetRequest passwordResetReq) {
+        log.info("Verifying password reset request for token: {}", passwordResetReq.token());
         PWResetTokenResponse pwResetTokenResponse = validateToken(passwordResetReq.token());
+        log.info("Password reset token validated successfully for user: {}", pwResetTokenResponse.user().getEmail());
         invalidateToken(pwResetTokenResponse);
+        log.info("Password reset token invalidated for user: {}", pwResetTokenResponse.user().getEmail());
 
         String newPasswordHash = passwordEncoder.encode(passwordResetReq.newPassword());
         User user = pwResetTokenResponse.user();
         user.setPassword(newPasswordHash);
         userService.saveUser(user);
+        log.info("Password updated successfully for user: {}", user.getEmail());
 
-        tokenService.deleteAllRefreshTokensForUser(user.getId().toString()); // Invalidate all existing refresh tokens
+        log.info("Invalidating all existing refresh tokens for user: {}", user.getEmail());
+        tokenService.deleteAllRefreshTokensForUser(user.getId()); // Invalidate all existing refresh tokens
 
+        log.info("Sending password reset confirmation email to user: {}", user.getEmail());
         emailService.sendMail(
                 user.getEmail(),
                 "Passwort erfolgreich zurückgesetzt",
