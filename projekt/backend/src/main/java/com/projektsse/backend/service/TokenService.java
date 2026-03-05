@@ -18,6 +18,8 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.projektsse.backend.exceptions.GlobalExceptionHandler.log;
+
 @Service
 public class TokenService {
 
@@ -100,8 +102,10 @@ public class TokenService {
         }
     }
 
-    public void deleteAllRefreshTokensForUser(String userId) {
-        refreshTokenRepository.deleteAllByUserId(UUID.fromString(userId));
+    @Transactional
+    public void deleteAllRefreshTokensForUser(UUID userId) {
+        int num_deleted = refreshTokenRepository.deleteAllByUser_Id(userId);
+        log.info("Deleted {} refresh tokens for user with id: {}", num_deleted, userId);
     }
 
 
