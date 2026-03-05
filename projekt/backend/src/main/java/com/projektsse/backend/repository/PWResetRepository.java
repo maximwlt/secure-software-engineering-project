@@ -7,5 +7,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PWResetRepository extends CrudRepository<PWResetToken, UUID> {
-    Optional<PWResetToken> findPWResetTokenBy(String hashedToken);
+    Optional<PWResetToken> findPWResetTokenByTokenHash(String tokenHash);
 }

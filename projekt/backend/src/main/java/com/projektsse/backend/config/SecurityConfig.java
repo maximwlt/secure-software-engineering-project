@@ -38,7 +38,9 @@ public class SecurityConfig {
                             "/api/auth/register",
                             "/api/auth/verify-email",
                             "/api/documents/public",
-                            "/api/documents/public/search"
+                            "/api/documents/public/search",
+                            "/api/auth/forgot-password",
+                            "/api/auth/reset-password"
                     )
                     .spa()
                     .csrfTokenRepository(repo)
@@ -58,7 +60,9 @@ public class SecurityConfig {
                             "/api/auth/login",
                             "/api/auth/verify-email",
                             "/api/auth/rt/refresh-token",
-                            "/api/auth/rt/logout"
+                            "/api/auth/rt/logout",
+                           "/api/auth/forgot-password",
+                           "/api/auth/reset-password"
                    ).permitAll().anyRequest().authenticated()
             )
             .formLogin(AbstractHttpConfigurer::disable)

@@ -40,7 +40,7 @@ public class AuthController {
 
     }
 
-    @PostMapping("/register")
+    @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterReq req) {
 
         UserReqModel userReqModel = new UserReqModel(req.email(), req.password());
@@ -54,7 +54,7 @@ public class AuthController {
 
     }
 
-    @GetMapping("/verify-email")
+    @GetMapping(value = "/verify-email", produces = "application/json")
     public ResponseEntity<?> verifyEmail(
             @RequestParam("code")
             @NotBlank(message = "Ungültiger Verifizierungscode.")
@@ -72,7 +72,7 @@ public class AuthController {
     }
 
 
-    @PostMapping("/login")
+    @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq) {
 
         userService.authenticateUser(loginReq.email(), loginReq.password());
@@ -114,7 +114,7 @@ public class AuthController {
                              .body(new AuthResponse(accessToken));
     }
 
-    @PostMapping("/rt/refresh-token")
+    @PostMapping(value = "/rt/refresh-token", produces = "application/json")
     public ResponseEntity<?> refreshToken(@CookieValue(name = "REFRESH_TOKEN") String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -159,7 +159,7 @@ public class AuthController {
     }
 
 
-    @PostMapping("/rt/logout")
+    @PostMapping(value = "/rt/logout", produces = "application/json")
     public ResponseEntity<?> logout(
             @CookieValue(name ="REFRESH_TOKEN", required = false) String refreshToken
     ) {
@@ -190,7 +190,7 @@ public class AuthController {
     }
 
 
-    @DeleteMapping("/me")
+    @DeleteMapping(value = "/me", consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> deleteAccount(
             @CurrentUserId UUID userId,
             @Valid @RequestBody DeleteAccountReq deleteAccountReq
@@ -202,19 +202,19 @@ public class AuthController {
     }
 
 
-    @PostMapping("/forgot-password")
+    @PostMapping(value = "/forgot-password", consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody EmailPasswordReset emailPasswordReset) {
         passwortResetService.createPasswordReset(emailPasswordReset);
         return ResponseEntity.ok(Map.of("message", "Wenn ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail mit Anweisungen zum Zurücksetzen des Passworts gesendet"));
     }
 
-    @GetMapping("/reset-password")
+    @GetMapping(value = "/reset-password", produces = "application/json")
     public ResponseEntity<?> handleResetLink(@RequestParam String token) {
         passwortResetService.validateToken(token);
         return ResponseEntity.ok(Map.of("message", "Token ist gültig. Sie können nun ein neues Passwort festlegen."));
     }
 
-    @PostMapping("/reset-password")
+    @PostMapping(value = "/reset-password", consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> verifyPasswordReset(@Valid @RequestBody PasswordResetRequest passwordResetReq) {
         passwortResetService.verifyPasswordReset(passwordResetReq);
         return ResponseEntity.ok(Map.of("message", "Passwort erfolgreich zurückgesetzt."));
