@@ -1,5 +1,6 @@
 package com.projektsse.backend.controller;
 
+import com.projektsse.backend.controller.dto.LoginReq;
 import com.projektsse.backend.controller.dto.RegisterReq;
 import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.PasswortResetService;
@@ -29,7 +30,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void register() {
+    void registerStrongPass() {
         client.post()
                 .uri("/api/auth/register")
                 .body(new RegisterReq("frankestein@gmail.com", "Xfr@nke41!g+6&4"))
@@ -38,4 +39,15 @@ class AuthControllerTest {
                 .expectBody()
                 .jsonPath("$.message").isEqualTo("Benutzer erfolgreich registriert. Bitte überprüfen Sie Ihre E-Mails zur Verifizierung.");
     }
+
+//    @Test
+//    void registerWeakPass() {
+//        client.post()
+//                .uri("/api/auth/register")
+//                .body(new RegisterReq("frankestein@gmail.com", "Password123"))
+//                .exchange()
+//                .expectStatus().isCreated()
+//                .expectBody()
+//                .jsonPath("$.message").isEqualTo("Benutzer erfolgreich registriert. Bitte überprüfen Sie Ihre E-Mails zur Verifizierung.");
+//    }
 }
