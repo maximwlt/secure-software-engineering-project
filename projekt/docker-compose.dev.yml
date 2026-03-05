@@ -41,7 +41,9 @@ services:
 
   frontend:
     image: "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
-    build: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
     container_name: frontend-app
     depends_on:
       backend:
@@ -50,4 +52,3 @@ services:
       - "backend:backend"
     ports:
       - "8080:8080"
-      - "8081:8081"
