@@ -26,5 +26,4 @@ public record RegisterReq(
         String email,
 
         String password
-) {
-}
+) { }

@@ -71,7 +71,7 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>4.5.0</version>
+            <version>4.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -84,6 +84,13 @@
             <version>4.0.1</version>
         </dependency>
         <!-- Test Dependencies -->
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-resttestclient -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-resttestclient</artifactId>
+            <version>4.0.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -105,6 +112,7 @@
             <scope>compile</scope>
         </dependency>
         <!-- Devtools Dependencies -->
+        <!-- Others -->
     </dependencies>
 
     <build>

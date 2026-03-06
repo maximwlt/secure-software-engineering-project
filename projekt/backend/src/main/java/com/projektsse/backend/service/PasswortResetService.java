@@ -7,11 +7,11 @@ import com.projektsse.backend.models.PWResetTokenResponse;
 import com.projektsse.backend.repository.PWResetRepository;
 import com.projektsse.backend.repository.entities.PWResetToken;
 import com.projektsse.backend.repository.entities.User;
-import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -38,7 +38,7 @@ public class PasswortResetService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void createPasswordReset(@Valid EmailPasswordReset emailPasswordReset) {
+    public void createPasswordReset(@Validated EmailPasswordReset emailPasswordReset) {
         UUID userId = userService.getUserIdByEmail(emailPasswordReset.email());
         if (userId == null) {
             return; // Keine E-Mail-Benachrichtigung, um Benutzerenumeration zu verhindern
@@ -120,7 +120,7 @@ public class PasswortResetService {
      * Verifies the password reset request by validating the token, updating the user's password, invalidating all existing refresh tokens for the user, and sending a confirmation email.
      * @param passwordResetReq The password reset request containing the new password and the raw token provided by the user.
      */
-    public void verifyPasswordReset(@Valid PasswordResetRequest passwordResetReq) {
+    public void verifyPasswordReset(@Validated PasswordResetRequest passwordResetReq) {
         log.info("Verifying password reset request for token: {}", passwordResetReq.token());
         PWResetTokenResponse pwResetTokenResponse = validateToken(passwordResetReq.token());
         log.info("Password reset token validated successfully for user: {}", pwResetTokenResponse.user().getEmail());

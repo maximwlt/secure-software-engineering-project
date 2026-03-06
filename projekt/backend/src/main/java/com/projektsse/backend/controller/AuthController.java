@@ -73,7 +73,7 @@ public class AuthController {
 
 
     @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginReq loginReq) {
+    public ResponseEntity<?> login(@Validated @RequestBody LoginReq loginReq) {
 
         userService.authenticateUser(loginReq.email(), loginReq.password());
 
@@ -203,7 +203,7 @@ public class AuthController {
 
 
     @PostMapping(value = "/forgot-password", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody EmailPasswordReset emailPasswordReset) {
+    public ResponseEntity<?> forgotPassword(@Validated @RequestBody EmailPasswordReset emailPasswordReset) {
         passwortResetService.createPasswordReset(emailPasswordReset);
         return ResponseEntity.ok(Map.of("message", "Wenn ein Konto mit dieser E-Mail-Adresse existiert, wurde eine E-Mail mit Anweisungen zum Zurücksetzen des Passworts gesendet"));
     }
@@ -215,7 +215,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/reset-password", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> verifyPasswordReset(@Valid @RequestBody PasswordResetRequest passwordResetReq) {
+    public ResponseEntity<?> verifyPasswordReset(@Validated @RequestBody PasswordResetRequest passwordResetReq) {
         passwortResetService.verifyPasswordReset(passwordResetReq);
         return ResponseEntity.ok(Map.of("message", "Passwort erfolgreich zurückgesetzt."));
     }
