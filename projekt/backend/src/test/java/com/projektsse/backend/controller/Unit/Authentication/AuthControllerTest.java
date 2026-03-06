@@ -32,8 +32,7 @@ class AuthControllerTest {
         JwtService jwtService = Mockito.mock(JwtService.class);
         TokenService tokenService = Mockito.mock(TokenService.class);
         PasswortResetService passwortResetService = Mockito.mock(PasswortResetService.class);
-        client = RestTestClient
-                .bindToController(
+        client = RestTestClient.bindToController(
                         new AuthController(userService, jwtService, tokenService, passwortResetService),
                         new GlobalExceptionHandler()
                 )
@@ -139,12 +138,20 @@ class AuthControllerTest {
     }
 
 
-//    @Test
-//    void passwordContainsEmail() {
-//
-//    }
+    @Test
+    void passwordContainsEmailCredential() {
+        client.post()
+                .uri("/api/auth/register")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(new RegisterReq("maxmustermann@gmail.com", "MaxMustermann!Sec!"))
+                .exchange()
+                .expectStatus().isBadRequest();
 
-    // Bereits existierender Benutzer will registrieren
-
-    // Falsches E-Mail Format
+        client.post()
+                .uri("/api/auth/register")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(new RegisterReq("seline.schaefer@gmail.com", "MaxMustermann!Sec!"))
+                .exchange()
+                .expectStatus().isCreated();
+    }
 }
