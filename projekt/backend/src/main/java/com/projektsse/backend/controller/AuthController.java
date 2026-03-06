@@ -41,7 +41,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterReq req) {
+    public ResponseEntity<?> register(@Validated @RequestBody RegisterReq req) {
 
         UserReqModel userReqModel = new UserReqModel(req.email(), req.password());
 

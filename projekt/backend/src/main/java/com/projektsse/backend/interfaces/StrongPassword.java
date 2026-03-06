@@ -5,12 +5,12 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = StrongPasswordValidator.class)
 @Documented
 public @interface StrongPassword {
-    String message() default "Passwort ist zu schwach";
+    String message() default "Password is too weak.";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

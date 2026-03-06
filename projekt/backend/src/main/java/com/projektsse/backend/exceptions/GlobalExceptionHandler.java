@@ -50,16 +50,18 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setTitle("Validation Error");
+        problemDetail.setInstance(URI.create("/api/validation-error"));
         Map<String, Object> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            String msg = error.getDefaultMessage() != null ? error.getDefaultMessage() : "Invalid value";
+            errors.put(error.getField(), msg);
+        });
         problemDetail.setProperties(errors);
         return problemDetail;
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ProblemDetail handleConstraintViolationException(ConstraintViolationException ex) {
-
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setTitle("Validation Error");
         Map<String, Object> errors = ex.getConstraintViolations()
@@ -132,6 +134,14 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.METHOD_NOT_ALLOWED);
         problemDetail.setTitle("Method Not Allowed");
         problemDetail.setDetail(String.format("HTTP method '%s' is not supported for this endpoint.", ex.getMethod()));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(WeakPasswordException.class)
+    public ProblemDetail handleWeakPasswordException(WeakPasswordException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problemDetail.setTitle("Password does not meet security requirements");
+        problemDetail.setDetail(ex.getMessage());
         return problemDetail;
     }
 }
