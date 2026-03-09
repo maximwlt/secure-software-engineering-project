@@ -156,4 +156,25 @@ class AuthControllerTest {
     }
 
 
+    /*@Test
+    void passwordResetWithEmptyPassword() {
+        pwResetRepository.save(new PWResetToken(// add data));
+        client.post()
+                .uri("api/auth/reset-password")
+                .accept(MediaType.APPLICATION_JSON)
+                .body(new PasswordResetRequest("qLj573cvV6iP71TUxa16xGv0PxTkcH-FqRuq5LkZJgY", ""))
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(ProblemDetail.class)
+                .value(problem -> {
+                    assertNotNull(problem);
+                    assertNotNull(problem.getTitle());
+                    assertNotNull(problem.getProperties());
+                    assertEquals("Validation Error", problem.getTitle());
+                    assertEquals(400, problem.getStatus());
+                    assertEquals(URI.create("/api/validation-error"), problem.getInstance());
+                    assertEquals("New password must not be blank", problem.getProperties().get("newPassword"));
+                });
+    }*/
+
 }
