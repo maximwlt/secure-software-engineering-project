@@ -1,7 +1,7 @@
 package com.projektsse.backend.controller.dto;
 
 import com.projektsse.backend.interfaces.RegistrationValidationGroups;
-import com.projektsse.backend.interfaces.StrongPassword;
+import com.projektsse.backend.interfaces.StrongPasswordEmailCheck;
 import jakarta.validation.GroupSequence;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Size;
  * @param email must not be blank, must be a valid email format, and must be at most 255 characters long.
  * @param password must be validated by the StrongPasswordValidator, which checks for password policy
  */
-@StrongPassword(groups = RegistrationValidationGroups.PasswordValidation.class)
+@StrongPasswordEmailCheck(groups = RegistrationValidationGroups.PasswordValidation.class)
 @GroupSequence({
         RegisterReq.class,
         RegistrationValidationGroups.EmailSize.class,

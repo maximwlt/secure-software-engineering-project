@@ -11,11 +11,12 @@ import jakarta.validation.constraints.NotBlank;
  * @param token
  * @param newPassword
  */
-@StrongPassword(groups = RegistrationValidationGroups.PasswordValidation.class)
 @GroupSequence({PasswordResetRequest.class, RegistrationValidationGroups.PasswordValidation.class})
 public record PasswordResetRequest(
         @NotBlank(message = "Token must not be blank")
         String token,
+
+        @NotBlank(message = "New password must not be blank")
+        @StrongPassword(groups = RegistrationValidationGroups.PasswordValidation.class)
         String newPassword
 ) { }
-// Improvement: Adding email field

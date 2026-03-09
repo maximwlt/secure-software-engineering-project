@@ -5,7 +5,7 @@ import {getCookie} from "../utils/cookies.ts";
 import Navbar from "./Navbar.tsx";
 import "../styling/DocumentDetailPage.css";
 import {apiFetch} from "../utils/apiFetch.ts";
-import {redirect} from "react-router";
+import {NavLink, redirect} from "react-router";
 
 
 interface FormData {
@@ -243,6 +243,8 @@ function LoginPage() {
                 <button className="primary-button" onClick={handleSubmit} disabled={isSubmitting}>
                     {isSubmitting ? 'Lädt...' : 'Login'}
                 </button>
+
+                <NavLink to="/forgot-password">Forgot password?</NavLink>
             </div>
         </>
     );
