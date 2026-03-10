@@ -5,7 +5,7 @@ import Navbar from "./Navbar.tsx";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import type {FormErrorType} from "../types/FormErrorType.ts";
-import {useSearchParams} from "react-router";
+import {NavLink, useSearchParams} from "react-router";
 
 type PageState = "validating" | "form" | "success" | "error";
 
@@ -135,6 +135,7 @@ export function PWResetPassword() {
                 <div className="register-wrapper">
                     <h1>Password Reset</h1>
                     {responseMessage && <div className="success-message">{responseMessage}</div>}
+                    <NavLink to="/login" className="primary-button">Go to Login</NavLink>
                 </div>
             </>
         );
