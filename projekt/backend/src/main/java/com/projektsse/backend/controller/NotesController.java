@@ -25,13 +25,13 @@ public class NotesController {
         this.noteService = noteService;
     }
 
-    @GetMapping("/public")
+    @GetMapping(value = "/public", produces = "application/json")
     public ResponseEntity<?> getNotes() {
         List<NoteModel> notes = noteService.getAllPublicNotes();
         return ResponseEntity.ok().body(notes);
     }
 
-    @GetMapping("/public/search")
+    @GetMapping(value = "/public/search", produces = "application/json")
     public ResponseEntity<?> searchPublicNotes(
             @RequestParam("q")
             @NotBlank
@@ -43,19 +43,19 @@ public class NotesController {
         return ResponseEntity.ok().body(notes);
     }
 
-    @GetMapping("/{documentId:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}}")
+    @GetMapping(value = "/{documentId:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}}", produces = "application/json")
     public ResponseEntity<?> getNoteById(@PathVariable UUID documentId) {
         NoteModel note = noteService.getNoteById(documentId);
         return ResponseEntity.ok().body(note);
     }
 
-    @GetMapping("/user")
+    @GetMapping(value = "/user", produces = "application/json")
     public ResponseEntity<?> getUserNotes(@CurrentUserId UUID userId) {
         List<NoteModel> notes = noteService.getNotesByUserId(userId);
         return ResponseEntity.ok().body(notes);
     }
 
-    @GetMapping("/user/search")
+    @GetMapping(value = "/user/search", produces = "application/json")
     public ResponseEntity<?> searchUserNotes(
             @RequestParam("q")
             @NotBlank
@@ -68,17 +68,14 @@ public class NotesController {
         return ResponseEntity.ok(notes);
     }
 
-    @PostMapping(
-            consumes = "application/json",
-            produces = "application/json"
-    )
+    @PostMapping(consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> createNote(@Valid @RequestBody NoteReq noteReq, @CurrentUserId UUID userId) {
         NoteModel note = noteService.createNote(noteReq, userId.toString());
         return ResponseEntity.status(201).body(note.noteId());
 
     }
 
-    @DeleteMapping("/{docId}")
+    @DeleteMapping(value = "/{docId}", produces = "application/json")
     public ResponseEntity<?> deleteNote(
             @PathVariable UUID docId,
             @CurrentUserId UUID userId
