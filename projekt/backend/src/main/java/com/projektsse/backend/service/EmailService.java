@@ -12,7 +12,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendVerificationEmail(String to, String subject, String body) {
+    public void sendMail(String to, String subject, String body) {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(to);
         msg.setFrom("no-reply@sse-project.com");

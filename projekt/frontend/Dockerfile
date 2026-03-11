@@ -1,6 +1,5 @@
 FROM node:25.2.1-alpine AS build
 
-
 WORKDIR /app
 
 COPY package*.json ./

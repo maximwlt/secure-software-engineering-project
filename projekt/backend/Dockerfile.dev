@@ -1,0 +1,13 @@
+FROM eclipse-temurin:25-jdk
+WORKDIR /app
+
+# watchexec installieren
+RUN apt-get update && apt-get install -y wget && \
+    wget https://github.com/watchexec/watchexec/releases/download/v1.25.1/watchexec-1.25.1-x86_64-unknown-linux-musl.deb && \
+    dpkg -i watchexec-*.deb && rm watchexec-*.deb
+
+COPY . .
+RUN chmod +x mvnw
+
+# Bei .java Änderungen → Spring Boot neu starten
+CMD ["watchexec", "-r", "-e", "java", "--", "./mvnw", "spring-boot:run"]

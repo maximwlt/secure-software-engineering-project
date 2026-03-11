@@ -2,20 +2,21 @@ package com.projektsse.backend.controller.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/**
+ * DTO for creating a new note.
+ * @param title Is the title of the note, must not be blank and has a maximum length of 255 characters.
+ * @param mdContent Is the Markdown content of the note, must not be blank and has a maximum length of 10,000 characters.
+ * @param isPrivate Indicates whether the note is private or public, must not be null.
+ */
 public record NoteReq(
-    @NotBlank(message = "Titel darf nicht leer sein")
-    @Size(max = 255, message = "Titel darf maximal 255 Zeichen lang sein")
+    @NotBlank(message = "Title cannot be empty")
+    @Size(max = 255, message = "Title can be at most 255 characters long")
     String title,
-    @NotBlank(message = "Inhalt darf nicht leer sein")
-    @Size(max = 10000, message = "Inhalt darf maximal 10.000 Zeichen lang sein")
+    @NotBlank(message = "Content cannot be empty")
+    @Size(max = 10000, message = "Content can be at most 10,000 characters long")
     String mdContent,
-    @NotNull(message = "Sichtbarkeit muss angegeben werden")
+    @NotNull(message = "Visibility has to be specified")
     boolean isPrivate
-//    @NotBlank(message = "UserId darf nicht leer sein")
-//    @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", message = "Ungültiges Format")
-//    String userId
-) {
-}
+) { }

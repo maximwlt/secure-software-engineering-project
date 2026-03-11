@@ -30,7 +30,8 @@ public class UserService {
                        PasswordEncoder passwordEncoder,
                        TokenService tokenService,
                        EmailService emailService,
-                       RegistrationRepository registrationRepository) {
+                       RegistrationRepository registrationRepository)
+    {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenService = tokenService;
@@ -70,7 +71,7 @@ public class UserService {
                     "Wenn Sie das nicht waren, können Sie diese Nachricht ignorieren.";
         }
 
-        emailService.sendVerificationEmail(
+        emailService.sendMail(
                 user.getEmail(),
                 title,
                 message
@@ -113,12 +114,12 @@ public class UserService {
     public void authenticateUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
-            throw new IllegalArgumentException("Ungültige Anmeldedaten.");
+            throw new IllegalArgumentException("Invalid credentials.");
         }
         User user = userOpt.get();
         String hashedPassword = user.getPassword_hash();
         if (!passwordEncoder.matches(password, hashedPassword)) {
-            throw new IllegalArgumentException("Ungültige Anmeldedaten.");
+            throw new IllegalArgumentException("Invalid credentials.");
         }
         // Wenn Konfiguration von Argon2id geändert wurde, soll gerehashed werden
         if (passwordEncoder instanceof Argon2PasswordEncoder && passwordEncoder.upgradeEncoding(user.getPassword_hash())) {
@@ -132,9 +133,13 @@ public class UserService {
         return userRepository.findById(UUID.fromString(userId)).orElse(null);
     }
 
-    public void deleteUserAccount(UUID userId, @NotBlank(message = "Passwort darf nicht leer sein.") String password) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("Benutzer nicht gefunden."));
+    public void deleteUserAccount(UUID userId, @NotBlank(message = "Password cannot be empty") String password) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found."));
         authenticateUser(user.getEmail(), password);
         userRepository.delete(user);
+    }
+
+    public void saveUser(User user) {
+        userRepository.save(user);
     }
 }
