@@ -88,6 +88,12 @@ export function PWResetPassword() {
                 })
             });
 
+            if (response.status === 429) {
+                const errorData: ErrorType = await response.json();
+                setErrors({api: errorData});
+                return;
+            }
+
             if (!response.ok) {
                 const errorData: ErrorType = await response.json();
                 setErrors({api: errorData});
