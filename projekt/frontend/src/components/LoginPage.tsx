@@ -6,6 +6,8 @@ import Navbar from "./Navbar.tsx";
 import "../styling/DocumentDetailPage.css";
 import {apiFetch} from "../utils/apiFetch.ts";
 import {NavLink, redirect} from "react-router";
+import type {ErrorType} from "../types/ErrorType.ts";
+import ApiErrorMessage from "./ApiErrorMessage.tsx";
 
 
 interface FormData {
@@ -31,6 +33,7 @@ function LoginPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const [errors, setErrors] = useState<Errors>({});
+    const [apiError, setApiError] = useState<Partial<ErrorType> | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [cookieConsent, setCookieConsent] = useState<boolean>(false);
 
@@ -55,7 +58,9 @@ function LoginPage() {
             return;
         }
 
-        submitLogin(formData, setIsSubmitting, setErrors, login).catch(
+        setApiError(undefined);
+
+        submitLogin(formData, setIsSubmitting, setErrors, setApiError, login).catch(
             error => {
                 setErrors({
                     general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
@@ -236,6 +241,8 @@ function LoginPage() {
                     </label>
                 </div>
 
+                <ApiErrorMessage error={apiError} />
+
                 <ErrorMessage
                     message={errors.general}
                     type="general"/>
@@ -254,18 +261,19 @@ async function submitLogin(
     formData: FormData,
     setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>,
     setErrors: React.Dispatch<React.SetStateAction<Errors>>,
+    setApiError: React.Dispatch<React.SetStateAction<Partial<ErrorType> | undefined>>,
     login: (token: string) => void
 ): Promise<void> {
     const newErrors: Errors = {};
 
     if (!formData.email) {
-        newErrors.email = 'Email ist erforderlich';
+        newErrors.email = 'Email address is required.';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = 'Ungültige Email-Adresse';
+        newErrors.email = 'Invalid email address.';
     }
 
     if (!formData.password) {
-        newErrors.password = 'Passwort ist erforderlich';
+        newErrors.password = 'Password is required.';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -285,6 +293,12 @@ async function submitLogin(
             },
             body: JSON.stringify(formData)
         });
+        // Rate Limit CHECK (aus Proxy)
+        if (response.status === 429) {
+            const errorData : ErrorType = await response.json();
+            setApiError(errorData);
+            return;
+        }
 
         if (!response.ok) {
             const errorData = await response.json();
