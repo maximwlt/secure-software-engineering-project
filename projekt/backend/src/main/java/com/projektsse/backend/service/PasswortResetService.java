@@ -64,7 +64,7 @@ public class PasswortResetService {
         String message = String.format("""
                 Sie haben eine Anfrage zum Zurücksetzen Ihres Passworts erhalten.
                 Klicken Sie auf den folgenden Link, um ein neues Passwort festzulegen:
-                http://localhost:8080/api/auth/reset-password?token=%s
+                http://localhost:8080/reset-password?token=%s
                 Wenn Sie diese Anfrage nicht gestellt haben, können Sie diese Nachricht ignorieren.
                 """, resetToken);
 

@@ -6,6 +6,8 @@ import * as de from "@zxcvbn-ts/language-de";
 import { useNavigate } from 'react-router';
 import "../styling/RegisterPage.css";
 import Navbar from "./Navbar.tsx";
+import type {ErrorType} from "../types/ErrorType.ts";
+import ApiErrorMessage from "./ApiErrorMessage.tsx";
 
 zxcvbnOptions.setOptions({
     translations: de.translations,
@@ -31,12 +33,11 @@ async function submitRegister(
     formData: FormData,
     setIsSubmitting: (value: boolean) => void,
     setErrors: (value: Errors) => void,
-    setIsSuccess: (value: boolean) => void
+    setIsSuccess: (value: boolean) => void,
+    setApiError: React.Dispatch<React.SetStateAction<Partial<ErrorType> | undefined>>
 ) {
 
     const newErrors: Errors = {};
-
-
 
     if (!formData.email) {
         newErrors.email = 'Email ist erforderlich';
@@ -68,6 +69,7 @@ async function submitRegister(
 
     setIsSubmitting(true);
     setErrors({});
+    setApiError(undefined)
 
     try {
         const response = await fetch('/api/auth/register', {
@@ -77,6 +79,12 @@ async function submitRegister(
             },
             body: JSON.stringify(formData)
         });
+
+        if (response.status === 429) {
+            const errorData : ErrorType = await response.json();
+            setApiError(errorData);
+            return;
+        }
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -105,6 +113,7 @@ function RegisterPage() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isSuccess, setIsSuccess] = useState<boolean>(false);
     const [passwordData, setPasswordData] = useState<ZxcvbnResult | null>(null);
+    const [apiError, setApiError] = useState<Partial<ErrorType> | undefined>(undefined);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target;
@@ -126,7 +135,7 @@ function RegisterPage() {
     };
 
     const handleSubmit = (): void => {
-        submitRegister(formData, setIsSubmitting, setErrors, setIsSuccess).catch(
+        submitRegister(formData, setIsSubmitting, setErrors, setIsSuccess, setApiError).catch(
             error => {
                 setErrors({
                     general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
@@ -205,6 +214,7 @@ function RegisterPage() {
                     <ErrorMessage message={errors.password} type="field" />
                 </div>
 
+                <ApiErrorMessage error={apiError} />
                 <ErrorMessage message={errors.general} type="general" />
 
                 <button
