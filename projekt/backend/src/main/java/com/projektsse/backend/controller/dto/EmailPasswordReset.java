@@ -7,21 +7,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO for user login requests. Validates email and password fields with specific constraints.
- * GroupSequence ensures that validation is performed in the aligned order.
- * @param email must not be blank, must be a valid email format, and must be at most 255 characters long.
- * @param password no specific validation constraints are applied to the password field
+ * DTO for requesting a password reset via email.
+ * The GroupSequence annotation ensures that the email field is validated in a specific order:
+ * first it checks if it's not blank, then it checks the size, and finally it checks the email format.
+ * @param email the email address of the user requesting the password reset, must not be blank, must be a valid email format, and must be at most 255 characters long
  */
 @GroupSequence({
-        LoginReq.class,
+        EmailPasswordReset.class,
         RegistrationValidationGroups.EmailSize.class,
         RegistrationValidationGroups.EmailFormat.class
 })
-public record LoginReq(
+public record EmailPasswordReset(
         @NotBlank(message = "Email cannot be empty")
         @Size(max = 255, message = "Email must be at most 255 characters long")
         @Email(message = "Invalid email format")
-        String email,
-
-        String password
+        String email
 ) { }

@@ -71,7 +71,7 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>4.5.0</version>
+            <version>4.5.1</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -84,11 +84,35 @@
             <version>4.0.1</version>
         </dependency>
         <!-- Test Dependencies -->
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-resttestclient -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-resttestclient</artifactId>
+            <version>4.0.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.22.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Logging Dependencies -->
+        <!-- Source: https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.1.0-alpha1</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Devtools Dependencies -->
+        <!-- Others -->
     </dependencies>
 
     <build>
@@ -96,6 +120,24 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>
