@@ -90,6 +90,7 @@ Thumbs.db
 ### -------------------------
 ### Environment files
 ### -------------------------
+projekt/.env
 .env
 *.env.local
 *.env.development.local
