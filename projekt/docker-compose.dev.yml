@@ -19,7 +19,7 @@ services:
       - "1025:1025"
 
   backend:
-    image: "${CI_REGISTRY_IMAGE:-projekt}/backend:${CI_COMMIT_SHA:-local}"
+    image: "${REGISTRY:-ghcr.io/mxsph}/backend:${IMAGE_TAG:-local}"
     container_name: backend-app
     build:
       context: ./backend
@@ -40,7 +40,7 @@ services:
     restart: on-failure
 
   frontend:
-    image: "${CI_REGISTRY_IMAGE:-projekt}/frontend:${CI_COMMIT_SHA:-local}"
+    image: "${REGISTRY:-ghcr.io/mxsph}/frontend:${IMAGE_TAG:-local}"
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
