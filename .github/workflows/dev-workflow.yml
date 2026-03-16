@@ -77,8 +77,8 @@ jobs:
       - name: Build & Push via Docker Compose
         working-directory: projekt
         env:
-          CI_REGISTRY_IMAGE: ghcr.io/${{ github.repository }}
-          CI_COMMIT_SHA: ${{ github.sha }}
+          REGISTRY: ghcr.io/${{ github.repository }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker compose -f docker-compose.dev.yml build
           docker compose -f docker-compose.dev.yml push
