@@ -1,5 +1,7 @@
 import React from 'react';
 import '../styling/ErrorMessage.css';
+import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 interface ErrorMessageProps {
     message?: string;
@@ -13,7 +15,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ message, type = 'field' }) 
 
     return (
         <div className={className}>
-            {type === 'general' && '⚠️ '}
+            {type === 'general' && <FontAwesomeIcon icon={faTriangleExclamation} />}
             {message}
         </div>
     );

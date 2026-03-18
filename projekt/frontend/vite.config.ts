@@ -5,6 +5,19 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: '0.0.0.0',
+    port: 8080,
+    watch : {
+      usePolling: true
+    },
+    proxy: {
+        '/api': {
+            target: 'http://backend:8080',
+            changeOrigin: true
+        }
+    }
+  },
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

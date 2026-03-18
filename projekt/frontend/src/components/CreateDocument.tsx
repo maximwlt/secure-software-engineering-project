@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router';
 import { apiFetch } from '../utils/apiFetch';
 import ErrorMessage from './ErrorMessage';
 import Navbar from './Navbar';
-import '../styling/CreateDocuments.css';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faBan, faCirclePlus} from "@fortawesome/free-solid-svg-icons";
 
 interface FormData {
     title: string;
@@ -56,23 +57,23 @@ function CreateDocument() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
 
         if (!auth.isAuthenticated) {
-            setErrors({ general: 'Sie müssen angemeldet sein, um ein Dokument zu erstellen.' });
+            setErrors({ general: 'You have to be authorized to create a document' });
             return;
         }
 
         const newErrors: Errors = {};
         if (!formData.title.trim()) {
-            newErrors.title = 'Titel ist erforderlich';
+            newErrors.title = 'Title is required.';
         } else if (formData.title.length > 200) {
-            newErrors.title = 'Titel darf maximal 200 Zeichen haben';
+            newErrors.title = 'Title cannot exceed 200 characters.';
         }
 
         if (!formData.mdContent.trim()) {
-            newErrors.content = 'Inhalt ist erforderlich';
+            newErrors.content = 'Content is required.';
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -92,7 +93,7 @@ function CreateDocument() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Dokument konnte nicht erstellt werden');
+                throw new Error(errorData.mdContent || 'Failed to create document');
             }
 
             const data = await response.json();
@@ -100,7 +101,7 @@ function CreateDocument() {
 
         } catch (error) {
             setErrors({
-                general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
+                general: error instanceof Error ? error.message : 'An error occurred.'
             });
         } finally {
             setIsSubmitting(false);
@@ -110,62 +111,69 @@ function CreateDocument() {
     return (
         <>
             <Navbar />
-            <div className="create-document-container">
-                <h1>Neues Dokument erstellen</h1>
+            <div className="max-w-3xl mx-auto mt-8 px-4">
+                <h1 className="text-2xl font-bold mb-6">Create new document</h1>
 
-                <form className="create-document-form" onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className="form-label">Titel *</label>
+                <form className="w-full" onSubmit={handleSubmit}>
+                    <div className="mb-6">
+                        <label className="block mb-2 font-semibold">Title *</label>
                         <input
-                            className="form-input"
+                            className="w-full px-3 py-3 text-base border border-gray-300 rounded-md"
                             type="text"
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
-                            placeholder="Dokumenttitel eingeben"
+                            placeholder="Insert document title"
                         />
                         <ErrorMessage message={errors.title} type="field" />
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label">
-                            Inhalt * (Markdown unterstützt)
-                        </label>
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block mb-2 font-semibold">
+                                Content * (Markdown supported)
+                            </label>
+                            <p>
+                                Chars: {formData.mdContent.length} / 10000
+                            </p>
+                        </div>
                         <textarea
-                            className="form-textarea"
+                            className="w-full px-3 py-3 text-base border border-gray-300 rounded-md font-mono resize-y"
                             name="mdContent"
                             value={formData.mdContent}
                             onChange={handleChange}
                             rows={15}
-                            placeholder="Dokumentinhalt eingeben"
+                            placeholder="Insert document content. You can use Markdown syntax to format your text."
                         />
                         <ErrorMessage message={errors.content} type="field" />
                     </div>
 
-                    <div className="form-group">
-                        <label className="checkbox-label">
+                    <div className="mb-6">
+                        <label className="inline-flex items-center gap-2 cursor-pointer font-semibold">
                             <input
+                                className="w-4 h-4"
                                 type="checkbox"
                                 name="isPrivate"
                                 checked={formData.isPrivate}
                                 onChange={handleChange}
                             />
-                            Privat sichtbar
+                            Private document (only visible to you)
                         </label>
                     </div>
 
                     <ErrorMessage message={errors.general} type="general" />
 
                     <button
-                        className="submit-button"
+                        className="px-6 py-3 bg-blue-500 text-white rounded-md cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                         type="submit"
                         disabled={isSubmitting || !auth.isAuthenticated}
                     >
                         {isSubmitting
-                            ? 'Wird erstellt...'
+                            ? 'Submitting...'
                             : !auth.isAuthenticated
-                                ? 'Anmeldung erforderlich'
-                                : 'Dokument erstellen'}
+                                ? <> <FontAwesomeIcon icon={faBan} /> Unauthorized</>
+                                : <> <FontAwesomeIcon icon={faCirclePlus} /> Create</>
+                        }
                     </button>
                 </form>
             </div>

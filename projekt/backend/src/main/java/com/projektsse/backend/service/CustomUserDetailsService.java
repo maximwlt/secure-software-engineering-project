@@ -3,6 +3,7 @@ package com.projektsse.backend.service;
 import com.projektsse.backend.models.CustomUserDetails;
 import com.projektsse.backend.repository.UserRepository;
 import com.projektsse.backend.repository.entities.User;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,6 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
+    @NullMarked
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         User user  = userRepository.findById(UUID.fromString(userId))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
