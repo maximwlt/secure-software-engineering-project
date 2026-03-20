@@ -41,7 +41,7 @@ export async function apiFetch(
     // Access Token refreshen
     const newToken = await auth.refreshAccessToken();
     if (!newToken) {
-        throw new Error("Sie müssen angemeldet sein, um diese Aktion durchzuführen.");
+        throw new Error("You have to be authenticated to perform this action. Please log in.");
     }
 
     // Retry mit neuem Token + CSRF

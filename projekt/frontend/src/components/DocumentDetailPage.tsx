@@ -8,6 +8,8 @@ import {SafeMarkdown} from "./SafeMarkdown.tsx";
 import Navbar from "./Navbar.tsx";
 import {jwtDecode, type JwtPayload} from "jwt-decode";
 import DOMPurify from "dompurify";
+import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 interface DocumentDetail {
     noteId: string;
@@ -109,9 +111,9 @@ function DocumentDetailPage() {
     if (error) {
         return (
             <div className="document-detail-container">
-                <div className="error-message">⚠️ {error || 'Dokument nicht gefunden'}</div>
+                <div className="error-message"><FontAwesomeIcon icon={faTriangleExclamation} /> {error}</div>
                 <button onClick={handleBack} className="back-button">
-                    ← Zurück zur Übersicht
+                    ← Back to Overview
                 </button>
             </div>
         );
@@ -120,9 +122,9 @@ function DocumentDetailPage() {
     if (!document) {
         return (
             <div className="document-detail-container">
-                <div className="error-message">⚠️ Dokument nicht gefunden</div>
+                <div className="error-message"><FontAwesomeIcon icon={faTriangleExclamation} /> Document not found</div>
                 <button onClick={handleBack} className="back-button">
-                    ← Zurück zur Übersicht
+                    ← Back to Overview
                 </button>
             </div>
         );

@@ -32,7 +32,6 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
                                         An dieser Stelle finden Sie einen externen Inhalt von YouTube, <br>
                                         der den Artikel ergänzt und von der Redaktion empfohlen wird. <br>
                                         Sie können ihn sich mit einem Klick anzeigen lassen. <br>
-
                                     </p>
                                     <button class="consent-load-btn" type="button">
                                         Externen Inhalt laden

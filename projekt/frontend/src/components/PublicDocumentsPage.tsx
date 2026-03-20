@@ -2,16 +2,13 @@ import { useEffect, useState } from 'react';
 import {useNavigate, useSearchParams} from 'react-router';
 import { apiFetch } from '../utils/apiFetch';
 import { useAuth } from '../utils/useAuth';
-import '../styling/PublicDocumentsPage.css';
 import Navbar from "./Navbar.tsx";
 import SearchBar from "./Searchbar.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
+import LoadingBar from "./LoadingBar.tsx";
+import type {PublicDocument} from "../types/PublicDocument.ts";
+import OverviewPage from "./OverviewPage.tsx";
 
-interface PublicDocument {
-    noteId: string;
-    title: string;
-    userId: string;
-}
 
 export function PublicDocumentsPage() {
     const auth = useAuth();
@@ -37,14 +34,13 @@ export function PublicDocumentsPage() {
                 const response = await apiFetch(auth, url);
 
                 if (!response.ok) {
-                    setError("Fehler beim Laden der Dokumente");
+                    setError("Error loading documents");
                 }
-
-                    const data = await response.json();
-                    setDocuments(data);
+                const data = await response.json();
+                setDocuments(data);
 
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+                setError(err instanceof Error ? err.message : 'An error occurred');
             } finally {
                 setIsLoading(false);
             }
@@ -66,11 +62,7 @@ export function PublicDocumentsPage() {
     };
 
     if (isLoading) {
-        return (
-            <div className="public-documents-container">
-                <div className="loading">Lädt Dokumente...</div>
-            </div>
-        );
+        return <LoadingBar />;
     }
 
 
@@ -78,38 +70,19 @@ export function PublicDocumentsPage() {
         <>
             <Navbar/>
             <SearchBar value={inputValue} onChange={setInputValue} onSubmit={handleSearchSubmit} />
-            <div className="public-documents-container">
-                <h1 className="page-title">Öffentliche Dokumente</h1>
+            <div className="max-w-350 mx-auto py-8 px-4 md:px-2">
+                <h1 className="text-4xl md:text-3xl sm:text-2xl font-bold text-gray-900 mb-8 md:mb-6 text-center">
+                    Public documents
+                </h1>
 
                 {error && <ErrorMessage message={error} type="general" />}
 
                 {!error && documents.length === 0 ? (
-                    <div className="empty-state">
-                        <p>Keine öffentlichen Dokumente vorhanden</p>
+                    <div className="text-center bg-gray-100 rounded-lg py-12 px-4 text-lg text-gray-500">
+                        <p>No public documents exist.</p>
                     </div>
                 ) : (
-                    <div className="documents-grid">
-                        {documents.map((doc) => (
-                            <div
-                                key={doc.noteId}
-                                className="document-card"
-                                onClick={() => handleCardClick(doc.noteId)}
-                            >
-                                <div className="card-header">
-                                    <h2 className="card-title">{doc.title}</h2>
-                                </div>
-                                <div className="card-body">
-                                    <div className="card-info">
-                                        <span className="info-label">Dokument-ID:</span>
-                                        <span className="info-value">{doc.noteId}</span>
-                                    </div>
-                                </div>
-                                <div className="card-footer">
-                                    <span className="view-link">Ansehen →</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <OverviewPage documents={documents} onCardClick={handleCardClick} />
                 )}
             </div>
         </>

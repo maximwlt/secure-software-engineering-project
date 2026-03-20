@@ -314,8 +314,6 @@ async function submitLogin(
         // Token im Context speichern (In-Memory)
         login(data.accessToken);
 
-        // console.log('Login erfolgreich!');
-
     } catch (error) {
         setErrors({
             general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'

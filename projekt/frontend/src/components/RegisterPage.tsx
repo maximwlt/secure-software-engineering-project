@@ -8,6 +8,8 @@ import "../styling/RegisterPage.css";
 import Navbar from "./Navbar.tsx";
 import type {ErrorType} from "../types/ErrorType.ts";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
+import {faLightbulb, faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 zxcvbnOptions.setOptions({
     translations: de.translations,
@@ -151,13 +153,13 @@ function RegisterPage() {
                 <Navbar />
                 <div className="register-success-wrapper">
                     <div className="register-success-box">
-                        <h1>Registrierung erfolgreich!</h1>
+                        <h1>Registration successful!</h1>
                         <p>
-                            Wir haben dir eine Bestätigungs-E-Mail an
-                            <strong> {formData.email}</strong> gesendet.
+                            We have sent a confirmation email to
+                            <strong> {formData.email}</strong>.
                         </p>
                         <p className="hint">
-                            Bitte bestätige deine E-Mail, um dein Konto zu aktivieren.
+                            Please confirm your email to activate your account.
                         </p>
                     </div>
 
@@ -165,7 +167,7 @@ function RegisterPage() {
                         className="primary-button"
                         onClick={() => navigate('/login')}
                     >
-                        Zum Login
+                        To Login
                     </button>
                 </div>
             </>
@@ -204,10 +206,10 @@ function RegisterPage() {
                     {passwordData && (
                         <div className="password-feedback">
                             {passwordData.feedback.warning && (
-                                <p className="warning"> ⚠️ {passwordData.feedback.warning}</p>
+                                <p className="warning"> <FontAwesomeIcon icon={faTriangleExclamation} /> {passwordData.feedback.warning}</p>
                             )}
                             {passwordData.feedback.suggestions.map((s, i) => (
-                                <p key={i} className="suggestion">💡 {s}</p>
+                                <p key={i} className="suggestion"><FontAwesomeIcon icon={faLightbulb} /> {s}</p>
                             ))}
                         </div>
                     )}
