@@ -10,6 +10,7 @@ import type {ErrorType} from "../types/ErrorType.ts";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
 import {faLightbulb, faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import LoadingBar from "./LoadingBar.tsx";
 
 zxcvbnOptions.setOptions({
     translations: de.translations,
@@ -42,27 +43,25 @@ async function submitRegister(
     const newErrors: Errors = {};
 
     if (!formData.email) {
-        newErrors.email = 'Email ist erforderlich';
+        newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = 'Ungültige Email-Adresse';
+        newErrors.email = 'Invalid email address';
     }
 
     const passwordStrength : ZxcvbnResult = zxcvbn(formData.password);
     if (!formData.password) {
-        newErrors.password = 'Passwort ist erforderlich';
+        newErrors.password = 'Password is required';
     }
     else {
         switch (passwordStrength.score) {
-            case 0: newErrors.password = 'Passwort ist sehr schwach'; break;
-            case 1: newErrors.password = 'Passwort ist schwach'; break;
-            case 2: newErrors.password = 'Passwort ist akzeptabel'; break;
-            case 3: newErrors.password = 'Passwort ist stark'; break;
+            case 0: newErrors.password = 'Password is too weak.'; break;
+            case 1: newErrors.password = 'Password is weak.'; break;
+            case 2: newErrors.password = 'Password is okay.'; break;
+            case 3: newErrors.password = 'Password is good, but could be stronger.'; break;
             case 4: break;
             default: break;
         }
     }
-
-
 
     if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -151,20 +150,21 @@ function RegisterPage() {
         return (
             <>
                 <Navbar />
-                <div className="register-success-wrapper">
-                    <div className="register-success-box">
-                        <h1>Registration successful!</h1>
-                        <p>
-                            We have sent a confirmation email to
-                            <strong> {formData.email}</strong>.
+                <div className="max-w-2xl mx-auto mt-12 px-8 text-center">
+                    <div className="bg-green-50 border-2 border-green-500 rounded-xl p-8 mb-8">
+                        <h1 className="text-2xl font-bold text-green-800 mb-4">
+                            Registration successful!
+                        </h1>
+                        <p className="text-lg text-gray-700 leading-relaxed">
+                            We have sent a confirmation email to <strong>{formData.email}</strong>.
                         </p>
-                        <p className="hint">
+                        <p className="text-base text-gray-500 mt-4">
                             Please confirm your email to activate your account.
                         </p>
                     </div>
 
                     <button
-                        className="primary-button"
+                        className="w-full py-3 text-base font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-md cursor-pointer transition-colors"
                         onClick={() => navigate('/login')}
                     >
                         To Login
@@ -179,28 +179,28 @@ function RegisterPage() {
         <>
             <Navbar />
             <div className="register-wrapper">
-                <h1>Registrierung</h1>
+                <h1>Registration</h1>
 
                 <div className="form-group">
-                    <label>Email-Adresse</label>
+                    <label>Email Address</label>
                     <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="E-Mail Adresse eingeben"
+                        placeholder="Enter Email Address"
                     />
                     <ErrorMessage message={errors.email} type="field" />
                 </div>
 
                 <div className="form-group">
-                    <label>Passwort</label>
+                    <label>Password</label>
                     <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="Passwort eingeben"
+                        placeholder="Enter Password"
                     />
                     <progress max={4} value={passwordData?.score ?? 0} className="password-strength-bar"></progress>
                     {passwordData && (
@@ -224,13 +224,13 @@ function RegisterPage() {
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                 >
-                    {isSubmitting ? 'Lädt...' : 'Registrieren'}
+                    {isSubmitting ? <LoadingBar /> : 'Register'}
                 </button>
 
                 <p className="login-hint">
-                    Bereits registriert?{' '}
+                    Already registered?{' '}
                     <span onClick={() => navigate('/login')}>
-                        Zum Login
+                        Login
                     </span>
                 </p>
             </div>

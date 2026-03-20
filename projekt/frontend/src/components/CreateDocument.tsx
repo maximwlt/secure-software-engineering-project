@@ -68,8 +68,9 @@ function CreateDocument() {
         const newErrors: Errors = {};
         if (!formData.title.trim()) {
             newErrors.title = 'Title is required.';
-        } else if (formData.title.length > 200) {
-            newErrors.title = 'Title cannot exceed 200 characters.';
+        }
+        else if (formData.title.length > 100) {
+            newErrors.title = 'Title cannot exceed 100 characters.';
         }
 
         if (!formData.mdContent.trim()) {
@@ -93,7 +94,7 @@ function CreateDocument() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.mdContent || 'Failed to create document');
+                throw new Error(errorData.title || 'Failed to create document');
             }
 
             const data = await response.json();

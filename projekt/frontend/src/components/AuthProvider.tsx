@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { getCookie } from "../utils/cookies";
 import { AuthContext } from "./AuthContext";
+import LoadingBar from "./LoadingBar.tsx";
 
 let refreshPromise: Promise<string | null> | null = null;
 
@@ -73,7 +74,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                 isAuthenticated: token !== null,
             }}
         >
-            {isLoading ? <div>Lade...</div> : children}
+            {isLoading ? <LoadingBar /> : children}
         </AuthContext.Provider>
     );
 }
