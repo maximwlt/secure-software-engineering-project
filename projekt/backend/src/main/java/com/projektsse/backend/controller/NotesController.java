@@ -1,6 +1,7 @@
 package com.projektsse.backend.controller;
 
 import com.projektsse.backend.controller.dto.NoteReq;
+import com.projektsse.backend.controller.dto.NoteRes;
 import com.projektsse.backend.interfaces.CurrentUserId;
 import com.projektsse.backend.models.NoteModel;
 import com.projektsse.backend.service.NoteService;
@@ -82,5 +83,16 @@ public class NotesController {
     ) {
         noteService.deleteNote(docId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @PutMapping(value = "/{docId}", consumes = "application/json")
+    public ResponseEntity<NoteRes> updateNote(
+            @PathVariable UUID docId,
+            @Valid @RequestBody NoteReq noteReq,
+            @CurrentUserId UUID userId
+    ) {
+        NoteRes updatedNote = noteService.updateNote(docId, noteReq, userId).toDto();
+        return ResponseEntity.ok().body(updatedNote);
     }
 }

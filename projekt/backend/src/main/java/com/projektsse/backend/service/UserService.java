@@ -114,6 +114,7 @@ public class UserService {
     public void authenticateUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
+            // passwordEncoder.matches(password, DUMMY_HASH); // Dummy-Hash-Vergleich, um Timing-Angriffe zu verhindern
             throw new IllegalArgumentException("Invalid credentials.");
         }
         User user = userOpt.get();

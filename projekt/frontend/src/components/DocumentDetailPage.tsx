@@ -60,7 +60,7 @@ function DocumentDetailPage() {
                     if (response.status === 404) {
                         throw new Error('Document not found');
                     }
-                    throw new Error('Fehler beim Laden des Dokuments');
+                    throw new Error('Error loading document');
                 }
 
                 const data = await response.json();
@@ -79,11 +79,6 @@ function DocumentDetailPage() {
     const handleDelete = async () => {
         if (!documentId) return;
 
-        const confirmed = window.confirm(
-            "Willst du dieses Dokument wirklich löschen?"
-        );
-        if (!confirmed) return;
-
         try {
             const response = await apiFetch(
                 auth,
@@ -92,11 +87,11 @@ function DocumentDetailPage() {
                 }
             );
             if (!response.ok) {
-                throw new Error("Löschen fehlgeschlagen");
+                throw new Error("Failed to delete document");
             }
             navigate(-1);
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Fehler beim Löschen");
+            alert(err instanceof Error ? err.message : "Error occurred while deleting document");
         }
     };
 
@@ -149,7 +144,7 @@ function DocumentDetailPage() {
                             </p>
                         }
                     </header>
-                    <div className="mt-8 pt-8 break-all border-gray-100">
+                    <div className="mt-8 pt-8 break-normal border-gray-100">
                         {document.md_content ? (
                             <SafeMarkdown markdown={document.md_content}/>
                         ) : (
@@ -158,7 +153,7 @@ function DocumentDetailPage() {
                     </div>
                 </div>
 
-                { isOwner && (<DeleteButton onDeleteClick={handleDelete} />)}
+                { isOwner && (<DeleteButton title="Delete document" message="Are you sure you want to delete this document? This action cannot be undone." onDeleteClick={handleDelete} />)}
 
             </div>
         </>

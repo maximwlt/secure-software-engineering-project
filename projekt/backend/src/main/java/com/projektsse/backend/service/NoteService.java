@@ -6,6 +6,7 @@ import com.projektsse.backend.exceptions.NoteNotFoundException;
 import com.projektsse.backend.models.NoteModel;
 import com.projektsse.backend.repository.NoteRepository;
 import com.projektsse.backend.repository.entities.Note;
+import com.projektsse.backend.repository.entities.User;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -57,7 +58,7 @@ public class NoteService {
 
     public NoteModel getNoteById(UUID documentId) {
         Note note = noteRepository.findById(documentId)
-                .orElseThrow(() -> new NoteNotFoundException("Notiz mit der ID " + documentId + " wurde nicht gefunden"));
+                .orElseThrow(() -> new NoteNotFoundException(String.format("Note with ID %s not found", documentId)));
         return note.toModel();
     }
 
@@ -76,14 +77,30 @@ public class NoteService {
 
     public void deleteNote(UUID documentId, UUID userId) {
         Note note = noteRepository.findById(documentId)
-                .orElseThrow(() -> new NoteNotFoundException("Notiz mit der ID " + documentId + " wurde nicht gefunden"));
+                .orElseThrow(() -> new NoteNotFoundException(String.format("Note with ID %s not found", documentId)));
 
-        // Ist authorisiert?
         // Gleiche Exceptions um User Enumeration zu verhindern
         if (!note.getOwner().getId().equals(userId)) {
-            throw new NoteNotFoundException("Notiz mit der ID " + documentId + " wurde nicht gefunden");
+            throw new NoteNotFoundException(String.format("Note with ID %s not found", documentId));
         }
 
         noteRepository.delete(note);
+    }
+
+    public NoteModel updateNote(UUID docId, @Valid NoteReq noteReq, UUID userId) {
+        NoteModel note = getNoteById(docId);
+
+        if (!note.userId().equals(userId)) {
+            // Note exists, but belongs to another user, so we throw the same exception to prevent user enumeration
+            throw new NoteNotFoundException(String.format("Note with ID %s not found", docId));
+        }
+
+        User user = userService.getUserById(userId.toString());
+
+        note.setTitle(mdSanitizer.sanitizeTitle(noteReq.title()))
+            .setMdContent(mdSanitizer.sanitizeContent(noteReq.mdContent()))
+            .setIsPrivate(noteReq.isPrivate());
+
+        return noteRepository.save(Note.fromModel(note, user)).toModel();
     }
 }

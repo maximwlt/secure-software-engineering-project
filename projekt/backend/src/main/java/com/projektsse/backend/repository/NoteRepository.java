@@ -28,7 +28,4 @@ public interface NoteRepository extends CrudRepository<Note, UUID> {
             "LOWER(n.mdContent) LIKE LOWER(CONCAT('%', :query, '%')))")
     List<Note> searchUserNotes(@Param("userId") UUID userId, @Param("query") String query);
 
-//    @Query("SELECT n FROM Note n WHERE n.isPrivate = false")
-//    List<Note> findAllPublicNotes();
-
 }

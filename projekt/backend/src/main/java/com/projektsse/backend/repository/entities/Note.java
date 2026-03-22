@@ -68,6 +68,18 @@ public class Note {
         );
     }
 
+    public static Note fromModel(NoteModel model, User owner) {
+        Note note = new Note();
+        note.setNoteId(model.noteId());
+        note.setTitle(model.title());
+        note.setMdContent(model.md_content());
+        note.setIsPrivate(model.is_private());
+        note.setOwner(owner);
+        return note;
+    }
+
+
+
     public void setMdContent(@NotBlank(message = "Inhalt darf nicht leer sein") @Size(max = 10000, message = "Inhalt darf maximal 10.000 Zeichen lang sein") String mdContent) {
         this.mdContent = mdContent;
     }
