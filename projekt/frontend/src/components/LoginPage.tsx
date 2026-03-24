@@ -114,10 +114,6 @@ function LoginPage() {
             setErrors({ general: "Bitte Passwort eingeben." });
             return;
         }
-        /*const confirmed = window.confirm(
-            "Dein Konto wird gelöscht. Fortfahren?"
-        );
-        if (!confirmed) return;*/
 
         try {
             const res = await apiFetch(auth, '/api/auth/me', {
@@ -148,7 +144,7 @@ function LoginPage() {
         return (
             <>
                 <Navbar/>
-                <div className="register-wrapper">
+                <div className="auth-form-wrapper">
                     <h1>Sie sind angemeldet</h1>
 
                     <ErrorMessage
@@ -200,7 +196,7 @@ function LoginPage() {
     return (
         <>
             <Navbar/>
-            <div className="register-wrapper">
+            <div className="auth-form-wrapper">
                 <h1>Login Page</h1>
 
                 <div className="form-group">

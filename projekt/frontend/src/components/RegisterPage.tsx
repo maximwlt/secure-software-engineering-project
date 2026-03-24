@@ -4,7 +4,6 @@ import {zxcvbn, zxcvbnOptions, type ZxcvbnResult} from "@zxcvbn-ts/core";
 import * as common from "@zxcvbn-ts/language-common";
 import * as de from "@zxcvbn-ts/language-de";
 import { useNavigate } from 'react-router';
-import "../styling/RegisterPage.css";
 import Navbar from "./Navbar.tsx";
 import type {ErrorType} from "../types/ErrorType.ts";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
@@ -115,6 +114,7 @@ function RegisterPage() {
     const [isSuccess, setIsSuccess] = useState<boolean>(false);
     const [passwordData, setPasswordData] = useState<ZxcvbnResult | null>(null);
     const [apiError, setApiError] = useState<Partial<ErrorType> | undefined>(undefined);
+    const score = passwordData?.score ?? 0;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target;
@@ -178,7 +178,7 @@ function RegisterPage() {
     return (
         <>
             <Navbar />
-            <div className="register-wrapper">
+            <div className="auth-form-wrapper">
                 <h1>Registration</h1>
 
                 <div className="form-group">
@@ -202,14 +202,20 @@ function RegisterPage() {
                         onChange={handleChange}
                         placeholder="Enter Password"
                     />
-                    <progress max={4} value={passwordData?.score ?? 0} className="password-strength-bar"></progress>
+
+                    <progress
+                        max={4}
+                        value={score}
+                        className={`password-strength-bar strength-${score}`}
+                    />
+
                     {passwordData && (
-                        <div className="password-feedback">
+                        <div className="bg-gray-200 mt-1 text-sm">
                             {passwordData.feedback.warning && (
-                                <p className="warning"> <FontAwesomeIcon icon={faTriangleExclamation} /> {passwordData.feedback.warning}</p>
+                                <p className="text-red-600 font-semibold"> <FontAwesomeIcon icon={faTriangleExclamation} /> {passwordData.feedback.warning}</p>
                             )}
                             {passwordData.feedback.suggestions.map((s, i) => (
-                                <p key={i} className="suggestion"><FontAwesomeIcon icon={faLightbulb} /> {s}</p>
+                                <p key={i} className="text-yellow-600 ml-2"><FontAwesomeIcon icon={faLightbulb} /> {s}</p>
                             ))}
                         </div>
                     )}
@@ -227,9 +233,9 @@ function RegisterPage() {
                     {isSubmitting ? <LoadingBar /> : 'Register'}
                 </button>
 
-                <p className="login-hint">
+                <p className="text-center mt-6 text-gray-500">
                     Already registered?{' '}
-                    <span onClick={() => navigate('/login')}>
+                    <span onClick={() => navigate('/login')} className="text-blue-500 cursor-pointer underline">
                         Login
                     </span>
                 </p>

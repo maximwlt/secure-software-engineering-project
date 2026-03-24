@@ -114,7 +114,7 @@ export function PWResetPassword() {
         return (
             <>
                 <Navbar/>
-                <div className="register-wrapper">
+                <div className="auth-form-wrapper">
                     <h1> Password Reset</h1>
                     <p>Validating token...</p>
                 </div>
@@ -126,7 +126,7 @@ export function PWResetPassword() {
         return (
             <>
                 <Navbar/>
-                <div className="register-wrapper">
+                <div className="auth-form-wrapper">
                     <h1>Password Reset</h1>
                     <ApiErrorMessage error={tokenError ?? undefined} />
                 </div>
@@ -138,7 +138,7 @@ export function PWResetPassword() {
         return (
             <>
                 <Navbar/>
-                <div className="register-wrapper">
+                <div className="auth-form-wrapper">
                     <h1>Password Reset</h1>
                     {responseMessage && <div className="success-message">{responseMessage}</div>}
                     <NavLink to="/login" className="primary-button">Go to Login</NavLink>
@@ -150,7 +150,7 @@ export function PWResetPassword() {
     return (
         <>
             <Navbar/>
-            <div className="register-wrapper">
+            <div className="auth-form-wrapper">
                 <h1>Set new password</h1>
 
                 <div className="form-group">

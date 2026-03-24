@@ -7,7 +7,7 @@ function LoadingBar() {
             <div className="w-full max-w-md h-1.5 bg-gray-200 rounded-full overflow-hidden">
                 <div className="h-full w-1/3 bg-blue-500 rounded-full animate-loading" />
             </div>
-            <span className="text-sm text-gray-400">Loading documents...</span>
+            <span className="text-sm text-gray-400">Loading...</span>
         </div>
     );
 }

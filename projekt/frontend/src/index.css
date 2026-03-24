@@ -14,4 +14,55 @@
     .page-container {
         @apply max-w-4xl mx-auto px-4 md:px-2 py-8;
     }
+    .auth-form-wrapper {
+        @apply max-w-xl mx-auto mt-8 px-4;
+    }
+
+    .form-group {
+        @apply mb-6;
+    }
+    .form-group label {
+        @apply block mb-2 font-semibold;
+    }
+    .form-group input {
+        @apply w-full px-3 py-3 text-base border border-gray-300 rounded-md;
+    }
+
+    .primary-button {
+        @apply w-full py-3 text-base bg-blue-500 text-white border-none rounded-md cursor-pointer font-semibold;
+    }
+    .primary-button.disabled {
+        @apply bg-gray-300 cursor-not-allowed;
+    }
+
+    .password-strength-bar {
+        @apply w-full h-3 rounded-full appearance-none mt-2 mb-1 bg-gray-200 overflow-hidden;
+    }
+
+    .strength-0::-webkit-progress-value {
+        background-color: #e5e7eb;
+    }
+    .strength-1::-webkit-progress-value {
+        background-color: #ef4444;
+    }
+    .strength-2::-webkit-progress-value {
+        background-color: #f97316;
+    }
+    .strength-3::-webkit-progress-value {
+        background-color: #eab308;
+    }
+    .strength-4::-webkit-progress-value {
+        background-color: #22c55e;
+    }
+
+    .password-strength-bar::-moz-progress-bar {
+        background-color: inherit;
+    }
+
+    .strength-0::-moz-progress-bar { background-color: #e5e7eb; }
+    .strength-1::-moz-progress-bar { background-color: #ef4444; }
+    .strength-2::-moz-progress-bar { background-color: #f97316; }
+    .strength-3::-moz-progress-bar { background-color: #eab308; }
+    .strength-4::-moz-progress-bar { background-color: #22c55e; }
+
 }

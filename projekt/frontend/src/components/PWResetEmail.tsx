@@ -64,7 +64,7 @@ export function PWResetEmail() {
     return (
         <>
             <Navbar/>
-            <div className="register-wrapper">
+            <div className="auth-form-wrapper">
                 <h1>Password Reset</h1>
 
                 <div className="form-group">
