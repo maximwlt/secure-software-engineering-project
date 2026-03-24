@@ -1,3 +1,6 @@
+/**
+ * A simple loading bar component that can be used to indicate that documents are being loaded.
+ */
 function LoadingBar() {
     return (
         <div className="max-w-350 mx-auto px-4 py-16 flex flex-col items-center gap-4">

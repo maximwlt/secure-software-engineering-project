@@ -2,6 +2,13 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faCircleExclamation, faTrash} from "@fortawesome/free-solid-svg-icons";
 import {useState} from "react";
 
+/**
+ * A button component that shows a confirmation modal before executing a delete action.
+ * @param onDeleteClick Callback function to execute when the delete action is confirmed.
+ * @param title Optional title for the confirmation modal. Defaults to "Delete".
+ * @param message Optional message for the confirmation modal. Defaults to "Are you sure? This action cannot be undone."
+ * @constructor
+ */
 function DeleteButton({ onDeleteClick, title = "Delete", message = "Are you sure? This action cannot be undone." }: { onDeleteClick: () => void, title?: string, message?: string }) {
     const [showModal, setShowModal] = useState(false);
 
