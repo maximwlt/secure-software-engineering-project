@@ -6,7 +6,6 @@ import com.projektsse.backend.exceptions.NoteNotFoundException;
 import com.projektsse.backend.models.NoteModel;
 import com.projektsse.backend.repository.NoteRepository;
 import com.projektsse.backend.repository.entities.Note;
-import com.projektsse.backend.repository.entities.User;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -88,19 +87,19 @@ public class NoteService {
     }
 
     public NoteModel updateNote(UUID docId, @Valid NoteReq noteReq, UUID userId) {
-        NoteModel note = getNoteById(docId);
 
-        if (!note.userId().equals(userId)) {
+        Note noteEntity = noteRepository.findById(docId)
+                .orElseThrow(() -> new NoteNotFoundException(String.format("Note with ID %s not found", docId)));
+
+        if (!noteEntity.getOwner().getId().equals(userId)) {
             // Note exists, but belongs to another user, so we throw the same exception to prevent user enumeration
             throw new NoteNotFoundException(String.format("Note with ID %s not found", docId));
         }
 
-        User user = userService.getUserById(userId.toString());
-
-        note.setTitle(mdSanitizer.sanitizeTitle(noteReq.title()))
+        noteEntity.setTitle(mdSanitizer.sanitizeTitle(noteReq.title()))
             .setMdContent(mdSanitizer.sanitizeContent(noteReq.mdContent()))
             .setIsPrivate(noteReq.isPrivate());
 
-        return noteRepository.save(Note.fromModel(note, user)).toModel();
+        return noteRepository.save(noteEntity).toModel();
     }
 }

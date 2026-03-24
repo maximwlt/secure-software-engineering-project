@@ -26,6 +26,8 @@ public class UserService {
     private final EmailService emailService;
     private final RegistrationRepository registrationRepository;
 
+    private static final String DUMMY_HASH = "$argon2id$v=19$m=12288,t=3,p=1$bKJ65XHVvriCKaOG3i3WHw$Ruu7bnU7+IKhuSOAcYungNnDYbzILF5HEperRn5b28Q";
+
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        TokenService tokenService,
@@ -114,7 +116,7 @@ public class UserService {
     public void authenticateUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
-            // passwordEncoder.matches(password, DUMMY_HASH); // Dummy-Hash-Vergleich, um Timing-Angriffe zu verhindern
+            passwordEncoder.matches(password, DUMMY_HASH); // Dummy-Hash to prevent timing attacks
             throw new IllegalArgumentException("Invalid credentials.");
         }
         User user = userOpt.get();
