@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.projektSSE</groupId>
@@ -81,14 +81,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
-            <version>4.0.1</version>
         </dependency>
         <!-- Test Dependencies -->
         <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-resttestclient -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-resttestclient</artifactId>
-            <version>4.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -108,7 +106,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.1.0-alpha1</version>
+            <version>2.0.17</version>
             <scope>compile</scope>
         </dependency>
         <!-- Devtools Dependencies -->
