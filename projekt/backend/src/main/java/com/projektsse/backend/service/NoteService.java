@@ -1,7 +1,7 @@
 package com.projektsse.backend.service;
 
 import com.projektsse.backend.config.MdSanitizer;
-import com.projektsse.backend.controller.dto.NoteReq;
+import com.projektsse.backend.controller.dto.NoteRequest;
 import com.projektsse.backend.exceptions.NoteNotFoundException;
 import com.projektsse.backend.models.NoteModel;
 import com.projektsse.backend.repository.NoteRepository;
@@ -29,19 +29,18 @@ public class NoteService {
     }
 
     public List<NoteModel> getAllPublicNotes() {
-        List<NoteModel> notes = noteRepository.findAllByIsPrivateFalse()
+        return noteRepository.findAllByIsPrivateFalse()
                 .stream()
                 .map(note -> ((Note) note).toModel())
                 .toList();
-        return notes;
     }
 
 
-    public NoteModel createNote(@Valid NoteReq noteReq, String userId) {
+    public NoteModel createNote(@Valid NoteRequest noteRequest, String userId) {
         Note note = new Note();
-        note.setTitle(mdSanitizer.sanitizeTitle(noteReq.title()));
-        note.setMdContent(mdSanitizer.sanitizeContent(noteReq.mdContent()));
-        note.setIsPrivate(noteReq.isPrivate());
+        note.setTitle(mdSanitizer.sanitizeTitle(noteRequest.title()));
+        note.setMdContent(mdSanitizer.sanitizeContent(noteRequest.mdContent()));
+        note.setIsPrivate(noteRequest.isPrivate());
         note.setOwner(userService.getUserById(userId));
         Note savedNote = noteRepository.save(note);
         return savedNote.toModel();
@@ -49,10 +48,9 @@ public class NoteService {
     }
 
     public List<NoteModel> searchPublicNotes(String query) {
-        String lowerCaseQuery = query.toLowerCase();
-        List<NoteModel> notes = noteRepository.searchPublicNotes(lowerCaseQuery)
-                .stream().map(note -> ((Note) note).toModel()).toList();
-        return notes;
+        String lowerCaseQuery = query.toLowerCase().trim();
+        return noteRepository.searchPublicNotes(lowerCaseQuery)
+                .stream().map(Note::toModel).toList();
     }
 
     public NoteModel getNoteById(UUID documentId) {
@@ -86,7 +84,7 @@ public class NoteService {
         noteRepository.delete(note);
     }
 
-    public NoteModel updateNote(UUID docId, @Valid NoteReq noteReq, UUID userId) {
+    public NoteModel updateNote(UUID docId, @Valid NoteRequest noteRequest, UUID userId) {
 
         Note noteEntity = noteRepository.findById(docId)
                 .orElseThrow(() -> new NoteNotFoundException(String.format("Note with ID %s not found", docId)));
@@ -96,9 +94,9 @@ public class NoteService {
             throw new NoteNotFoundException(String.format("Note with ID %s not found", docId));
         }
 
-        noteEntity.setTitle(mdSanitizer.sanitizeTitle(noteReq.title()))
-            .setMdContent(mdSanitizer.sanitizeContent(noteReq.mdContent()))
-            .setIsPrivate(noteReq.isPrivate());
+        noteEntity.setTitle(mdSanitizer.sanitizeTitle(noteRequest.title()))
+            .setMdContent(mdSanitizer.sanitizeContent(noteRequest.mdContent()))
+            .setIsPrivate(noteRequest.isPrivate());
 
         return noteRepository.save(noteEntity).toModel();
     }

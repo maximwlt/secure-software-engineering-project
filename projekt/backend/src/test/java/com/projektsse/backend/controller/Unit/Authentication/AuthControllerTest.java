@@ -15,6 +15,8 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -84,9 +86,11 @@ class AuthControllerTest {
                     assertNotNull(problem.getProperties());
                     assertEquals("Validation Error", problem.getTitle());
                     assertEquals(400, problem.getStatus());
-                    assertEquals(URI.create("/api/validation-error"), problem.getInstance());
-                    assertTrue(problem.getProperties().containsKey("email"));
-                    assertEquals("Email must not be empty", problem.getProperties().get("email"));
+                    assertEquals(URI.create("/api/auth/register"), problem.getInstance());
+                    assertTrue(problem.getProperties().containsKey("errors"));
+                    List<Map<String, String>> errors = (List<Map<String, String>>) problem.getProperties().get("errors");
+                    assertFalse(errors.isEmpty());
+                    assertTrue(errors.stream().anyMatch(error -> "email".equals(error.get("field")) && "Email must not be empty".equals(error.get("message"))));
                 });
     }
 
@@ -105,9 +109,11 @@ class AuthControllerTest {
                     assertNotNull(problem.getProperties());
                     assertEquals("Validation Error", problem.getTitle());
                     assertEquals(400, problem.getStatus());
-                    assertEquals(URI.create("/api/validation-error"), problem.getInstance());
-                    assertTrue(problem.getProperties().containsKey("email"));
-                    assertEquals("Email must not be empty", problem.getProperties().get("email"));
+                    assertEquals(URI.create("/api/auth/register"), problem.getInstance());
+                    assertTrue(problem.getProperties().containsKey("errors"));
+                    List<Map<String, String>> errors = (List<Map<String, String>>) problem.getProperties().get("errors");
+                    assertFalse(errors.isEmpty());
+                    assertTrue(errors.stream().anyMatch(error -> "email".equals(error.get("field")) && "Email must not be empty".equals(error.get("message"))));
                 });
     }
 
@@ -128,12 +134,11 @@ class AuthControllerTest {
                     assertNotNull(problem.getProperties());
                     assertEquals("Validation Error", problem.getTitle());
                     assertEquals(400, problem.getStatus());
-                    assertEquals(URI.create("/api/validation-error"), problem.getInstance());
-                    assertTrue(problem.getProperties().containsKey("email"));
-                    assertEquals(
-                            "Email must be at most 255 characters long",
-                            problem.getProperties().get("email")
-                    );
+                    assertEquals(URI.create("/api/auth/register"), problem.getInstance());
+                    assertTrue(problem.getProperties().containsKey("errors"));
+                    List<Map<String, String>> errors = (List<Map<String, String>>) problem.getProperties().get("errors");
+                    assertFalse(errors.isEmpty());
+                    assertTrue(errors.stream().anyMatch(error -> "email".equals(error.get("field")) && "Email must be at most 255 characters long".equals(error.get("message"))));
                 });
     }
 

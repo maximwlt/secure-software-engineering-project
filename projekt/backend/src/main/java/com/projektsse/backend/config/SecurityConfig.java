@@ -1,5 +1,6 @@
 package com.projektsse.backend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,9 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.cookie.secure}")
+    private boolean cookieSecure;
 
     private final JwtFilter jwtFilter;
 
@@ -32,7 +36,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         CookieCsrfTokenRepository repo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repo.setCookieCustomizer(cookie -> {
-            cookie.secure(true);
+            cookie.secure(cookieSecure);
             cookie.sameSite("Strict");
             cookie.path("/");
         });
@@ -71,7 +75,8 @@ public class SecurityConfig {
                             "/api/auth/rt/refresh-token",
                             "/api/auth/rt/logout",
                            "/api/auth/forgot-password",
-                           "/api/auth/reset-password"
+                           "/api/auth/reset-password",
+                           "/api/auth/csrf"
                    ).permitAll().anyRequest().authenticated()
             )
             .formLogin(AbstractHttpConfigurer::disable)

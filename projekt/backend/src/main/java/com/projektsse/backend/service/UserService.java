@@ -59,26 +59,18 @@ public class UserService {
         Registration_Request user = createPendingUser(userReqModel, verificationCode);
         registrationRepository.save(user);
 
-        // E-Mail versenden
-        String title = "E-Mail Verifizierung";
+        // Sending mail
+        String title = "E-Mail verification";
         String message = String.format("""
-        Bitte verifizieren Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:
+        Please verify your email address by clicking the following link:
         http://localhost:8080/api/auth/verify-email?code=%s
         """, verificationCode);
 
-
         if (existsByEmail(userReqModel.email())) {
-            title = "Hinweis auf ungewöhnliche Registrierungsaktivität";
-            message = "Es wurde versucht, diese E-Mail-Adresse erneut zu registrieren. " +
-                    "Wenn Sie das nicht waren, können Sie diese Nachricht ignorieren.";
+            title = "Suspicious registration attempt";
+            message = "An attempt was made to register an account with this email address, but it is already in use. If this was not you, please ignore this email.";
         }
-
-        emailService.sendMail(
-                user.getEmail(),
-                title,
-                message
-        );
-
+        emailService.sendMail(user.getEmail(), title, message);
     }
 
     public boolean verifyUserEmail(@NotBlank(message = "Ungültiger Verifizierungscode.") @Size(min = 43, max = 43, message = "Ungültiger Verifizierungscode.") String code) {

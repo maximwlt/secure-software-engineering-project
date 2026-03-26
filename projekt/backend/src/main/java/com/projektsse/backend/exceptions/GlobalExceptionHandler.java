@@ -1,5 +1,6 @@
 package com.projektsse.backend.exceptions;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.hibernate.StaleObjectStateException;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -47,16 +48,21 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        log.warn("Validation error: {}", ex.getMessage());
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setTitle("Validation Error");
-        problemDetail.setInstance(URI.create("/api/validation-error"));
-        Map<String, Object> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> {
-            String msg = error.getDefaultMessage() != null ? error.getDefaultMessage() : "Invalid value";
-            errors.put(error.getField(), msg);
-        });
-        problemDetail.setProperties(errors);
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        List<Map<String, String>> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> {
+                    assert fe.getDefaultMessage() != null;
+                    return Map.of(
+                            "field",   fe.getField(),
+                            "message", fe.getDefaultMessage()
+                    );
+                })
+                .toList();
+        problemDetail.setProperty("errors", errors);
         return problemDetail;
     }
 
@@ -64,15 +70,20 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleConstraintViolationException(ConstraintViolationException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setTitle("Validation Error");
-        Map<String, Object> errors = ex.getConstraintViolations()
-                        .stream()
-                        .collect(Collectors.toMap(
-                                violation -> violation.getPropertyPath().toString(),
-                                ConstraintViolation::getMessage,
-                                (existing, replacement) -> existing // In case of duplicate keys, keep the existing value
-                        ));
-        problemDetail.setProperties(errors);
+        List<Map<String, String>> errors = ex.getConstraintViolations().stream()
+                .map(cv -> Map.of(
+                        "field",   extractFieldNameFromConstraintViolation(cv),
+                        "message", cv.getMessage()
+                ))
+                .collect(Collectors.toList());
+        problemDetail.setProperty("errors", errors);
         return problemDetail;
+    }
+
+    private String extractFieldNameFromConstraintViolation(ConstraintViolation<?> violation) {
+        String propertyPath = violation.getPropertyPath().toString();
+        int lastDotIndex = propertyPath.lastIndexOf('.');
+        return lastDotIndex != -1 ? propertyPath.substring(lastDotIndex + 1) : propertyPath;
     }
 
     @ExceptionHandler(NoteNotFoundException.class)
