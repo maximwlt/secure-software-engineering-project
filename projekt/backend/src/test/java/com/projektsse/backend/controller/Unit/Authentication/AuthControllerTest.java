@@ -1,7 +1,7 @@
 package com.projektsse.backend.controller.Unit.Authentication;
 
 import com.projektsse.backend.controller.AuthController;
-import com.projektsse.backend.controller.dto.RegisterReq;
+import com.projektsse.backend.controller.dto.RegisterRequest;
 import com.projektsse.backend.exceptions.GlobalExceptionHandler;
 import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.PasswortResetService;
@@ -45,7 +45,7 @@ class AuthControllerTest {
     void registerStrongPass() {
         client.post()
                 .uri("/api/auth/register")
-                .body(new RegisterReq("frankestein@gmail.com", "Xfr@nke41!g+6&4"))
+                .body(new RegisterRequest("frankestein@gmail.com", "Xfr@nke41!g+6&4"))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody()
@@ -57,7 +57,7 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq("frankestein@gmail.com", "Password123"))
+                .body(new RegisterRequest("frankestein@gmail.com", "Password123"))
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ProblemDetail.class)
@@ -76,7 +76,7 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq(null, "Xfr@nke41!g+6&4"))
+                .body(new RegisterRequest(null, "Xfr@nke41!g+6&4"))
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ProblemDetail.class)
@@ -99,7 +99,7 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq("", "Xfr@nke41!g+6&4"))
+                .body(new RegisterRequest("", "Xfr@nke41!g+6&4"))
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ProblemDetail.class)
@@ -125,7 +125,7 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq(longEmail, "Xfr@nke41!g+6&4"))
+                .body(new RegisterRequest(longEmail, "Xfr@nke41!g+6&4"))
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ProblemDetail.class)
@@ -148,14 +148,14 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq("maxmustermann@gmail.com", "MaxMustermann!Sec!"))
+                .body(new RegisterRequest("maxmustermann@gmail.com", "MaxMustermann!Sec!"))
                 .exchange()
                 .expectStatus().isBadRequest();
 
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq("seline.schaefer@gmail.com", "MaxMustermann!Sec!"))
+                .body(new RegisterRequest("seline.schaefer@gmail.com", "MaxMustermann!Sec!"))
                 .exchange()
                 .expectStatus().isCreated();
     }

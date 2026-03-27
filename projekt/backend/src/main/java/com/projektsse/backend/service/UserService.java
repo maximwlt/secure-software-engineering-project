@@ -1,13 +1,14 @@
 package com.projektsse.backend.service;
 
+import com.projektsse.backend.exceptions.VerificationFailedException;
 import com.projektsse.backend.exceptions.UserNotFoundException;
+import com.projektsse.backend.models.ApiMessageModel;
 import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.repository.RegistrationRepository;
 import com.projektsse.backend.repository.UserRepository;
 import com.projektsse.backend.repository.entities.Registration_Request;
 import com.projektsse.backend.repository.entities.User;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -73,9 +74,7 @@ public class UserService {
         emailService.sendMail(user.getEmail(), title, message);
     }
 
-    public boolean verifyUserEmail(@NotBlank(message = "Ungültiger Verifizierungscode.") @Size(min = 43, max = 43, message = "Ungültiger Verifizierungscode.") String code) {
-
-        //Optional<User> user = userRepository.findByVerificationCode(code);
+    public ApiMessageModel verifyUserEmail(String code) {
         Optional<Registration_Request> regReq = registrationRepository
                 .findByVerificationCodeAndVerificationCodeExpiryAfter(
                         tokenService.hashVerificationToken(code),
@@ -83,10 +82,10 @@ public class UserService {
                 );
 
         if (regReq.isEmpty()) {
-            return false; // Kein Benutzer mit diesem Code gefunden
+            throw new VerificationFailedException("Invalid or expired link."); // Kein Benutzer mit diesem Code gefunden
         }
         if (userRepository.existsByEmail(regReq.get().getEmail())) {
-            return false; // E-Mail ist bereits registriert
+            throw new VerificationFailedException("Invalid or expired link."); // E-Mail ist bereits registriert
         }
 
         User user = new User(
@@ -96,8 +95,7 @@ public class UserService {
         userRepository.save(user);
         registrationRepository.delete(regReq.get());
 
-        return true; // Erfolgreich verifiziert
-
+        return new ApiMessageModel("Email successfully verified.");
     }
 
     public UUID getUserIdByEmail(String email) {

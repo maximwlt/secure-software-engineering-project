@@ -122,6 +122,14 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(VerificationFailedException.class)
+    public ProblemDetail handleInvalidLinkException(VerificationFailedException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Verification failed");
+        problemDetail.setInstance(URI.create("/api/auth/verify-email"));
+        return problemDetail;
+    }
+
 
     @ExceptionHandler(StaleObjectStateException.class)
     public ProblemDetail handleStaleObjectStateException() {

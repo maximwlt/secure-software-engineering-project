@@ -2,7 +2,6 @@ package com.projektsse.backend.controller;
 
 import com.projektsse.backend.controller.dto.*;
 import com.projektsse.backend.interfaces.CurrentUserId;
-import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.PasswortResetService;
 import com.projektsse.backend.service.TokenService;
@@ -43,26 +42,19 @@ public class AuthController {
     }
 
     @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<ApiMessage> register(@Validated @RequestBody RegisterReq req) {
-        UserReqModel userReqModel = new UserReqModel(req.email(), req.password());
-        userService.registerUser(userReqModel);
+    public ResponseEntity<ApiMessage> register(@Validated @RequestBody RegisterRequest req) {
+        userService.registerUser(req.toModel());
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiMessage("User successfully registered. Please check your email for verification."));
     }
 
     @GetMapping(value = "/verify-email", produces = "application/json")
-    public ResponseEntity<?> verifyEmail(
+    public ResponseEntity<ApiMessage> verifyEmail(
             @RequestParam("code")
-            @NotBlank(message = "Invalid verification code.")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{43}$", message = "Invalid verification code.")
+            @NotBlank(message = "Cannot be blank.")
+            @Pattern(regexp = "^[A-Za-z0-9_-]{43}$", message = "Invalid or expired link.")
             String code
     ) {
-        boolean isVerified = userService.verifyUserEmail(code);
-        if (isVerified) {
-            return ResponseEntity.ok(Map.of("message", "E-Mail erfolgreich verifiziert."));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "Ungültiger oder abgelaufener Verifizierungslink."));
-        }
+        return ResponseEntity.ok(userService.verifyUserEmail(code).toDto());
     }
 
 
