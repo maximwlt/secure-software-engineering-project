@@ -19,7 +19,7 @@ export function SafeMarkdown({ markdown }: { markdown: string }) {
                         const url = href.replace(/^embed:/, '').trim();
                         const youtubeId = getYoutubeIdFromUrl(url);
 
-                        if (!youtubeId) return '<p>Ungültiger Video-Link</p>';
+                        if (!youtubeId) return '<p>Invalid link</p>';
 
                         // Platzhalter statt iframe - kein Tracking bis Klick
                         return `

@@ -2,18 +2,13 @@ import Navbar from "./Navbar.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import React from "react";
 import type {MessageType} from "../types/MessageType.ts";
-import type {ErrorType} from "../types/ErrorType.ts";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
 import type {FormErrorType} from "../types/FormErrorType.ts";
-
-
+import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
+import type {DetailError} from "../types/ProblemDetail/DetailError.ts";
 
 export function PWResetEmail() {
-
-
-    const [formData, setFormData] = React.useState({
-        email: ''
-    });
+    const [formData, setFormData] = React.useState({email: ''});
 
     const [errors, setErrors] = React.useState<FormErrorType>({});
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -26,7 +21,6 @@ export function PWResetEmail() {
             [name]: value
         }));
     }
-
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
@@ -42,20 +36,20 @@ export function PWResetEmail() {
             });
 
             if (response.status === 429) {
-                const errorData: ErrorType = await response.json();
+                const errorData : ApiErrorType = await response.json() as DetailError;
                 setErrors({api: errorData});
                 return;
             }
 
             if (!response.ok) {
-                const errorData: ErrorType = await response.json();
+                const errorData: ApiErrorType = await response.json();
                 setErrors({api: errorData});
                 return;
             }
             const data: MessageType = await response.json();
             setResponseMessage(data.message);
-        } catch (error) {
-            setErrors({general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'});
+        } catch (error : unknown) {
+            setErrors({general: error instanceof Error ? error.message : 'An error occurred'});
         } finally {
             setIsSubmitting(false);
         }
@@ -66,7 +60,6 @@ export function PWResetEmail() {
             <Navbar/>
             <div className="auth-form-wrapper">
                 <h1>Password Reset</h1>
-
                 <div className="form-group">
                     <label>Email-Address</label>
                     <input
@@ -87,7 +80,7 @@ export function PWResetEmail() {
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                 >
-                    {isSubmitting ? 'Lädt...' : 'Send'}
+                    {isSubmitting ? 'Loading...' : 'Send'}
                 </button>
 
             </div>

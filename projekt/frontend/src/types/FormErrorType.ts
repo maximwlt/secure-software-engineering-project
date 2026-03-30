@@ -1,6 +1,6 @@
-import type {ErrorType} from "./ErrorType.ts";
+import type {ApiErrorType} from "./ProblemDetail/ApiErrorType.ts";
 
 export type FormErrorType = {
-    api?: Partial<ErrorType>
+    api?: ApiErrorType
     general?: string;
 }

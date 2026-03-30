@@ -9,6 +9,7 @@ import Navbar from "./components/Navbar.tsx";
 import UserDocumentsPage from "./components/UserDocumentsPage.tsx";
 import {PWResetEmail} from "./components/PWResetEmail.tsx";
 import {PWResetPassword} from "./components/PWResetPassword.tsx";
+import {Profile} from "./components/Profile.tsx";
 
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
                 </Route>
                 <Route path="users">
                     <Route path="my-documents" element={<UserDocumentsPage />} />
+                    <Route path="profile" element={<Profile />} />
                 </Route>
                 <Route path="*" element={<> <Navbar /> <div>Main Page</div> </>} />
             </Routes>

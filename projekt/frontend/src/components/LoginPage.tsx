@@ -6,8 +6,9 @@ import Navbar from "./Navbar.tsx";
 import "../styling/DocumentDetailPage.css";
 import {apiFetch} from "../utils/apiFetch.ts";
 import {NavLink, redirect} from "react-router";
-import type {ErrorType} from "../types/ErrorType.ts";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
+import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
+import {isDetailError} from "../types/ProblemDetail/IsErrorTypeGuards.ts";
 
 
 interface FormData {
@@ -33,7 +34,7 @@ function LoginPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const [errors, setErrors] = useState<Errors>({});
-    const [apiError, setApiError] = useState<Partial<ErrorType> | undefined>(undefined);
+    const [apiError, setApiError] = useState<ApiErrorType>();
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [cookieConsent, setCookieConsent] = useState<boolean>(false);
 
@@ -54,7 +55,7 @@ function LoginPage() {
 
     const handleSubmit = (): void => {
         if (!cookieConsent) {
-            setErrors({ general: 'Bitte stimmen Sie der Verwendung von notwendigen Cookies zu.' });
+            setErrors({ general: 'Please accept the cookie consent to proceed.' });
             return;
         }
 
@@ -91,8 +92,8 @@ function LoginPage() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Logout fehlgeschlagen');
+                const errorData : ApiErrorType = await response.json();
+                throw new Error(errorData.title);
             }
 
             logout();
@@ -111,7 +112,7 @@ function LoginPage() {
 
     const handleDeleteAccount = async (): Promise<void> => {
         if (!deletePassword) {
-            setErrors({ general: "Bitte Passwort eingeben." });
+            setErrors({ general: "Please enter password." });
             return;
         }
 
@@ -124,13 +125,16 @@ function LoginPage() {
                 body: JSON.stringify({ password: deletePassword })
             })
             if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || 'Konto-Löschung fehlgeschlagen');
+                const errorData: ApiErrorType = await res.json();
+                if (isDetailError(errorData)) {
+                    setErrors({ general: errorData.detail });
+                    throw new Error(errorData.detail);
+                }
+                throw new Error(errorData.title);
             }
 
             setErrors({})
-            // Nach erfolgreicher Löschung ausloggen
-            logout();
+            logout(); // After account deletion, log the user out
             redirect('/');
         } catch (error) {
             setErrors({
@@ -141,11 +145,12 @@ function LoginPage() {
 
     // Wenn eingeloggt: Logout-View anzeigen
     if (isAuthenticated) {
+        // TODO: Refactor in a separate component
         return (
             <>
                 <Navbar/>
                 <div className="auth-form-wrapper">
-                    <h1>Sie sind angemeldet</h1>
+                    <h1>You are currently logged in.</h1>
 
                     <ErrorMessage
                         message={errors.general}
@@ -155,19 +160,19 @@ function LoginPage() {
                         onClick={handleLogout}
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? 'Wird abgemeldet...' : 'Abmelden'}
+                        {isSubmitting ? 'Loading...' : 'Logout'}
                     </button>
 
                     <button
                         className="delete-button"
                         onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
                     >
-                        Nutzerkonto löschen
+                        Delete Account
                     </button>
 
                     {showDeleteConfirm && (
                         <div className="delete-confirm-box">
-                            <p>Bitte Passwort zur Bestätigung eingeben:</p>
+                            <p>Please enter password to confirm account deletion:</p>
                             <input
                                 type="password"
                                 value={deletePassword}
@@ -180,7 +185,7 @@ function LoginPage() {
                                 onClick={handleDeleteAccount}
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Lösche..." : "Konto endgültig löschen"}
+                                {isSubmitting ? "Deleting..." : "Confirm Delete"}
                             </button>
 
                         </div>
@@ -200,7 +205,7 @@ function LoginPage() {
                 <h1>Login Page</h1>
 
                 <div className="form-group">
-                    <label>Email-Adresse </label>
+                    <label>Email-Address </label>
                     <input
                         type="email"
                         name="email"
@@ -213,7 +218,7 @@ function LoginPage() {
                 </div>
 
                 <div className="form-group">
-                    <label>Passwort </label>
+                    <label>Password </label>
                     <input
                         type="password"
                         name="password"
@@ -233,7 +238,7 @@ function LoginPage() {
                             onChange={(e) => setCookieConsent(e.target.checked)}
                             required
                         />
-                        {' '}Ich stimme der Verwendung von notwendigen Cookies zu.
+                        {' '}I consent to the use of cookies for authentication purposes.
                     </label>
                 </div>
 
@@ -244,7 +249,7 @@ function LoginPage() {
                     type="general"/>
 
                 <button className="primary-button" onClick={handleSubmit} disabled={isSubmitting}>
-                    {isSubmitting ? 'Lädt...' : 'Login'}
+                    {isSubmitting ? 'Loading...' : 'Login'}
                 </button>
 
                 <NavLink to="/forgot-password">Forgot password?</NavLink>
@@ -257,7 +262,7 @@ async function submitLogin(
     formData: FormData,
     setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>,
     setErrors: React.Dispatch<React.SetStateAction<Errors>>,
-    setApiError: React.Dispatch<React.SetStateAction<Partial<ErrorType> | undefined>>,
+    setApiError: React.Dispatch<React.SetStateAction<ApiErrorType | undefined>>,
     login: (token: string) => void
 ): Promise<void> {
     const newErrors: Errors = {};
@@ -291,14 +296,18 @@ async function submitLogin(
         });
         // Rate Limit CHECK (aus Proxy)
         if (response.status === 429) {
-            const errorData : ErrorType = await response.json();
+            const errorData : ApiErrorType = await response.json();
             setApiError(errorData);
             return;
         }
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Falsche E-Mail Adresse oder Passwort');
+            const errorData : ApiErrorType  = await response.json();
+            if (isDetailError(errorData)) {
+                setErrors({ general: errorData.detail });
+                throw new Error(errorData.detail);
+            }
+            throw new Error(errorData.title); // Fallback
         }
 
         const data = await response.json();

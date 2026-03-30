@@ -6,6 +6,7 @@ import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.PasswortResetService;
 import com.projektsse.backend.service.TokenService;
 import com.projektsse.backend.service.UserService;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -28,6 +29,7 @@ public class AuthController {
 
     @Value("${app.cookie.secure}")
     private boolean cookieSecure;
+    private String FINGERPRINT_COOKIE_NAME;
 
     private final UserService userService;
     private final JwtService jwtService;
@@ -39,6 +41,11 @@ public class AuthController {
         this.jwtService = jwtService;
         this.tokenService = tokenService;
         this.passwortResetService = passwortResetService;
+    }
+
+    @PostConstruct
+    private void init() {
+        this.FINGERPRINT_COOKIE_NAME = cookieSecure ? "__Secure-Fgp" : "Fgp"; // Runs after @Value injection
     }
 
     @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
@@ -77,7 +84,7 @@ public class AuthController {
         Duration accessTokenDuration = Duration.ofMinutes(jwtService.getAccessTokenExpiration()); // Gleich wie JWT Expiry
 
         // Fingerprint Cookie (HttpOnly, Secure, SameSite=Strict)
-        ResponseCookie fingerprintCookie = ResponseCookie.from("__Secure-Fgp", fingerprint)
+        ResponseCookie fingerprintCookie = ResponseCookie.from(FINGERPRINT_COOKIE_NAME, fingerprint)
                                                          .httpOnly(true)
                                                          .secure(cookieSecure)
                                                          .path("/")
@@ -128,9 +135,9 @@ public class AuthController {
         String newAccessToken = jwtService.generateAccessToken(userId, newFingerprintHash);
         String newRefreshToken = tokenService.rotateRefreshToken(refreshToken);
 
-        Duration accessTokenDuration = Duration.ofMinutes(10);
+        Duration accessTokenDuration = Duration.ofMinutes(jwtService.getAccessTokenExpiration());
 
-        ResponseCookie fingerprintCookie = ResponseCookie.from("__Secure-Fgp", newFingerprint)
+        ResponseCookie fingerprintCookie = ResponseCookie.from(FINGERPRINT_COOKIE_NAME, newFingerprint)
                                                          .httpOnly(true).secure(cookieSecure).path("/")
                                                          .maxAge(accessTokenDuration).sameSite("Strict").build();
 
@@ -161,7 +168,7 @@ public class AuthController {
                 .sameSite("Strict")
                 .build();
 
-        ResponseCookie deleteFingerprintCookie = ResponseCookie.from("__Secure-Fgp", "")
+        ResponseCookie deleteFingerprintCookie = ResponseCookie.from(FINGERPRINT_COOKIE_NAME, "")
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .path("/")

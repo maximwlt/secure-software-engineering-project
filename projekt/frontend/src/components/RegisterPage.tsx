@@ -5,11 +5,13 @@ import * as common from "@zxcvbn-ts/language-common";
 import * as de from "@zxcvbn-ts/language-de";
 import { useNavigate } from 'react-router';
 import Navbar from "./Navbar.tsx";
-import type {ErrorType} from "../types/ErrorType.ts";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
 import {faLightbulb, faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import LoadingBar from "./LoadingBar.tsx";
+import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
+import type {DetailError} from "../types/ProblemDetail/DetailError.ts";
+import {SuccessWrapper} from "./SuccessWrapper.tsx";
 
 zxcvbnOptions.setOptions({
     translations: de.translations,
@@ -36,7 +38,7 @@ async function submitRegister(
     setIsSubmitting: (value: boolean) => void,
     setErrors: (value: Errors) => void,
     setIsSuccess: (value: boolean) => void,
-    setApiError: React.Dispatch<React.SetStateAction<Partial<ErrorType> | undefined>>
+    setApiError: React.Dispatch<React.SetStateAction<ApiErrorType | undefined>>
 ) {
 
     const newErrors: Errors = {};
@@ -81,22 +83,18 @@ async function submitRegister(
         });
 
         if (response.status === 429) {
-            const errorData : ErrorType = await response.json();
+            const errorData : ApiErrorType = await response.json() as DetailError;
             setApiError(errorData);
             return;
         }
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Registrierung fehlgeschlagen');
+            const errorData : ApiErrorType = await response.json();
+            setApiError(errorData);
+            return;
         }
 
-        // const data = await response.json();
-        // console.log('Registrierungsantwort: %o', data);
-
-        // Success anzeigen
         setIsSuccess(true);
-
     } catch (error) {
         setErrors({
             general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
@@ -113,7 +111,7 @@ function RegisterPage() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isSuccess, setIsSuccess] = useState<boolean>(false);
     const [passwordData, setPasswordData] = useState<ZxcvbnResult | null>(null);
-    const [apiError, setApiError] = useState<Partial<ErrorType> | undefined>(undefined);
+    const [apiError, setApiError] = useState<ApiErrorType | undefined>(undefined);
     const score = passwordData?.score ?? 0;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -137,10 +135,8 @@ function RegisterPage() {
 
     const handleSubmit = (): void => {
         submitRegister(formData, setIsSubmitting, setErrors, setIsSuccess, setApiError).catch(
-            error => {
-                setErrors({
-                    general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
-                });
+            (error : ApiErrorType) => {
+                setErrors({general: error.title});
             }
         )
     };
@@ -150,26 +146,17 @@ function RegisterPage() {
         return (
             <>
                 <Navbar />
-                <div className="max-w-2xl mx-auto mt-12 px-8 text-center">
-                    <div className="bg-green-50 border-2 border-green-500 rounded-xl p-8 mb-8">
-                        <h1 className="text-2xl font-bold text-green-800 mb-4">
-                            Registration successful!
-                        </h1>
-                        <p className="text-lg text-gray-700 leading-relaxed">
-                            We have sent a confirmation email to <strong>{formData.email}</strong>.
-                        </p>
-                        <p className="text-base text-gray-500 mt-4">
-                            Please confirm your email to activate your account.
-                        </p>
-                    </div>
-
-                    <button
-                        className="w-full py-3 text-base font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-md cursor-pointer transition-colors"
-                        onClick={() => navigate('/login')}
-                    >
-                        To Login
-                    </button>
-                </div>
+                <SuccessWrapper buttonLabel="To Login" onButtonClick={() => navigate('/login')}>
+                    <h1 className="text-2xl font-bold text-green-800 mb-4">
+                        Registration successful!
+                    </h1>
+                    <p className="text-lg text-gray-700 leading-relaxed">
+                        We have sent a confirmation email to <strong>{formData.email}</strong>.
+                    </p>
+                    <p className="text-base text-gray-500 mt-4">
+                        Please confirm your email to activate your account.
+                    </p>
+                </SuccessWrapper>
             </>
         );
     }

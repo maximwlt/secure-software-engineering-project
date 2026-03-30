@@ -1,12 +1,14 @@
 package com.projektsse.backend.config;
 
 import com.projektsse.backend.service.JwtService;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,7 +23,9 @@ import java.util.Arrays;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private static final String FINGERPRINT_COOKIE_NAME = "__Secure-Fgp";
+    @Value("${app.cookie.secure}")
+    private boolean cookieSecure;
+    private String FINGERPRINT_COOKIE_NAME;
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
@@ -29,6 +33,11 @@ public class JwtFilter extends OncePerRequestFilter {
     public JwtFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+    }
+
+    @PostConstruct
+    public void init() {
+        FINGERPRINT_COOKIE_NAME = cookieSecure ? "__Secure-Fgp" : "Fgp";
     }
 
     @Override
@@ -99,6 +108,11 @@ public class JwtFilter extends OncePerRequestFilter {
         return path.startsWith("/api/auth/register") ||
                 path.startsWith("/api/auth/login") ||
                 path.startsWith("/api/auth/verify-email") ||
-                path.startsWith("/api/documents/public");
+                path.startsWith("/api/documents/public") ||
+                path.startsWith("/api/auth/rt/refresh-token") ||
+                path.startsWith("/api/auth/rt/logout") ||
+                path.startsWith("/api/auth/forgot-password") ||
+                path.startsWith("/api/auth/reset-password") ||
+                path.startsWith("/api/auth/csrf");
     }
 }

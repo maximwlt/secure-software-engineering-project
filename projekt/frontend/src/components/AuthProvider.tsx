@@ -64,6 +64,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshAccessToken().finally(() => setIsLoading(false));
     }, [refreshAccessToken]);
 
+    // TODO: AuthContext.Provider ist deprecated. => Neuen Ansatz anschauen
     return (
         <AuthContext.Provider
             value={{
