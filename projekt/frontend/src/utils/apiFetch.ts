@@ -1,5 +1,6 @@
 import { getCookie } from "./cookies";
-import type {AuthContextType} from "../components/AuthContext.tsx";
+import type {AuthContextType} from "../types/AuthContextType.ts";
+
 
 const CSRF_HEADER = "X-XSRF-TOKEN";
 const CSRF_COOKIE = "XSRF-TOKEN";

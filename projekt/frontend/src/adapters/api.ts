@@ -9,7 +9,7 @@ export interface ApiConfig {
     auth: AuthContextType;
 }
 
-class ApiAdapter {
+export class ApiAdapter {
     private auth: AuthContextType;
 
     constructor(auth: AuthContextType) {

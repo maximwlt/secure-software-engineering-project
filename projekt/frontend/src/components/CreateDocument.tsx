@@ -1,11 +1,12 @@
 import { useAuth } from '../utils/useAuth';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { apiFetch } from '../utils/apiFetch';
 import ErrorMessage from './ErrorMessage';
 import Navbar from './Navbar';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBan, faCirclePlus} from "@fortawesome/free-solid-svg-icons";
+import {useCreateDocument} from "../hooks/useDocuments.ts";
+import ApiErrorMessage from "./ApiErrorMessage.tsx";
 
 interface FormData {
     title: string;
@@ -16,12 +17,12 @@ interface FormData {
 interface Errors {
     title?: string;
     content?: string;
-    general?: string;
 }
 
 function CreateDocument() {
     const auth = useAuth();
     const navigate = useNavigate();
+    const { create, isLoading } = useCreateDocument();
 
     const [formData, setFormData] = useState<FormData>({
         title: '',
@@ -30,7 +31,7 @@ function CreateDocument() {
     });
 
     const [errors, setErrors] = useState<Errors>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -57,14 +58,7 @@ function CreateDocument() {
         }
     };
 
-    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
-        e.preventDefault();
-
-        if (!auth.isAuthenticated) {
-            setErrors({ general: 'You have to be authorized to create a document' });
-            return;
-        }
-
+    const validateForm = (): boolean => {
         const newErrors: Errors = {};
         if (!formData.title.trim()) {
             newErrors.title = 'Title is required.';
@@ -77,35 +71,32 @@ function CreateDocument() {
             newErrors.content = 'Content is required.';
         }
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    }
+
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
+        e.preventDefault();
+        setApiError(null);
+
+        if (!auth.isAuthenticated) {
+            setApiError("You have to be authenticated to create a document.");
             return;
         }
 
-        setIsSubmitting(true);
-        setErrors({});
+        if (!validateForm()) {
+            return;
+        }
 
         try {
-            const response = await apiFetch(auth, '/api/documents', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.title || 'Failed to create document');
+            const createdDocument = await create(formData);
+            if (!createdDocument) {
+                setApiError("Failed to create document. Please try again.");
+                return;
             }
-
-            const data = await response.json();
-            navigate(data.noteId ? `/documents/${data.noteId}` : '/documents/public');
-
-        } catch (error) {
-            setErrors({
-                general: error instanceof Error ? error.message : 'An error occurred.'
-            });
-        } finally {
-            setIsSubmitting(false);
+            navigate(`/documents/${createdDocument.noteId}`)
+        } catch (err) {
+            setApiError(err instanceof Error ? err.message : "An error occurred while creating the document.");
         }
     };
 
@@ -114,6 +105,8 @@ function CreateDocument() {
             <Navbar />
             <div className="max-w-3xl mx-auto mt-8 px-4">
                 <h1 className="text-2xl font-bold mb-6">Create new document</h1>
+
+                <ApiErrorMessage error={apiError ? { title: apiError } : undefined} />
 
                 <form className="w-full" onSubmit={handleSubmit}>
                     <div className="mb-6">
@@ -145,6 +138,7 @@ function CreateDocument() {
                             onChange={handleChange}
                             rows={15}
                             placeholder="Insert document content. You can use Markdown syntax to format your text."
+                            disabled={isLoading}
                         />
                         <ErrorMessage message={errors.content} type="field" />
                     </div>
@@ -162,14 +156,12 @@ function CreateDocument() {
                         </label>
                     </div>
 
-                    <ErrorMessage message={errors.general} type="general" />
-
                     <button
                         className="px-6 py-3 bg-blue-500 text-white rounded-md cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed"
                         type="submit"
-                        disabled={isSubmitting || !auth.isAuthenticated}
+                        disabled={isLoading || !auth.isAuthenticated}
                     >
-                        {isSubmitting
+                        {isLoading
                             ? 'Submitting...'
                             : !auth.isAuthenticated
                                 ? <> <FontAwesomeIcon icon={faBan} /> Unauthorized</>
