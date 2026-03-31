@@ -4,7 +4,6 @@ import com.projektsse.backend.repository.NoteRepository;
 import com.projektsse.backend.repository.UserRepository;
 import com.projektsse.backend.repository.entities.User;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -56,7 +55,7 @@ class NoteServiceTest {
 //                .expectStatus().isCreated();
 //    }
 
-    @Test
-    void updateNote() {
-    }
+//    @Test
+//    void updateNote() {
+//    }
 }
