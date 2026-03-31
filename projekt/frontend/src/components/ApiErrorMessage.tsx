@@ -1,18 +1,29 @@
 import React from 'react';
-import type { ErrorType } from '../types/ErrorType';
 import '../styling/ErrorMessage.css';
+import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
+import {isDetailError, isValidationError} from "../types/ProblemDetail/IsErrorTypeGuards.ts";
 
-interface ApiErrorMessageProps {
-    error?: Partial<ErrorType>;
+interface Props {
+    error: ApiErrorType | undefined;
 }
 
-const ApiErrorMessage: React.FC<ApiErrorMessageProps> = ({ error }) => {
-    if (!error || !error.title) return null;
+const ApiErrorMessage: React.FC<Props> = ({ error }: Props ) => {
+    if (!error) return null;
 
     return (
         <div className="error-message error-message--general">
-            ⚠️ <strong>{error.title}</strong>
-            {error.detail && <p>{error.detail}</p>}
+            <FontAwesomeIcon icon={faTriangleExclamation} /> <strong>{error.title}</strong>
+            {isDetailError(error) && <p>{error.detail}</p>}
+
+            {isValidationError(error) && (
+                <ul>
+                    {error.errors.map((validationError, index) => (
+                        <li key={index}>{validationError.message}</li>
+                    ))}
+                </ul>
+            )}
             {error.status && <span>Status: {error.status}</span>}
         </div>
     );

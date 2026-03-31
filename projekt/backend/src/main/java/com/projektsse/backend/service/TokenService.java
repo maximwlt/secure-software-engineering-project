@@ -20,6 +20,9 @@ import java.util.UUID;
 
 import static com.projektsse.backend.exceptions.GlobalExceptionHandler.log;
 
+/**
+ *
+ */
 @Service
 public class TokenService {
 

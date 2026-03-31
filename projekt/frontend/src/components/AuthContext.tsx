@@ -1,16 +1,11 @@
 import {createContext} from 'react';
+import type {AuthContextType} from "../types/AuthContextType.ts";
 
 
-// Typen definieren
-export interface AuthContextType {
-    token: string | null;
-    login: (newToken: string) => void;
-    logout: () => void;
-    refreshAccessToken: () => Promise<string | null>;
-    isAuthenticated: boolean;
-}
-
-// Store JWT-Token In-Memory
+/**
+ * The AuthContext stores the authentication state of the user and provides methods for logging in and out.
+ * It is storing a JWT In-Memory, which is lost when the page is refreshed.
+ */
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 

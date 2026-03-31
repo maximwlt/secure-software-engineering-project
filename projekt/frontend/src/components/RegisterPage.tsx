@@ -4,10 +4,14 @@ import {zxcvbn, zxcvbnOptions, type ZxcvbnResult} from "@zxcvbn-ts/core";
 import * as common from "@zxcvbn-ts/language-common";
 import * as de from "@zxcvbn-ts/language-de";
 import { useNavigate } from 'react-router';
-import "../styling/RegisterPage.css";
 import Navbar from "./Navbar.tsx";
-import type {ErrorType} from "../types/ErrorType.ts";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
+import {faLightbulb, faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import LoadingBar from "./LoadingBar.tsx";
+import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
+import type {DetailError} from "../types/ProblemDetail/DetailError.ts";
+import {SuccessWrapper} from "./SuccessWrapper.tsx";
 
 zxcvbnOptions.setOptions({
     translations: de.translations,
@@ -34,33 +38,31 @@ async function submitRegister(
     setIsSubmitting: (value: boolean) => void,
     setErrors: (value: Errors) => void,
     setIsSuccess: (value: boolean) => void,
-    setApiError: React.Dispatch<React.SetStateAction<Partial<ErrorType> | undefined>>
+    setApiError: React.Dispatch<React.SetStateAction<ApiErrorType | undefined>>
 ) {
 
     const newErrors: Errors = {};
 
     if (!formData.email) {
-        newErrors.email = 'Email ist erforderlich';
+        newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = 'Ungültige Email-Adresse';
+        newErrors.email = 'Invalid email address';
     }
 
     const passwordStrength : ZxcvbnResult = zxcvbn(formData.password);
     if (!formData.password) {
-        newErrors.password = 'Passwort ist erforderlich';
+        newErrors.password = 'Password is required';
     }
     else {
         switch (passwordStrength.score) {
-            case 0: newErrors.password = 'Passwort ist sehr schwach'; break;
-            case 1: newErrors.password = 'Passwort ist schwach'; break;
-            case 2: newErrors.password = 'Passwort ist akzeptabel'; break;
-            case 3: newErrors.password = 'Passwort ist stark'; break;
+            case 0: newErrors.password = 'Password is too weak.'; break;
+            case 1: newErrors.password = 'Password is weak.'; break;
+            case 2: newErrors.password = 'Password is okay.'; break;
+            case 3: newErrors.password = 'Password is good, but could be stronger.'; break;
             case 4: break;
             default: break;
         }
     }
-
-
 
     if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -81,22 +83,18 @@ async function submitRegister(
         });
 
         if (response.status === 429) {
-            const errorData : ErrorType = await response.json();
+            const errorData : ApiErrorType = await response.json() as DetailError;
             setApiError(errorData);
             return;
         }
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Registrierung fehlgeschlagen');
+            const errorData : ApiErrorType = await response.json();
+            setApiError(errorData);
+            return;
         }
 
-        // const data = await response.json();
-        // console.log('Registrierungsantwort: %o', data);
-
-        // Success anzeigen
         setIsSuccess(true);
-
     } catch (error) {
         setErrors({
             general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
@@ -113,7 +111,8 @@ function RegisterPage() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [isSuccess, setIsSuccess] = useState<boolean>(false);
     const [passwordData, setPasswordData] = useState<ZxcvbnResult | null>(null);
-    const [apiError, setApiError] = useState<Partial<ErrorType> | undefined>(undefined);
+    const [apiError, setApiError] = useState<ApiErrorType | undefined>(undefined);
+    const score = passwordData?.score ?? 0;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const { name, value } = e.target;
@@ -136,10 +135,8 @@ function RegisterPage() {
 
     const handleSubmit = (): void => {
         submitRegister(formData, setIsSubmitting, setErrors, setIsSuccess, setApiError).catch(
-            error => {
-                setErrors({
-                    general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
-                });
+            (error : ApiErrorType) => {
+                setErrors({general: error.title});
             }
         )
     };
@@ -149,25 +146,17 @@ function RegisterPage() {
         return (
             <>
                 <Navbar />
-                <div className="register-success-wrapper">
-                    <div className="register-success-box">
-                        <h1>Registrierung erfolgreich!</h1>
-                        <p>
-                            Wir haben dir eine Bestätigungs-E-Mail an
-                            <strong> {formData.email}</strong> gesendet.
-                        </p>
-                        <p className="hint">
-                            Bitte bestätige deine E-Mail, um dein Konto zu aktivieren.
-                        </p>
-                    </div>
-
-                    <button
-                        className="primary-button"
-                        onClick={() => navigate('/login')}
-                    >
-                        Zum Login
-                    </button>
-                </div>
+                <SuccessWrapper buttonLabel="To Login" onButtonClick={() => navigate('/login')}>
+                    <h1 className="text-2xl font-bold text-green-800 mb-4">
+                        Registration successful!
+                    </h1>
+                    <p className="text-lg text-gray-700 leading-relaxed">
+                        We have sent a confirmation email to <strong>{formData.email}</strong>.
+                    </p>
+                    <p className="text-base text-gray-500 mt-4">
+                        Please confirm your email to activate your account.
+                    </p>
+                </SuccessWrapper>
             </>
         );
     }
@@ -176,38 +165,44 @@ function RegisterPage() {
     return (
         <>
             <Navbar />
-            <div className="register-wrapper">
-                <h1>Registrierung</h1>
+            <div className="auth-form-wrapper">
+                <h1>Registration</h1>
 
                 <div className="form-group">
-                    <label>Email-Adresse</label>
+                    <label>Email Address</label>
                     <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="E-Mail Adresse eingeben"
+                        placeholder="Enter Email Address"
                     />
                     <ErrorMessage message={errors.email} type="field" />
                 </div>
 
                 <div className="form-group">
-                    <label>Passwort</label>
+                    <label>Password</label>
                     <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="Passwort eingeben"
+                        placeholder="Enter Password"
                     />
-                    <progress max={4} value={passwordData?.score ?? 0} className="password-strength-bar"></progress>
+
+                    <progress
+                        max={4}
+                        value={score}
+                        className={`password-strength-bar strength-${score}`}
+                    />
+
                     {passwordData && (
-                        <div className="password-feedback">
+                        <div className="bg-gray-200 mt-1 text-sm">
                             {passwordData.feedback.warning && (
-                                <p className="warning"> ⚠️ {passwordData.feedback.warning}</p>
+                                <p className="text-red-600 font-semibold"> <FontAwesomeIcon icon={faTriangleExclamation} /> {passwordData.feedback.warning}</p>
                             )}
                             {passwordData.feedback.suggestions.map((s, i) => (
-                                <p key={i} className="suggestion">💡 {s}</p>
+                                <p key={i} className="text-yellow-600 ml-2"><FontAwesomeIcon icon={faLightbulb} /> {s}</p>
                             ))}
                         </div>
                     )}
@@ -222,13 +217,13 @@ function RegisterPage() {
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                 >
-                    {isSubmitting ? 'Lädt...' : 'Registrieren'}
+                    {isSubmitting ? <LoadingBar /> : 'Register'}
                 </button>
 
-                <p className="login-hint">
-                    Bereits registriert?{' '}
-                    <span onClick={() => navigate('/login')}>
-                        Zum Login
+                <p className="text-center mt-6 text-gray-500">
+                    Already registered?{' '}
+                    <span onClick={() => navigate('/login')} className="text-blue-500 cursor-pointer underline">
+                        Login
                     </span>
                 </p>
             </div>

@@ -2,9 +2,6 @@ package com.projektsse.backend.repository.entities;
 
 import com.projektsse.backend.models.NoteModel;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -29,7 +26,7 @@ public class Note {
     private boolean isPrivate;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
@@ -52,10 +49,6 @@ public class Note {
         this.user = user;
     }
 
-    public void setTitle(@NotBlank(message = "Titel darf nicht leer sein") @Size(max = 255, message = "Titel darf maximal 255 Zeichen lang sein") String title) {
-        this.title = title;
-    }
-
     public NoteModel toModel() {
         return new NoteModel(
             this.noteId,
@@ -68,12 +61,29 @@ public class Note {
         );
     }
 
-    public void setMdContent(@NotBlank(message = "Inhalt darf nicht leer sein") @Size(max = 10000, message = "Inhalt darf maximal 10.000 Zeichen lang sein") String mdContent) {
-        this.mdContent = mdContent;
+    public static Note fromModel(NoteModel model, User owner) {
+        Note note = new Note();
+        note.setTitle(model.title());
+        note.setMdContent(model.md_content());
+        note.setIsPrivate(model.is_private());
+        note.setOwner(owner);
+        return note;
     }
 
-    public void setIsPrivate(@NotNull(message = "Sichtbarkeit muss angegeben werden") boolean isPrivate) {
+
+    public Note setTitle(String title) {
+        this.title = title;
+        return this;
+    }
+
+    public Note setMdContent(String mdContent) {
+        this.mdContent = mdContent;
+        return this;
+    }
+
+    public Note setIsPrivate(boolean isPrivate) {
         this.isPrivate = isPrivate;
+        return this;
     }
 
     public User getOwner() {

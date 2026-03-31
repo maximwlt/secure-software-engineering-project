@@ -27,6 +27,7 @@ public class SecurityBeansConfig {
     public PasswordEncoder passwordEncoder() {
         // https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
         // Configurations taken from OWASP recommendations
+
         return new Argon2PasswordEncoder(
             16, // Salt length
             32, // Hash length

@@ -3,7 +3,10 @@ package com.projektsse.backend.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.*;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,8 @@ public class JwtService {
 
     @Value("${jwt.access-token-expiration}")
     private int accessTokenExpiration; // In Minuten
+
+    private final Logger log = LoggerFactory.getLogger(JwtService.class);
 
     private Algorithm getAlgorithm() {
         byte[] keyBytes = Base64.getDecoder().decode(secret);
@@ -98,7 +103,20 @@ public class JwtService {
             String userId = decoded.getSubject();
             boolean isExpired = decoded.getExpiresAt().before(new Date());
             return userId.equals(userDetails.getUsername()) && !isExpired;
-        } catch (Exception e) {
+        } catch (AlgorithmMismatchException e) {
+            log.warn("Invalid JWT algorithm: {}", e.getMessage());
+            return false;
+        } catch (SignatureVerificationException e) {
+            log.warn("Invalid JWT signature: {}", e.getMessage());
+            return false;
+        } catch (TokenExpiredException e) {
+            log.warn("JWT token expired: {}", e.getMessage());
+            return false;
+        } catch (MissingClaimException e) {
+            log.warn("Invalid JWT token: {}", e.getMessage());
+            return false;
+        } catch (IncorrectClaimException e) {
+            log.warn("Invalid JWT claim: {}", e.getMessage());
             return false;
         }
     }

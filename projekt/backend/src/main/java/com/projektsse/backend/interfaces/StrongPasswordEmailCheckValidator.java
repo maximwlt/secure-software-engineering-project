@@ -1,7 +1,7 @@
 package com.projektsse.backend.interfaces;
 
 import com.nulabinc.zxcvbn.Zxcvbn;
-import com.projektsse.backend.controller.dto.RegisterReq;
+import com.projektsse.backend.controller.dto.RegisterRequest;
 import com.projektsse.backend.exceptions.WeakPasswordException;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -17,7 +17,7 @@ import static com.projektsse.backend.exceptions.GlobalExceptionHandler.log;
  * The password must have a score of at least 4 to be considered strong.
  * Implementing this class as a ConstraintValidator allows us to use it as a custom validation annotation on the password field in our DTOs.
  */
-public class StrongPasswordEmailCheckValidator implements ConstraintValidator<StrongPasswordEmailCheck, RegisterReq> {
+public class StrongPasswordEmailCheckValidator implements ConstraintValidator<StrongPasswordEmailCheck, RegisterRequest> {
 
     /**
      * This method checks if the provided password meets the requirements of the password policy.
@@ -27,7 +27,7 @@ public class StrongPasswordEmailCheckValidator implements ConstraintValidator<St
      * @throws WeakPasswordException if the password is null, too long, or does not meet the strength requirements
      */
     @Override
-    public boolean isValid(RegisterReq req, ConstraintValidatorContext context) {
+    public boolean isValid(RegisterRequest req, ConstraintValidatorContext context) {
         if (req.password() == null) throw new WeakPasswordException("Password cannot be empty.");
 
         if (req.password().length() >= 255) {

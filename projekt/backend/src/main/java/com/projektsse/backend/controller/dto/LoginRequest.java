@@ -13,11 +13,11 @@ import jakarta.validation.constraints.Size;
  * @param password no specific validation constraints are applied to the password field
  */
 @GroupSequence({
-        LoginReq.class,
+        LoginRequest.class,
         RegistrationValidationGroups.EmailSize.class,
         RegistrationValidationGroups.EmailFormat.class
 })
-public record LoginReq(
+public record LoginRequest(
         @NotBlank(message = "Email cannot be empty")
         @Size(max = 255, message = "Email must be at most 255 characters long")
         @Email(message = "Invalid email format")

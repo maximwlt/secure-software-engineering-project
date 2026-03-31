@@ -10,9 +10,9 @@ import jakarta.validation.constraints.Size;
  * @param mdContent Is the Markdown content of the note, must not be blank and has a maximum length of 10,000 characters.
  * @param isPrivate Indicates whether the note is private or public, must not be null.
  */
-public record NoteReq(
+public record NoteRequest(
     @NotBlank(message = "Title cannot be empty")
-    @Size(max = 255, message = "Title can be at most 255 characters long")
+    @Size(max = 100, message = "Title can be at most 100 characters long")
     String title,
     @NotBlank(message = "Content cannot be empty")
     @Size(max = 10000, message = "Content can be at most 10,000 characters long")

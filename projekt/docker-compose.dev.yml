@@ -52,3 +52,5 @@ services:
       - "backend:backend"
     ports:
       - "8080:8080"
+    volumes:
+      - ./frontend/src:/app/src

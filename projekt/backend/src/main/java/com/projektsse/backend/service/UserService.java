@@ -1,13 +1,14 @@
 package com.projektsse.backend.service;
 
+import com.projektsse.backend.exceptions.VerificationFailedException;
 import com.projektsse.backend.exceptions.UserNotFoundException;
+import com.projektsse.backend.models.ApiMessageModel;
 import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.repository.RegistrationRepository;
 import com.projektsse.backend.repository.UserRepository;
 import com.projektsse.backend.repository.entities.Registration_Request;
 import com.projektsse.backend.repository.entities.User;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,8 @@ public class UserService {
     private final TokenService tokenService;
     private final EmailService emailService;
     private final RegistrationRepository registrationRepository;
+
+    private static final String DUMMY_HASH = "$argon2id$v=19$m=12288,t=3,p=1$bKJ65XHVvriCKaOG3i3WHw$Ruu7bnU7+IKhuSOAcYungNnDYbzILF5HEperRn5b28Q";
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
@@ -57,31 +60,21 @@ public class UserService {
         Registration_Request user = createPendingUser(userReqModel, verificationCode);
         registrationRepository.save(user);
 
-        // E-Mail versenden
-        String title = "E-Mail Verifizierung";
+        // Sending mail
+        String title = "E-Mail verification";
         String message = String.format("""
-        Bitte verifizieren Sie Ihre E-Mail-Adresse, indem Sie auf den folgenden Link klicken:
+        Please verify your email address by clicking the following link:
         http://localhost:8080/api/auth/verify-email?code=%s
         """, verificationCode);
 
-
         if (existsByEmail(userReqModel.email())) {
-            title = "Hinweis auf ungewöhnliche Registrierungsaktivität";
-            message = "Es wurde versucht, diese E-Mail-Adresse erneut zu registrieren. " +
-                    "Wenn Sie das nicht waren, können Sie diese Nachricht ignorieren.";
+            title = "Suspicious registration attempt";
+            message = "An attempt was made to register an account with this email address, but it is already in use. If this was not you, please ignore this email.";
         }
-
-        emailService.sendMail(
-                user.getEmail(),
-                title,
-                message
-        );
-
+        emailService.sendMail(user.getEmail(), title, message);
     }
 
-    public boolean verifyUserEmail(@NotBlank(message = "Ungültiger Verifizierungscode.") @Size(min = 43, max = 43, message = "Ungültiger Verifizierungscode.") String code) {
-
-        //Optional<User> user = userRepository.findByVerificationCode(code);
+    public ApiMessageModel verifyUserEmail(String code) {
         Optional<Registration_Request> regReq = registrationRepository
                 .findByVerificationCodeAndVerificationCodeExpiryAfter(
                         tokenService.hashVerificationToken(code),
@@ -89,10 +82,10 @@ public class UserService {
                 );
 
         if (regReq.isEmpty()) {
-            return false; // Kein Benutzer mit diesem Code gefunden
+            throw new VerificationFailedException("Invalid or expired link."); // Kein Benutzer mit diesem Code gefunden
         }
         if (userRepository.existsByEmail(regReq.get().getEmail())) {
-            return false; // E-Mail ist bereits registriert
+            throw new VerificationFailedException("Invalid or expired link."); // E-Mail ist bereits registriert
         }
 
         User user = new User(
@@ -102,8 +95,7 @@ public class UserService {
         userRepository.save(user);
         registrationRepository.delete(regReq.get());
 
-        return true; // Erfolgreich verifiziert
-
+        return new ApiMessageModel("Email successfully verified.");
     }
 
     public UUID getUserIdByEmail(String email) {
@@ -114,6 +106,7 @@ public class UserService {
     public void authenticateUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
+            passwordEncoder.matches(password, DUMMY_HASH); // Dummy-Hash to prevent timing attacks
             throw new IllegalArgumentException("Invalid credentials.");
         }
         User user = userOpt.get();

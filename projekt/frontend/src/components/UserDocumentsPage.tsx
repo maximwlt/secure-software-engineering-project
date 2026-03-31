@@ -5,12 +5,10 @@ import {apiFetch} from "../utils/apiFetch.ts";
 import Navbar from "./Navbar.tsx";
 import SearchBar from "./Searchbar.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
+import LoadingBar from "./LoadingBar.tsx";
+import OverviewPage from "./OverviewPage.tsx";
+import type {PublicDocument} from "../types/PublicDocument.ts";
 
-interface PublicDocument {
-    noteId: string;
-    title: string;
-    userId: string;
-}
 
 function UserDocumentsPage()  {
     const auth = useAuth();
@@ -65,11 +63,7 @@ function UserDocumentsPage()  {
     }
 
     if (isLoading) {
-        return (
-            <div className="public-documents-container">
-                <div className="loading">Lädt Dokumente...</div>
-            </div>
-        );
+        return <LoadingBar />;
     }
 
 
@@ -77,38 +71,17 @@ function UserDocumentsPage()  {
         <>
             <Navbar/>
             <SearchBar value={inputValue} onChange={setInputValue} onSubmit={handleSearchSubmit} />
-            <div className="public-documents-container">
-                <h1 className="page-title">Meine Dokumente</h1>
+            <div className="max-w-350 mx-auto py-8 px-4 md:px-2">
+                <h1 className="text-4xl md:text-3xl sm:text-2xl font-bold text-gray-900 mb-8 md:mb-6 text-center">My documents</h1>
 
                 {error && <ErrorMessage message={error} type="general" />}
 
                 {!error && documents.length === 0 ? (
-                    <div className="empty-state">
-                        <p>Keine eigenen Dokumente vorhanden</p>
+                    <div className="text-center bg-gray-100 rounded-lg py-6 px-4 text-lg text-gray-500">
+                        <p>There are no documents.</p>
                     </div>
                 ) : (
-                    <div className="documents-grid">
-                        {documents.map((doc) => (
-                            <div
-                                key={doc.noteId}
-                                className="document-card"
-                                onClick={() => handleCardClick(doc.noteId)}
-                            >
-                                <div className="card-header">
-                                    <h2 className="card-title">{doc.title}</h2>
-                                </div>
-                                <div className="card-body">
-                                    <div className="card-info">
-                                        <span className="info-label">Dokument-ID:</span>
-                                        <span className="info-value">{doc.noteId}</span>
-                                    </div>
-                                </div>
-                                <div className="card-footer">
-                                    <span className="view-link">Ansehen →</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                   <OverviewPage documents={documents} onCardClick={handleCardClick} />
                 )}
             </div>
         </>

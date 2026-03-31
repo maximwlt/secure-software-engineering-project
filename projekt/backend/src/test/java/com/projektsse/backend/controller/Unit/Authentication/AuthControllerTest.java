@@ -1,7 +1,7 @@
 package com.projektsse.backend.controller.Unit.Authentication;
 
 import com.projektsse.backend.controller.AuthController;
-import com.projektsse.backend.controller.dto.RegisterReq;
+import com.projektsse.backend.controller.dto.RegisterRequest;
 import com.projektsse.backend.exceptions.GlobalExceptionHandler;
 import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.PasswortResetService;
@@ -15,6 +15,8 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,11 +45,11 @@ class AuthControllerTest {
     void registerStrongPass() {
         client.post()
                 .uri("/api/auth/register")
-                .body(new RegisterReq("frankestein@gmail.com", "Xfr@nke41!g+6&4"))
+                .body(new RegisterRequest("frankestein@gmail.com", "Xfr@nke41!g+6&4"))
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody()
-                .jsonPath("$.message").isEqualTo("Benutzer erfolgreich registriert. Bitte überprüfen Sie Ihre E-Mails zur Verifizierung.");
+                .jsonPath("$.message").isEqualTo("User successfully registered. Please check your email for verification.");
     }
 
     @Test
@@ -55,7 +57,7 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq("frankestein@gmail.com", "Password123"))
+                .body(new RegisterRequest("frankestein@gmail.com", "Password123"))
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ProblemDetail.class)
@@ -74,7 +76,7 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq(null, "Xfr@nke41!g+6&4"))
+                .body(new RegisterRequest(null, "Xfr@nke41!g+6&4"))
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ProblemDetail.class)
@@ -84,9 +86,11 @@ class AuthControllerTest {
                     assertNotNull(problem.getProperties());
                     assertEquals("Validation Error", problem.getTitle());
                     assertEquals(400, problem.getStatus());
-                    assertEquals(URI.create("/api/validation-error"), problem.getInstance());
-                    assertTrue(problem.getProperties().containsKey("email"));
-                    assertEquals("Email must not be empty", problem.getProperties().get("email"));
+                    assertEquals(URI.create("/api/auth/register"), problem.getInstance());
+                    assertTrue(problem.getProperties().containsKey("errors"));
+                    List<Map<String, String>> errors = (List<Map<String, String>>) problem.getProperties().get("errors");
+                    assertFalse(errors.isEmpty());
+                    assertTrue(errors.stream().anyMatch(error -> "email".equals(error.get("field")) && "Email must not be empty".equals(error.get("message"))));
                 });
     }
 
@@ -95,7 +99,7 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq("", "Xfr@nke41!g+6&4"))
+                .body(new RegisterRequest("", "Xfr@nke41!g+6&4"))
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ProblemDetail.class)
@@ -105,9 +109,11 @@ class AuthControllerTest {
                     assertNotNull(problem.getProperties());
                     assertEquals("Validation Error", problem.getTitle());
                     assertEquals(400, problem.getStatus());
-                    assertEquals(URI.create("/api/validation-error"), problem.getInstance());
-                    assertTrue(problem.getProperties().containsKey("email"));
-                    assertEquals("Email must not be empty", problem.getProperties().get("email"));
+                    assertEquals(URI.create("/api/auth/register"), problem.getInstance());
+                    assertTrue(problem.getProperties().containsKey("errors"));
+                    List<Map<String, String>> errors = (List<Map<String, String>>) problem.getProperties().get("errors");
+                    assertFalse(errors.isEmpty());
+                    assertTrue(errors.stream().anyMatch(error -> "email".equals(error.get("field")) && "Email must not be empty".equals(error.get("message"))));
                 });
     }
 
@@ -119,7 +125,7 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq(longEmail, "Xfr@nke41!g+6&4"))
+                .body(new RegisterRequest(longEmail, "Xfr@nke41!g+6&4"))
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody(ProblemDetail.class)
@@ -128,12 +134,11 @@ class AuthControllerTest {
                     assertNotNull(problem.getProperties());
                     assertEquals("Validation Error", problem.getTitle());
                     assertEquals(400, problem.getStatus());
-                    assertEquals(URI.create("/api/validation-error"), problem.getInstance());
-                    assertTrue(problem.getProperties().containsKey("email"));
-                    assertEquals(
-                            "Email must be at most 255 characters long",
-                            problem.getProperties().get("email")
-                    );
+                    assertEquals(URI.create("/api/auth/register"), problem.getInstance());
+                    assertTrue(problem.getProperties().containsKey("errors"));
+                    List<Map<String, String>> errors = (List<Map<String, String>>) problem.getProperties().get("errors");
+                    assertFalse(errors.isEmpty());
+                    assertTrue(errors.stream().anyMatch(error -> "email".equals(error.get("field")) && "Email must be at most 255 characters long".equals(error.get("message"))));
                 });
     }
 
@@ -143,14 +148,14 @@ class AuthControllerTest {
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq("maxmustermann@gmail.com", "MaxMustermann!Sec!"))
+                .body(new RegisterRequest("maxmustermann@gmail.com", "MaxMustermann!Sec!"))
                 .exchange()
                 .expectStatus().isBadRequest();
 
         client.post()
                 .uri("/api/auth/register")
                 .accept(MediaType.APPLICATION_JSON)
-                .body(new RegisterReq("seline.schaefer@gmail.com", "MaxMustermann!Sec!"))
+                .body(new RegisterRequest("seline.schaefer@gmail.com", "MaxMustermann!Sec!"))
                 .exchange()
                 .expectStatus().isCreated();
     }

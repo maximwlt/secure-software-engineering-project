@@ -1,11 +1,13 @@
 import React, {useEffect} from "react";
-import type {ErrorType} from "../types/ErrorType.ts";
 import type {MessageType} from "../types/MessageType.ts";
 import Navbar from "./Navbar.tsx";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import type {FormErrorType} from "../types/FormErrorType.ts";
-import {NavLink, useSearchParams} from "react-router";
+import {useNavigate, useSearchParams} from "react-router";
+import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
+import type {DetailError} from "../types/ProblemDetail/DetailError.ts";
+import {SuccessWrapper} from "./SuccessWrapper.tsx";
 
 type PageState = "validating" | "form" | "success" | "error";
 
@@ -19,8 +21,9 @@ export function PWResetPassword() {
         password_confirm: ''
     });
 
+    const navigate = useNavigate();
     const [errors, setErrors] = React.useState<FormErrorType>({});
-    const [tokenError, setTokenError] = React.useState<Partial<ErrorType> | null>(null);
+    const [tokenError, setTokenError] = React.useState<ApiErrorType | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [responseMessage, setResponseMessage] = React.useState<string | null>(null);
 
@@ -45,14 +48,14 @@ export function PWResetPassword() {
                 });
 
                 if (!response.ok) {
-                    const errorData: ErrorType = await response.json();
+                    const errorData : ApiErrorType = await response.json();
                     setTokenError(errorData);
                     setPageState("error");
                     return;
                 }
                 setPageState("form");
             } catch {
-                setTokenError({title: "Token-Validierung fehlgeschlagen", detail: "Es gab ein Problem bei der Validierung des Tokens. Bitte versuchen Sie es erneut."});
+                // setTokenError();
                 setPageState("error");
             }
         };
@@ -89,13 +92,13 @@ export function PWResetPassword() {
             });
 
             if (response.status === 429) {
-                const errorData: ErrorType = await response.json();
+                const errorData : ApiErrorType = await response.json() as DetailError;
                 setErrors({api: errorData});
                 return;
             }
 
             if (!response.ok) {
-                const errorData: ErrorType = await response.json();
+                const errorData: ApiErrorType = await response.json();
                 setErrors({api: errorData});
                 return;
             }
@@ -103,7 +106,7 @@ export function PWResetPassword() {
             setResponseMessage(data.message);
             setPageState("success");
         } catch (error) {
-            setErrors({general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'});
+            setErrors({general: error instanceof Error ? error.message : 'An error occurred'});
         } finally {
             setIsSubmitting(false);
         }
@@ -114,7 +117,7 @@ export function PWResetPassword() {
         return (
             <>
                 <Navbar/>
-                <div className="register-wrapper">
+                <div className="auth-form-wrapper">
                     <h1> Password Reset</h1>
                     <p>Validating token...</p>
                 </div>
@@ -126,9 +129,9 @@ export function PWResetPassword() {
         return (
             <>
                 <Navbar/>
-                <div className="register-wrapper">
+                <div className="auth-form-wrapper">
                     <h1>Password Reset</h1>
-                    <ApiErrorMessage error={tokenError ?? undefined} />
+                    <ApiErrorMessage error={tokenError} />
                 </div>
             </>
         );
@@ -138,11 +141,10 @@ export function PWResetPassword() {
         return (
             <>
                 <Navbar/>
-                <div className="register-wrapper">
+                <SuccessWrapper buttonLabel="To Login" onButtonClick={() => navigate('/login')}>
                     <h1>Password Reset</h1>
                     {responseMessage && <div className="success-message">{responseMessage}</div>}
-                    <NavLink to="/login" className="primary-button">Go to Login</NavLink>
-                </div>
+                </SuccessWrapper>
             </>
         );
     }
@@ -150,7 +152,7 @@ export function PWResetPassword() {
     return (
         <>
             <Navbar/>
-            <div className="register-wrapper">
+            <div className="auth-form-wrapper">
                 <h1>Set new password</h1>
 
                 <div className="form-group">
@@ -182,7 +184,7 @@ export function PWResetPassword() {
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                 >
-                    {isSubmitting ? 'Lädt...' : 'Send'}
+                    {isSubmitting ? 'Loading...' : 'Send'}
                 </button>
 
             </div>
