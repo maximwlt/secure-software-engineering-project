@@ -13,6 +13,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import LoadingBar from "./LoadingBar.tsx";
 import BackButton from "./BackButton.tsx";
 import DeleteButton from "./DeleteButton.tsx";
+import EditButton from "./EditButton.tsx";
 
 interface DocumentDetail {
     noteId: string;
@@ -153,13 +154,14 @@ function DocumentDetailPage() {
                     </div>
                 </div>
 
-                { isOwner && (<DeleteButton title="Delete document" message="Are you sure you want to delete this document? This action cannot be undone." onDeleteClick={handleDelete} />)}
+                <div className="flex justify-end mt-2 gap-2">
+                    { isOwner && (<EditButton docId={documentId} />)}
+                    { isOwner && (<DeleteButton title="Delete document" message="Are you sure you want to delete this document? This action cannot be undone." onDeleteClick={handleDelete} />)}
+                </div>
 
             </div>
         </>
     );
 }
-
-
 
 export default DocumentDetailPage

@@ -21,7 +21,7 @@ function DeleteButton({ onDeleteClick, title = "Delete", message = "Are you sure
         <>
             <button data-model-target="popup-modal"
                     onClick={() : void => setShowModal(true)}
-                    className="mt-8 px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-md cursor-pointer transition-colors"
+                    className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-md cursor-pointer transition-colors"
             >
                 <FontAwesomeIcon icon={faTrash} /> Delete
             </button>
