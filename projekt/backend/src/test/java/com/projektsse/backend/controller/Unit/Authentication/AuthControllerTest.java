@@ -49,7 +49,7 @@ class AuthControllerTest {
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody()
-                .jsonPath("$.message").isEqualTo("Benutzer erfolgreich registriert. Bitte überprüfen Sie Ihre E-Mails zur Verifizierung.");
+                .jsonPath("$.message").isEqualTo("User successfully registered. Please check your email for verification.");
     }
 
     @Test
