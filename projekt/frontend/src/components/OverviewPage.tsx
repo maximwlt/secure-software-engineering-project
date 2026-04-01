@@ -1,4 +1,4 @@
-import type {OverviewPageProps} from "../types/OverviewPageProps.ts";
+import type {OverviewPageProps} from "../shared/types/OverviewPageProps.ts";
 
 function OverviewPage({documents, onCardClick}: OverviewPageProps) {
     return (

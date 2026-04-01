@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import {useNavigate, useSearchParams} from 'react-router';
-import { apiFetch } from '../utils/apiFetch';
-import { useAuth } from '../utils/useAuth';
+import { apiFetch } from '../shared/utils/apiFetch';
+import { useAuth } from '../shared/utils/useAuth';
 import Navbar from "./Navbar.tsx";
 import SearchBar from "./Searchbar.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import LoadingBar from "./LoadingBar.tsx";
-import type {PublicDocument} from "../types/PublicDocument.ts";
+import type {PublicDocument} from "../shared/types/PublicDocument.ts";
 import OverviewPage from "./OverviewPage.tsx";
 
 

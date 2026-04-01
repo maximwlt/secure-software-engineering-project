@@ -2,10 +2,10 @@ import { useParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import { DocumentForm } from './DocumentForm.tsx';
 import Navbar from "./Navbar.tsx";
-import { useAuth } from '../utils/useAuth';
-import { apiFetch } from '../utils/apiFetch';
-import type { ApiErrorType } from "../types/ProblemDetail/ApiErrorType.ts";
-import type { DetailError } from "../types/ProblemDetail/DetailError.ts";
+import { useAuth } from '../shared/utils/useAuth';
+import { apiFetch } from '../shared/utils/apiFetch';
+import type { ApiErrorType } from "../shared/types/ProblemDetail/ApiErrorType.ts";
+import type { DetailError } from "../shared/types/ProblemDetail/DetailError.ts";
 
 interface FormData {
     title: string;

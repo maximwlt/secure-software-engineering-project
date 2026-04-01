@@ -1,5 +1,5 @@
 import { NavLink } from "react-router";
-import { useAuth } from "../utils/useAuth";
+import { useAuth } from "../shared/utils/useAuth";
 import {faCircleUser, faFileCirclePlus, faGlobe, faUserLock} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 

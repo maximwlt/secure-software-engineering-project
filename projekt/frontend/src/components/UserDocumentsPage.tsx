@@ -1,13 +1,13 @@
-import {useAuth} from "../utils/useAuth.ts";
+import {useAuth} from "../shared/utils/useAuth.ts";
 import {useNavigate, useSearchParams} from "react-router";
 import {useEffect, useState} from "react";
-import {apiFetch} from "../utils/apiFetch.ts";
+import {apiFetch} from "../shared/utils/apiFetch.ts";
 import Navbar from "./Navbar.tsx";
 import SearchBar from "./Searchbar.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import LoadingBar from "./LoadingBar.tsx";
 import OverviewPage from "./OverviewPage.tsx";
-import type {PublicDocument} from "../types/PublicDocument.ts";
+import type {PublicDocument} from "../shared/types/PublicDocument.ts";
 
 
 function UserDocumentsPage()  {

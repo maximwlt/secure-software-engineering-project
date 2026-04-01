@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import ErrorMessage from "./ErrorMessage";
-import { useAuth } from "../utils/useAuth.ts";
-import {getCookie} from "../utils/cookies.ts";
+import { useAuth } from "../shared/utils/useAuth.ts";
+import {getCookie} from "../shared/utils/cookies.ts";
 import Navbar from "./Navbar.tsx";
-import "../styling/DocumentDetailPage.css";
-import {apiFetch} from "../utils/apiFetch.ts";
+import "../shared/styling/DocumentDetailPage.css";
+import {apiFetch} from "../shared/utils/apiFetch.ts";
 import {NavLink, redirect} from "react-router";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
-import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
-import {isDetailError} from "../types/ProblemDetail/IsErrorTypeGuards.ts";
+import type {ApiErrorType} from "../shared/types/ProblemDetail/ApiErrorType.ts";
+import {isDetailError} from "../shared/types/ProblemDetail/IsErrorTypeGuards.ts";
 
 
 interface FormData {

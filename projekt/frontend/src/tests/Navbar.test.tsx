@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import Navbar from "../components/Navbar.tsx";
 import { vi, describe, it, expect } from "vitest";
-import { useAuth } from "../utils/useAuth.ts";
+import { useAuth } from "../shared/utils/useAuth.ts";
 
 vi.mock("../utils/useAuth");
 const mockedUseAuth = vi.mocked(useAuth);

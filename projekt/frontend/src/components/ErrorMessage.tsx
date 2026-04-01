@@ -1,8 +1,8 @@
 import React from 'react';
-import '../styling/ErrorMessage.css';
+import '../shared/styling/ErrorMessage.css';
 import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import type {ErrorMessageProps} from "../types/ErrorMessageProps.ts";
+import type {ErrorMessageProps} from "../shared/types/ErrorMessageProps.ts";
 
 /**
  * Displays an error message with optional with a warning icon

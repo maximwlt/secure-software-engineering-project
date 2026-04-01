@@ -1,6 +1,6 @@
 // hooks/useAuth.ts
 import { useContext } from 'react';
-import {AuthContext} from '../components/AuthContext.tsx';
+import {AuthContext} from '../../components/AuthContext.tsx';
 import type {AuthContextType} from "../types/AuthContextType.ts";
 
 export function useAuth(): AuthContextType {

@@ -1,9 +1,9 @@
 import {useEffect, useState} from 'react';
 import { useParams, useNavigate } from 'react-router';
-import { apiFetch } from '../utils/apiFetch';
-import { useAuth } from '../utils/useAuth';
-import { isValidUUID } from '../utils/validation';
-import '../styling/DocumentDetailPage.css';
+import { apiFetch } from '../shared/utils/apiFetch';
+import { useAuth } from '../shared/utils/useAuth';
+import { isValidUUID } from '../shared/utils/validation';
+import '../shared/styling/DocumentDetailPage.css';
 import {SafeMarkdown} from "./SafeMarkdown.tsx";
 import Navbar from "./Navbar.tsx";
 import {jwtDecode, type JwtPayload} from "jwt-decode";

@@ -1,7 +1,7 @@
 import DOMPurify from "dompurify";
 import { marked, type Tokens } from "marked";
 import { useState, useEffect, useRef } from "react";
-import "../styling/SafeMarkdown.css";
+import "../shared/styling/SafeMarkdown.css";
 
 export function SafeMarkdown({ markdown }: { markdown: string }) {
     const [cleanHtml, setCleanHtml] = useState<string>("");

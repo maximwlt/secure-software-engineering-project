@@ -1,13 +1,13 @@
-import { useAuth } from '../utils/useAuth';
+import { useAuth } from '../shared/utils/useAuth';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import ErrorMessage from './ErrorMessage';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faBan, faCirclePlus, faPenToSquare} from "@fortawesome/free-solid-svg-icons";
-import { apiFetch } from '../utils/apiFetch';
-import type {AuthContextType} from "../types/AuthContextType.ts";
-import type { ApiErrorType } from "../types/ProblemDetail/ApiErrorType.ts";
-import type { DetailError } from "../types/ProblemDetail/DetailError.ts";
+import { apiFetch } from '../shared/utils/apiFetch';
+import type {AuthContextType} from "../shared/types/AuthContextType.ts";
+import type { ApiErrorType } from "../shared/types/ProblemDetail/ApiErrorType.ts";
+import type { DetailError } from "../shared/types/ProblemDetail/DetailError.ts";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
 
 interface FormData {

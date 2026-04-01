@@ -1,5 +1,5 @@
 import {createContext} from 'react';
-import type {AuthContextType} from "../types/AuthContextType.ts";
+import type {AuthContextType} from "../shared/types/AuthContextType.ts";
 
 
 /**

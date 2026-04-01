@@ -1,12 +1,12 @@
 import React, {useEffect} from "react";
-import type {MessageType} from "../types/MessageType.ts";
+import type {MessageType} from "../shared/types/MessageType.ts";
 import Navbar from "./Navbar.tsx";
 import ApiErrorMessage from "./ApiErrorMessage.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
-import type {FormErrorType} from "../types/FormErrorType.ts";
+import type {FormErrorType} from "../shared/types/FormErrorType.ts";
 import {useNavigate, useSearchParams} from "react-router";
-import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
-import type {DetailError} from "../types/ProblemDetail/DetailError.ts";
+import type {ApiErrorType} from "../shared/types/ProblemDetail/ApiErrorType.ts";
+import type {DetailError} from "../shared/types/ProblemDetail/DetailError.ts";
 import {SuccessWrapper} from "./SuccessWrapper.tsx";
 
 type PageState = "validating" | "form" | "success" | "error";

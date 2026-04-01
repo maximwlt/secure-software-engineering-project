@@ -9,8 +9,8 @@ import ApiErrorMessage from "./ApiErrorMessage.tsx";
 import {faLightbulb, faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import LoadingBar from "./LoadingBar.tsx";
-import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
-import type {DetailError} from "../types/ProblemDetail/DetailError.ts";
+import type {ApiErrorType} from "../shared/types/ProblemDetail/ApiErrorType.ts";
+import type {DetailError} from "../shared/types/ProblemDetail/DetailError.ts";
 import {SuccessWrapper} from "./SuccessWrapper.tsx";
 
 zxcvbnOptions.setOptions({

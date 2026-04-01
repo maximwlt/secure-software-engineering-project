@@ -1,4 +1,4 @@
-import { getCookie } from "./cookies";
+import { getCookie } from "./cookies.ts";
 import type {AuthContextType} from "../types/AuthContextType.ts";
 
 
