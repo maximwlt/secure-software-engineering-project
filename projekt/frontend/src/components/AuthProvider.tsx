@@ -1,7 +1,7 @@
 import  React, { useCallback, useEffect, useState } from "react";
 import { getCookie } from "../shared/utils/cookies";
 import { AuthContext } from "./AuthContext";
-import LoadingBar from "./LoadingBar.tsx";
+import LoadingBar from "../shared/components/LoadingBar.tsx";
 
 let refreshPromise: Promise<string | null> | null = null;
 

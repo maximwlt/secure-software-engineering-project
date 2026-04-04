@@ -5,7 +5,7 @@ import { useAuth } from '../shared/utils/useAuth';
 import Navbar from "./Navbar.tsx";
 import SearchBar from "./Searchbar.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
-import LoadingBar from "./LoadingBar.tsx";
+import LoadingBar from "../shared/components/LoadingBar.tsx";
 import type {PublicDocument} from "../shared/types/PublicDocument.ts";
 import OverviewPage from "./OverviewPage.tsx";
 

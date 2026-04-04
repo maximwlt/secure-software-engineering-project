@@ -7,6 +7,7 @@ import com.projektsse.backend.service.PasswortResetService;
 import com.projektsse.backend.service.TokenService;
 import com.projektsse.backend.service.UserService;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -192,6 +193,12 @@ public class AuthController {
         return ResponseEntity.ok(new ApiMessage("Account successfully deleted."));
     }
 
+
+    @GetMapping(value = "/me", produces = "application/json")
+    public ResponseEntity<UserProfileResponse> getUserProfile(@CurrentUserId UUID userId) {
+        UserProfileResponse profile = userService.getUserProfile(userId).toDto();
+        return ResponseEntity.ok(profile);
+    }
 
     @PostMapping(value = "/forgot-password", consumes = "application/json", produces = "application/json")
     public ResponseEntity<ApiMessage> forgotPassword(@Validated @RequestBody EmailPasswordReset emailPasswordReset) {

@@ -20,8 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
-        registry.addEndpoint("/ws-test").setAllowedOriginPatterns("*");
+        registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
     }
 
     /**
@@ -31,7 +30,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app"); // Broker destinations starting with "/app" will be routed to message-handling methods
-        registry.enableSimpleBroker("/topic");// .setHeartbeatValue(new long[]{10000, 20000}); // Enable a simple in-memory broker for destinations starting with "/topic" and set heartbeat intervals
+        registry.enableSimpleBroker("/topic", "/queue");// .setHeartbeatValue(new long[]{10000, 20000}); // Enable a simple in-memory broker for destinations starting with "/topic" and set heartbeat intervals
     }
 
 }

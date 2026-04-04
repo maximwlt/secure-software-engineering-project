@@ -3,6 +3,7 @@ package com.projektsse.backend.service;
 import com.projektsse.backend.exceptions.VerificationFailedException;
 import com.projektsse.backend.exceptions.UserNotFoundException;
 import com.projektsse.backend.models.ApiMessageModel;
+import com.projektsse.backend.models.UserModel;
 import com.projektsse.backend.models.UserReqModel;
 import com.projektsse.backend.repository.RegistrationRepository;
 import com.projektsse.backend.repository.UserRepository;
@@ -134,5 +135,10 @@ public class UserService {
 
     public void saveUser(User user) {
         userRepository.save(user);
+    }
+
+    public UserModel getUserProfile(UUID userId) {
+        Optional<UserModel> user = userRepository.findById(userId).map(User::toModel);
+        return user.orElseThrow(() -> new UserNotFoundException("User not found."));
     }
 }

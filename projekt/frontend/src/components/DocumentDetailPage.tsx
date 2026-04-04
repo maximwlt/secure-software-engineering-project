@@ -10,10 +10,10 @@ import {jwtDecode, type JwtPayload} from "jwt-decode";
 import DOMPurify from "dompurify";
 import {faGlobe, faLock, faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import LoadingBar from "./LoadingBar.tsx";
-import BackButton from "./BackButton.tsx";
-import DeleteButton from "./DeleteButton.tsx";
-import EditButton from "./EditButton.tsx";
+import LoadingBar from "../shared/components/LoadingBar.tsx";
+import BackButton from "../shared/components/BackButton.tsx";
+import DeleteButton from "../shared/components/DeleteButton.tsx";
+import EditButton from "../shared/components/EditButton.tsx";
 
 interface DocumentDetail {
     noteId: string;

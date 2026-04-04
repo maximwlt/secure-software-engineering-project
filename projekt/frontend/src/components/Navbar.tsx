@@ -40,7 +40,7 @@ function Navbar() {
                             </NavLink>
 
                             <NavLink
-                                to="/login"
+                                to="/users/profile"
                                 className={navLinkClass}
                             >
                                 <><FontAwesomeIcon icon={faCircleUser} /> Profile</>

@@ -11,6 +11,7 @@ import {PWResetPassword} from "./components/PWResetPassword.tsx";
 import {Profile} from "./components/Profile.tsx";
 import {UpdateDocument} from "./components/UpdateDocument.tsx";
 import {DocumentForm} from "./components/DocumentForm.tsx";
+import {PrivateChat} from "./components/PrivateChat.tsx";
 
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
                     <Route path="profile" element={<Profile />} />
                 </Route>
                 <Route path="*" element={<> <Navbar /> <div>Main Page</div> </>} />
+                <Route path="websocket" element={<PrivateChat />} />
             </Routes>
         </AuthProvider>
     );

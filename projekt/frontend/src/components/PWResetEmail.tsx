@@ -2,7 +2,7 @@ import Navbar from "./Navbar.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import React from "react";
 import type {MessageType} from "../shared/types/MessageType.ts";
-import ApiErrorMessage from "./ApiErrorMessage.tsx";
+import ApiErrorMessage from "../shared/components/ApiErrorMessage.tsx";
 import type {FormErrorType} from "../shared/types/FormErrorType.ts";
 import type {ApiErrorType} from "../shared/types/ProblemDetail/ApiErrorType.ts";
 import type {DetailError} from "../shared/types/ProblemDetail/DetailError.ts";

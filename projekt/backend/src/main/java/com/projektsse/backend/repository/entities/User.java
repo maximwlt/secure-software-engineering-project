@@ -1,5 +1,6 @@
 package com.projektsse.backend.repository.entities;
 
+import com.projektsse.backend.models.UserModel;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -35,9 +36,21 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RefreshToken> refreshTokens = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PWResetToken> pwResetTokens = new ArrayList<>();
+
     public User(String email, String passwordHash) {
         this.email = email;
         this.password_hash = passwordHash;
+    }
+
+    public UserModel toModel() {
+        return new UserModel(
+            this.id,
+            this.email,
+            this.created_at,
+            this.updated_at
+        );
     }
 
     public User() {}

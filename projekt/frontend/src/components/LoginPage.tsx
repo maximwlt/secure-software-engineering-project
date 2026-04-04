@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import ErrorMessage from "./ErrorMessage";
 import { useAuth } from "../shared/utils/useAuth.ts";
-import {getCookie} from "../shared/utils/cookies.ts";
 import Navbar from "./Navbar.tsx";
 import "../shared/styling/DocumentDetailPage.css";
-import {apiFetch} from "../shared/utils/apiFetch.ts";
-import {NavLink, redirect} from "react-router";
-import ApiErrorMessage from "./ApiErrorMessage.tsx";
+import {Navigate, NavLink} from "react-router";
+import ApiErrorMessage from "../shared/components/ApiErrorMessage.tsx";
 import type {ApiErrorType} from "../shared/types/ProblemDetail/ApiErrorType.ts";
 import {isDetailError} from "../shared/types/ProblemDetail/IsErrorTypeGuards.ts";
 
@@ -23,16 +21,11 @@ interface Errors {
 }
 
 function LoginPage() {
-    const { login, logout, isAuthenticated } = useAuth();
+    const { login, isAuthenticated } = useAuth();
     const [formData, setFormData] = useState<FormData>({
         email: '',
         password: ''
     });
-    const auth = useAuth();
-
-    const [deletePassword, setDeletePassword] = useState("");
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
     const [errors, setErrors] = useState<Errors>({});
     const [apiError, setApiError] = useState<ApiErrorType>();
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -70,131 +63,9 @@ function LoginPage() {
         )
     };
 
-    const handleLogout = async (): Promise<void> => {
-        setIsSubmitting(true);
-        setErrors({});
 
-        try {
-
-            const csrf_token = getCookie("XSRF-TOKEN");
-
-            const headers : HeadersInit = {
-                'Content-Type': 'application/json',
-            };
-            if (csrf_token) {
-                headers['X-XSRF-TOKEN'] = csrf_token;
-            }
-
-            const response = await fetch('/api/auth/rt/logout', {
-                method: 'POST',
-                headers: headers,
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                const errorData : ApiErrorType = await response.json();
-                throw new Error(errorData.title);
-            }
-
-            logout();
-
-        } catch (error) {
-            setErrors({
-                general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-
-
-
-    const handleDeleteAccount = async (): Promise<void> => {
-        if (!deletePassword) {
-            setErrors({ general: "Please enter password." });
-            return;
-        }
-
-        try {
-            const res = await apiFetch(auth, '/api/auth/me', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ password: deletePassword })
-            })
-            if (!res.ok) {
-                const errorData: ApiErrorType = await res.json();
-                if (isDetailError(errorData)) {
-                    setErrors({ general: errorData.detail });
-                    throw new Error(errorData.detail);
-                }
-                throw new Error(errorData.title);
-            }
-
-            setErrors({})
-            logout(); // After account deletion, log the user out
-            redirect('/');
-        } catch (error) {
-            setErrors({
-                general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
-            });
-        }
-    };
-
-    // Wenn eingeloggt: Logout-View anzeigen
     if (isAuthenticated) {
-        // TODO: Refactor in a separate component
-        return (
-            <>
-                <Navbar/>
-                <div className="auth-form-wrapper">
-                    <h1>You are currently logged in.</h1>
-
-                    <ErrorMessage
-                        message={errors.general}
-                        type="general"
-                    />
-                    <button className="primary-button"
-                        onClick={handleLogout}
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? 'Loading...' : 'Logout'}
-                    </button>
-
-                    <button
-                        className="delete-button"
-                        onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-                    >
-                        Delete Account
-                    </button>
-
-                    {showDeleteConfirm && (
-                        <div className="delete-confirm-box">
-                            <p>Please enter password to confirm account deletion:</p>
-                            <input
-                                type="password"
-                                value={deletePassword}
-                                onChange={(e) => setDeletePassword(e.target.value)}
-                                placeholder="Passwort"
-                            />
-
-                            <button
-                                className="delete-button"
-                                onClick={handleDeleteAccount}
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? "Deleting..." : "Confirm Delete"}
-                            </button>
-
-                        </div>
-                    )}
-
-
-                </div>
-            </>
-        );
+        return <Navigate to="/users/profile" replace />;
     }
 
     // Wenn nicht eingeloggt: Login-Form anzeigen
@@ -252,7 +123,10 @@ function LoginPage() {
                     {isSubmitting ? 'Loading...' : 'Login'}
                 </button>
 
-                <NavLink to="/forgot-password">Forgot password?</NavLink>
+                <div className="flex justify-center mt-2">
+                    <NavLink to="/forgot-password" className="bg-gray-200 hover:bg-gray-300 rounded-2xl px-3 py-1">Forgot password?</NavLink>
+                </div>
+
             </div>
         </>
     );

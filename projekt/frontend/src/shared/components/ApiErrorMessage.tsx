@@ -1,9 +1,9 @@
 import React from 'react';
-import '../shared/styling/ErrorMessage.css';
+import '../styling/ErrorMessage.css';
 import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import type {ApiErrorType} from "../shared/types/ProblemDetail/ApiErrorType.ts";
-import {isDetailError, isValidationError} from "../shared/types/ProblemDetail/IsErrorTypeGuards.ts";
+import type {ApiErrorType} from "../types/ProblemDetail/ApiErrorType.ts";
+import {isDetailError, isValidationError} from "../types/ProblemDetail/IsErrorTypeGuards.ts";
 
 interface Props {
     error: ApiErrorType | undefined;

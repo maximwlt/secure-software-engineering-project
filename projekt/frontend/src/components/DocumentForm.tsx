@@ -8,7 +8,7 @@ import { apiFetch } from '../shared/utils/apiFetch';
 import type {AuthContextType} from "../shared/types/AuthContextType.ts";
 import type { ApiErrorType } from "../shared/types/ProblemDetail/ApiErrorType.ts";
 import type { DetailError } from "../shared/types/ProblemDetail/DetailError.ts";
-import ApiErrorMessage from "./ApiErrorMessage.tsx";
+import ApiErrorMessage from "../shared/components/ApiErrorMessage.tsx";
 
 interface FormData {
     title: string;

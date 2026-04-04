@@ -11,7 +11,7 @@ function BackButton({onBack}: { onBack?: () => void }) {
 
     return (
         <button onClick={handleBack} className="text-blue-500 hover:text-blue-700 hover:underline font-semibold cursor-pointer">
-            ← Back to Overview
+            ← Back
         </button>
     );
 }

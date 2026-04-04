@@ -5,7 +5,7 @@ import {apiFetch} from "../shared/utils/apiFetch.ts";
 import Navbar from "./Navbar.tsx";
 import SearchBar from "./Searchbar.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
-import LoadingBar from "./LoadingBar.tsx";
+import LoadingBar from "../shared/components/LoadingBar.tsx";
 import OverviewPage from "./OverviewPage.tsx";
 import type {PublicDocument} from "../shared/types/PublicDocument.ts";
 
