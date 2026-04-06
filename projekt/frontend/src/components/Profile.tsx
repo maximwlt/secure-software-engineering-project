@@ -4,9 +4,10 @@ import {useState} from "react";
 import {apiFetch} from "../shared/utils/apiFetch.ts";
 import type {ApiErrorType} from "../shared/types/ProblemDetail/ApiErrorType.ts";
 import {isDetailError} from "../shared/types/ProblemDetail/IsErrorTypeGuards.ts";
-import {Navigate, redirect, useNavigate} from "react-router";
+import {Navigate, useNavigate} from "react-router";
 import {getCookie} from "../shared/utils/cookies.ts";
 import {useAuth} from "../shared/utils/useAuth.ts";
+import {useUserProfile} from "../shared/hooks/useUserProfile.ts";
 
 
 interface Errors {
@@ -26,6 +27,8 @@ function Profile() {
 
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [errors, setErrors] = useState<Errors>({});
+
+    const { data, isLoading, error } = useUserProfile();
 
     // Es soll beim Laden der Komponente
     // GET /api/auth/me angezeigt werden, um die Profilinformationen des Benutzers zu erhalten.
@@ -59,7 +62,7 @@ function Profile() {
             }
 
             logout();
-            redirect('/');
+            navigate('/');
         } catch (error) {
             setErrors({
                 general: error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten'
@@ -117,6 +120,14 @@ function Profile() {
         <div className="auth-form-wrapper">
             <h1>You are currently logged in.</h1>
 
+            {isLoading && <p>Loading profile...</p>}
+            {error && <ErrorMessage message={error.title} type="general" />}
+            {data && (
+                <div>
+                    <p><strong>Email:</strong> {data.email}</p>
+                    <p><strong>Id:</strong> {data.id}</p>
+                </div>
+            )}
             <ErrorMessage
                 message={errors.general}
                 type="general"
