@@ -82,6 +82,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.open-policy-agent.opa</groupId>
+            <artifactId>springboot</artifactId>
+            <version>1.0.5</version>
+        </dependency>
         <!-- Test Dependencies -->
         <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-resttestclient -->
         <dependency>

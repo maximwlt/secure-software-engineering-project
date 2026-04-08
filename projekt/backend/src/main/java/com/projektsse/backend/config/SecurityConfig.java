@@ -1,5 +1,6 @@
 package com.projektsse.backend.config;
 
+import io.github.open_policy_agent.opa.springboot.OPAAuthorizationManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,13 +24,17 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
+    private final OPAAuthorizationManager opaAuthorizationManager;
+
     SecurityConfig(JwtFilter jwtFilter,
                    CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-                   CustomAccessDeniedHandler customAccessDeniedHandler
+                   CustomAccessDeniedHandler customAccessDeniedHandler,
+                   OPAAuthorizationManager authorizationManager
     ) {
         this.jwtFilter = jwtFilter;
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
         this.customAccessDeniedHandler = customAccessDeniedHandler;
+        this.opaAuthorizationManager = authorizationManager;
     }
 
     @Bean

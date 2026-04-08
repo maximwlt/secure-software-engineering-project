@@ -18,6 +18,21 @@ services:
       - "8025:8025"
       - "1025:1025"
 
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: opa
+    ports:
+        - "8181:8181"
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "--log-format=json"
+      - "/policies"
+    volumes:
+      - ./backend/src/main/resources/opa:/policies
+
   backend:
     image: "${REGISTRY:-ghcr.io/mxsph}/backend:${IMAGE_TAG:-local}"
     container_name: backend-app
@@ -34,9 +49,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      opa:
+        condition: service_started
     links:
       - "db:database"
       - "mailhog:mailhog"
+      - "opa:opa"
     restart: on-failure
 
   frontend:
