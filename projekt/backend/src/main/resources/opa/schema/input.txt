@@ -1,0 +1,38 @@
+This defines the input schema for the OPA policy evaluation.
+It includes the necessary fields that will be used in the policy rules.
+
+// Current code logic for the OPA input structure
+{
+    "user": {
+        "id": "uuid", // Id of the user, who made request (extracted from JWT)
+    },
+    "resource": {
+        "id?": "uuid" // optional field, can be used to specify the id of the subject (e.g., note id), if needed for the policy evaluation
+        "type": "note" | "profile" | ... , // string
+        "ownerId": "uuid" // the owner of the subject, used for access control
+    },
+    "action": "create" | "read" | "update" | "delete", // the action the user wants to perform
+}
+
+
+// OPA-Input-Struktur for Team-Feature
+{
+  "user": {
+    "id": "uuid",
+    "isAdmin": false
+  },
+  "subject": {
+    "type": "note | profile | team",
+    "id": "uuid",
+    "ownerId": "uuid",        // Wer hat das Objekt erstellt?
+    "teamId": "uuid",         // Zu welchem Team gehört das Objekt?
+    "visibility": "public | protected | unlisted | private",
+    "status": "LOCK | UNLOCK"
+  },
+  "team": {
+    "id": "uuid",             // Team des anfragenden Users
+    "role": "leader | vice_leader | member | null"
+                              // null = teamless
+  },
+  "action": "read | create | update | delete | lock | unlock"
+}

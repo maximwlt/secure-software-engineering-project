@@ -3,5 +3,6 @@ package authz
 default allow = false
 
 allow if {
-    true
+    input.subject == "admin"
+    input.action == "read"
 }

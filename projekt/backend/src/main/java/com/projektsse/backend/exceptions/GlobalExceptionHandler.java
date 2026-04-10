@@ -163,4 +163,12 @@ public class GlobalExceptionHandler {
         problemDetail.setDetail(ex.getMessage());
         return problemDetail;
     }
+
+    @ExceptionHandler(OpaEvaluationException.class)
+    public ProblemDetail handleOPAException(OpaEvaluationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while evaluating access control policies. Please try again later.");
+        problemDetail.setTitle("Access Control Evaluation Error");
+        log.error("OPAException: An error occurred while evaluating access control policies. Message: {}", ex.getMessage(), ex);
+        return problemDetail;
+    }
 }

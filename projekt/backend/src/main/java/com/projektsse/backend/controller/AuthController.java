@@ -6,10 +6,14 @@ import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.PasswortResetService;
 import com.projektsse.backend.service.TokenService;
 import com.projektsse.backend.service.UserService;
+import io.github.open_policy_agent.opa.OPAClient;
+import io.github.open_policy_agent.opa.OPAException;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -18,9 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -35,6 +37,8 @@ public class AuthController {
     private final JwtService jwtService;
     private final TokenService tokenService;
     private final PasswortResetService passwortResetService;
+
+    Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     public AuthController(UserService userService, JwtService jwtService, TokenService tokenService, PasswortResetService passwortResetService) {
         this.userService = userService;
@@ -214,6 +218,29 @@ public class AuthController {
     @GetMapping(value = "/csrf")
     public ResponseEntity<Void> getCsrfToken() {
         return ResponseEntity.ok().build();
+    }
+
+
+    @GetMapping(value = "test", produces = "application/json")
+    public ResponseEntity<Map<String, String>> testEndpoint(@RequestParam String q) {
+
+        OPAClient opaClient = new OPAClient("http://opa:8181");
+        Map<String, Object> input = Map.ofEntries(
+                Map.entry("subject", q),
+                Map.entry("action", "read")
+        );
+        boolean allowed;
+
+        try {
+            allowed = opaClient.check("authz/allow", input);
+        } catch (OPAException e) {
+            logger.warn("OPA evaluation failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "OPA evaluation failed."));
+        }
+        logger.info("OPA allowed: {}", allowed);
+
+        return ResponseEntity.ok(null);
     }
 
 }

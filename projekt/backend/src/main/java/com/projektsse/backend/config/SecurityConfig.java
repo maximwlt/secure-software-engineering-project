@@ -1,6 +1,5 @@
 package com.projektsse.backend.config;
 
-import io.github.open_policy_agent.opa.springboot.OPAAuthorizationManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.util.AntPathMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -24,17 +24,13 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-    private final OPAAuthorizationManager opaAuthorizationManager;
-
     SecurityConfig(JwtFilter jwtFilter,
                    CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-                   CustomAccessDeniedHandler customAccessDeniedHandler,
-                   OPAAuthorizationManager authorizationManager
+                   CustomAccessDeniedHandler customAccessDeniedHandler
     ) {
         this.jwtFilter = jwtFilter;
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
         this.customAccessDeniedHandler = customAccessDeniedHandler;
-        this.opaAuthorizationManager = authorizationManager;
     }
 
     @Bean
@@ -54,11 +50,11 @@ public class SecurityConfig {
                             "/api/auth/register",
                             "/api/auth/verify-email",
                             "/api/documents/public",
-                            "/api/documents/{docId}",
                             "/api/documents",
                             "/api/documents/public/search",
                             "/api/auth/forgot-password",
-                            "/api/auth/reset-password"
+                            "/api/auth/reset-password",
+                            "/api/auth/test"
                     )
                     .spa()
                     .csrfTokenRepository(repo)
@@ -81,7 +77,8 @@ public class SecurityConfig {
                             "/api/auth/rt/logout",
                            "/api/auth/forgot-password",
                            "/api/auth/reset-password",
-                           "/api/auth/csrf"
+                           "/api/auth/csrf",
+                           "/api/auth/test"
                    ).permitAll().anyRequest().authenticated()
             )
             .formLogin(AbstractHttpConfigurer::disable)
