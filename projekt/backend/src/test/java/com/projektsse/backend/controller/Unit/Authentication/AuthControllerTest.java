@@ -1,6 +1,7 @@
 package com.projektsse.backend.controller.Unit.Authentication;
 
 import com.projektsse.backend.controller.AuthController;
+import com.projektsse.backend.controller.components.AuthCookieFactory;
 import com.projektsse.backend.controller.dto.RegisterRequest;
 import com.projektsse.backend.exceptions.GlobalExceptionHandler;
 import com.projektsse.backend.service.JwtService;
@@ -34,8 +35,9 @@ class AuthControllerTest {
         JwtService jwtService = Mockito.mock(JwtService.class);
         TokenService tokenService = Mockito.mock(TokenService.class);
         PasswortResetService passwortResetService = Mockito.mock(PasswortResetService.class);
+        AuthCookieFactory authCookieFactory = Mockito.mock(AuthCookieFactory.class);
         client = RestTestClient.bindToController(
-                        new AuthController(userService, jwtService, tokenService, passwortResetService),
+                        new AuthController(userService, jwtService, tokenService, passwortResetService, authCookieFactory),
                         new GlobalExceptionHandler()
                 )
                 .build();

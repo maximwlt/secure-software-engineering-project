@@ -3,15 +3,12 @@ package com.projektsse.backend.service;
 import com.projektsse.backend.config.MdSanitizer;
 import com.projektsse.backend.controller.dto.NoteRequest;
 import com.projektsse.backend.exceptions.NoteNotFoundException;
-import com.projektsse.backend.exceptions.OpaEvaluationException;
 import com.projektsse.backend.models.NoteModel;
 import com.projektsse.backend.models.opa.OpaInput;
 import com.projektsse.backend.models.opa.OpaResource;
 import com.projektsse.backend.models.opa.OpaUser;
 import com.projektsse.backend.repository.NoteRepository;
 import com.projektsse.backend.repository.entities.Note;
-import io.github.open_policy_agent.opa.OPAClient;
-import io.github.open_policy_agent.opa.OPAException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -27,14 +24,13 @@ public class NoteService {
     private final UserService userService;
     private final NoteRepository noteRepository;
     private final MdSanitizer mdSanitizer;
+    private final OpaService opaService;
 
-    private final OPAClient opaClient;
-
-    public NoteService(NoteRepository noteRepository, UserService userService, MdSanitizer mdSanitizer) {
+    public NoteService(NoteRepository noteRepository, UserService userService, MdSanitizer mdSanitizer, OpaService opaService) {
         this.noteRepository = noteRepository;
         this.userService = userService;
         this.mdSanitizer = mdSanitizer;
-        this.opaClient = new OPAClient("http://opa:8181");
+        this.opaService = opaService;
     }
 
     public List<NoteModel> getAllPublicNotes() {
@@ -69,16 +65,14 @@ public class NoteService {
     }
 
     public List<NoteModel> getNotesByUserId(UUID userId) {
-        List<NoteModel> notes = noteRepository.getNotesByUser_IdOrderByIsPrivateDesc(userId)
+        return noteRepository.getNotesByUser_IdOrderByIsPrivateDesc(userId)
                                       .stream().map(Note::toModel).toList();
-        return notes;
     }
 
     public List<NoteModel> searchUserNotes(@NotBlank @Size(max = 50) @Pattern(regexp = "^[a-zA-Z0-9 äöüÄÖÜß!?.,-]*$", message = "Query contains invalid characters") String query, UUID userId) {
         String lowerCaseQuery = query.toLowerCase();
         List<Note> notesEntities = noteRepository.searchUserNotes(userId, lowerCaseQuery);
-        List<NoteModel> notes = notesEntities.stream().map(Note::toModel).toList();
-        return notes;
+        return notesEntities.stream().map(Note::toModel).toList();
     }
 
     public void deleteNote(UUID documentId, UUID userId) {
@@ -90,12 +84,11 @@ public class NoteService {
                 new OpaResource(documentId.toString(), "note", note.getOwner().getId().toString()),
                 "delete"
         );
-        try {
-            if (!opaClient.check("notes/allow", input)) {
-                throw new NoteNotFoundException(String.format("Note with ID %s not found", documentId));
-            }
-        } catch (OPAException e) {
-            throw new OpaEvaluationException(e);
+
+        if (opaService.check("notes/allow", input)) {
+            noteRepository.delete(note);
+        } else {
+            throw new NoteNotFoundException(String.format("Note with ID %s not found", documentId));
         }
         noteRepository.delete(note);
     }
