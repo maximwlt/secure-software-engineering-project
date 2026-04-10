@@ -1,56 +1,44 @@
 package com.projektsse.backend.controller;
 
+import com.projektsse.backend.controller.components.AuthCookieFactory;
 import com.projektsse.backend.controller.dto.*;
 import com.projektsse.backend.interfaces.CurrentUserId;
 import com.projektsse.backend.service.JwtService;
 import com.projektsse.backend.service.PasswortResetService;
 import com.projektsse.backend.service.TokenService;
 import com.projektsse.backend.service.UserService;
-import io.github.open_policy_agent.opa.OPAClient;
-import io.github.open_policy_agent.opa.OPAException;
-import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
 @Validated
 public class AuthController {
 
-    @Value("${app.cookie.secure}")
-    private boolean cookieSecure;
-    private String FINGERPRINT_COOKIE_NAME;
-
     private final UserService userService;
     private final JwtService jwtService;
     private final TokenService tokenService;
     private final PasswortResetService passwortResetService;
+    private final AuthCookieFactory authCookieFactory;
 
-    Logger logger = LoggerFactory.getLogger(AuthController.class);
-
-    public AuthController(UserService userService, JwtService jwtService, TokenService tokenService, PasswortResetService passwortResetService) {
+    public AuthController(UserService userService, JwtService jwtService, TokenService tokenService, PasswortResetService passwortResetService, AuthCookieFactory authCookieFactory) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.tokenService = tokenService;
         this.passwortResetService = passwortResetService;
+        this. authCookieFactory = authCookieFactory;
     }
 
-    @PostConstruct
-    private void init() {
-        this.FINGERPRINT_COOKIE_NAME = cookieSecure ? "__Secure-Fgp" : "Fgp"; // Runs after @Value injection
-    }
+
 
     @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
     public ResponseEntity<ApiMessage> register(@Validated @RequestBody RegisterRequest req) {
@@ -70,7 +58,7 @@ public class AuthController {
 
 
     @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> login(@Validated @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> login(@Validated @RequestBody LoginRequest loginRequest) {
 
         userService.authenticateUser(loginRequest.email(), loginRequest.password());
 
@@ -84,50 +72,26 @@ public class AuthController {
         String accessToken = jwtService.generateAccessToken(userId, fingerprintHash);
         String refreshToken = tokenService.createRefreshToken(userId);
 
-        Duration durationDays = Duration.ofDays(7);
         Duration accessTokenDuration = Duration.ofMinutes(jwtService.getAccessTokenExpiration()); // Gleich wie JWT Expiry
 
-        // Fingerprint Cookie (HttpOnly, Secure, SameSite=Strict)
-        ResponseCookie fingerprintCookie = ResponseCookie.from(FINGERPRINT_COOKIE_NAME, fingerprint)
-                                                         .httpOnly(true)
-                                                         .secure(cookieSecure)
-                                                         .path("/")
-                                                         .maxAge(accessTokenDuration) // Max-Age <= JWT Expiry
-                                                         .sameSite("Strict")
-                                                         .build();
-
-        // Refresh Token Cookie
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("REFRESH_TOKEN", refreshToken)
-                                                          .httpOnly(true)
-                                                          .secure(cookieSecure)
-                                                          .path("/api/auth/rt")
-                                                          .maxAge(durationDays)
-                                                          .sameSite("Strict")
-                                                          .build();
-
         return ResponseEntity.ok()
-                             .header("Set-Cookie", fingerprintCookie.toString())
-                             .header("Set-Cookie", refreshTokenCookie.toString())
+                             .header("Set-Cookie", authCookieFactory.setRefreshTokenCookie(refreshToken).toString())
+                             .header("Set-Cookie", authCookieFactory.setFingerprintCookie(fingerprint, accessTokenDuration).toString())
                              .body(new AuthResponse(accessToken));
     }
 
     @PostMapping(value = "/rt/refresh-token", produces = "application/json")
-    public ResponseEntity<?> refreshToken(@CookieValue(name = "REFRESH_TOKEN") String refreshToken) {
+    public ResponseEntity<AuthResponse> refreshToken(@CookieValue(name = "REFRESH_TOKEN") String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Kein Refresh-Token Cookie vorhanden."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Refresh-Token is missing."));
         }
 
         Optional<String> userIdOpt = tokenService.validateRefreshToken(refreshToken);
 
         if (userIdOpt.isEmpty()) {
-            ResponseCookie deleteCookie = ResponseCookie.from("REFRESH_TOKEN", "")
-                                                        .httpOnly(true).secure(cookieSecure).path("/api/auth/rt")
-                                                        .maxAge(0).sameSite("Strict").build();
-
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                 .header("Set-Cookie", deleteCookie.toString())
-                                 .body(Map.of("message", "Refresh-Token ungültig oder abgelaufen."));
+                                 .header("Set-Cookie", authCookieFactory.deleteRefreshTokenCookie().toString())
+                                 .body(new AuthResponse("Invalid or expired refresh token."));
         }
 
         String userId = userIdOpt.get();
@@ -141,17 +105,9 @@ public class AuthController {
 
         Duration accessTokenDuration = Duration.ofMinutes(jwtService.getAccessTokenExpiration());
 
-        ResponseCookie fingerprintCookie = ResponseCookie.from(FINGERPRINT_COOKIE_NAME, newFingerprint)
-                                                         .httpOnly(true).secure(cookieSecure).path("/")
-                                                         .maxAge(accessTokenDuration).sameSite("Strict").build();
-
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("REFRESH_TOKEN", newRefreshToken)
-                                                          .httpOnly(true).secure(cookieSecure).path("/api/auth/rt")
-                                                          .maxAge(Duration.ofDays(7)).sameSite("Strict").build();
-
         return ResponseEntity.ok()
-                             .header("Set-Cookie", fingerprintCookie.toString())
-                             .header("Set-Cookie", refreshTokenCookie.toString())
+                             .header("Set-Cookie", authCookieFactory.setFingerprintCookie(newFingerprint, accessTokenDuration).toString())
+                             .header("Set-Cookie", authCookieFactory.setRefreshTokenCookie(newRefreshToken).toString())
                              .body(new AuthResponse(newAccessToken));
     }
 
@@ -164,25 +120,9 @@ public class AuthController {
             tokenService.deleteRefreshToken(refreshToken);
         }
 
-        ResponseCookie deleteCookie = ResponseCookie.from("REFRESH_TOKEN", "")
-                .httpOnly(true)
-                .secure(cookieSecure)
-                .path("/api/auth/rt")
-                .maxAge(0)
-                .sameSite("Strict")
-                .build();
-
-        ResponseCookie deleteFingerprintCookie = ResponseCookie.from(FINGERPRINT_COOKIE_NAME, "")
-                .httpOnly(true)
-                .secure(cookieSecure)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Strict")
-                .build();
-
         return  ResponseEntity.ok()
-                .header("Set-Cookie", deleteCookie.toString())
-                .header("Set-Cookie", deleteFingerprintCookie.toString())
+                .header("Set-Cookie", authCookieFactory.deleteRefreshTokenCookie().toString())
+                .header("Set-Cookie", authCookieFactory.deleteFingerprintCookie().toString())
                 .body(new ApiMessage("Successfully logged out."));
     }
 
@@ -218,29 +158,6 @@ public class AuthController {
     @GetMapping(value = "/csrf")
     public ResponseEntity<Void> getCsrfToken() {
         return ResponseEntity.ok().build();
-    }
-
-
-    @GetMapping(value = "test", produces = "application/json")
-    public ResponseEntity<Map<String, String>> testEndpoint(@RequestParam String q) {
-
-        OPAClient opaClient = new OPAClient("http://opa:8181");
-        Map<String, Object> input = Map.ofEntries(
-                Map.entry("subject", q),
-                Map.entry("action", "read")
-        );
-        boolean allowed;
-
-        try {
-            allowed = opaClient.check("authz/allow", input);
-        } catch (OPAException e) {
-            logger.warn("OPA evaluation failed: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "OPA evaluation failed."));
-        }
-        logger.info("OPA allowed: {}", allowed);
-
-        return ResponseEntity.ok(null);
     }
 
 }
