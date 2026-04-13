@@ -1,14 +1,14 @@
 
 
-INSERT INTO users (id, email, password_hash, created_at, updated_at) VALUES
-                                                              ('ea952ebe-c38b-43cf-af1a-0b2a70402c34', 'john.don@gmail.com', '$argon2id$v=19$m=16,t=2,p=1$RFpyc0N1MVprZDZVQ0d4Tw$UqgALGLHr60VgINlAm63aQ', NOW(), NOW()),
-                                                              ('413972c5-d918-49a2-a425-7fa5bb68ff3b', 'ben.schmidt@gmx.de', '$argon2id$v=19$m=16,t=2,p=1$Wk1TMFZtV1ZVd1pRVG9uZw$eXhY5Vn3K0lXU1Z3b3JqYQ', NOW(), NOW()),
-                                                              ('7f4e2d1a-8c3b-4f5e-9f6a-2b3c4d5e6f70', 'lisa.bach@yahoo.de', '$argon2id$v=19$m=16,t=2,p=1$T1ZsV1ZtV1ZVd1pRVG9uZw$Y2hpbGRyZW4xMjM0NTY3OA', NOW(), NOW());
+INSERT INTO users (id, email, password_hash, is_admin, created_at, updated_at) VALUES
+                                                              ('ea952ebe-c38b-43cf-af1a-0b2a70402c34', 'john.don@gmail.com', '$argon2id$v=19$m=16,t=2,p=1$RFpyc0N1MVprZDZVQ0d4Tw$UqgALGLHr60VgINlAm63aQ', false, NOW(), NOW()),
+                                                              ('413972c5-d918-49a2-a425-7fa5bb68ff3b', 'ben.schmidt@gmx.de', '$argon2id$v=19$m=16,t=2,p=1$Wk1TMFZtV1ZVd1pRVG9uZw$eXhY5Vn3K0lXU1Z3b3JqYQ', false,  NOW(), NOW()),
+                                                              ('7f4e2d1a-8c3b-4f5e-9f6a-2b3c4d5e6f70', 'lisa.bach@yahoo.de', '$argon2id$v=19$m=16,t=2,p=1$T1ZsV1ZtV1ZVd1pRVG9uZw$Y2hpbGRyZW4xMjM0NTY3OA', false, NOW(), NOW());
 
 
 
-INSERT INTO notes (note_id, title, md_content, is_private, created_at, updated_at, user_id) VALUES
-                                                                                                ('60d17d7c-3fbb-428f-9d2b-b5aee81457e6', 'Grocery List', '**Milk, Eggs, Bread, Butter**', FALSE, NOW(), NOW(), 'ea952ebe-c38b-43cf-af1a-0b2a70402c34'),
+INSERT INTO notes (note_id, title, md_content, is_private, visibility, status, created_at, updated_at, user_id) VALUES
+                                                                                                ('60d17d7c-3fbb-428f-9d2b-b5aee81457e6', 'Grocery List', '**Milk, Eggs, Bread, Butter**', FALSE, 'PUBLIC', 'UNLOCKED', NOW(), NOW(), 'ea952ebe-c38b-43cf-af1a-0b2a70402c34'),
                                                                                                 ('b17a1ad6-8c55-49cb-8718-d6fc7c4a4277', 'Der legendäre Kampf: Evander Holyfield vs. Mike Tyson (1996 & 1997)', 'Der **Holyfield-Tyson-Kampf** – genauer gesagt, die zwei Kämpfe – gehört zu den bekanntesten und umstrittensten Begegnungen in der Geschichte des Schwergewichtsboxens. Es war das Aufeinandertreffen zweier komplett unterschiedlicher Legenden: des disziplinierten Technikers **Evander "The Real Deal" Holyfield** und des brutalen Kraftpakets **Mike "Iron" Tyson**.
 
 > *„Everyone has a plan until they get punched in the mouth.“* – Mike Tyson (berühmtes Zitat, das oft mit dieser Rivalität in Verbindung gebracht wird)
@@ -66,8 +66,8 @@ INSERT INTO notes (note_id, title, md_content, is_private, created_at, updated_a
 | **Mentale Stärke 1996** | Absolut fokussiert, siegessicher | Verwirrt, frustriert |
 | **Mentale Stärke 1997** | Ruhig und professionell | Völlig außer Kontrolle |
 | **Historisches Vermächtnis** | Der Sieger, der den Unbesiegbaren entzauberte | Der Geniale, der sich selbst zerstörte |
-', FALSE, NOW(), NOW(), '413972c5-d918-49a2-a425-7fa5bb68ff3b'),
-                                                                                                ('c5f0cabf-092b-42a4-ae2b-077db13b7479', 'Meeting Notes', 'Discussed project timeline and deliverables', TRUE, NOW(), NOW(), '7f4e2d1a-8c3b-4f5e-9f6a-2b3c4d5e6f70'),
+', FALSE,'PUBLIC', 'UNLOCKED', NOW(), NOW(), '413972c5-d918-49a2-a425-7fa5bb68ff3b'),
+                                                                                                ('c5f0cabf-092b-42a4-ae2b-077db13b7479', 'Meeting Notes', 'Discussed project timeline and deliverables', TRUE, 'PUBLIC', 'UNLOCKED', NOW(), NOW(), '7f4e2d1a-8c3b-4f5e-9f6a-2b3c4d5e6f70'),
                                                                                                 ('e3f4a1b2-5c6d-4e7f-8a9b-0c1d2e3f4a5b', 'Minecraft: Das endlose Sandbox-Abenteuer', 'Minecraft ist ein **Sandbox-Survival-Spiel**, das 2009 von Mojang Studios (heute Microsoft) veröffentlicht wurde und seitdem zu einem globalen Phänomen geworden ist. Das Spielprinzip ist denkbar einfach und doch unendlich tief: In einer prozedural generierten, würfelförmigen Welt kann der Spieler (**Steve** oder **Alex**) nahezu alles abbauen, bauen und craften.
 
 > *„Minecraft ist mehr als ein Spiel – es ist eine digitale Leinwand für Kreativität.“* – Ein oft zitierter Gemeinschaftsspruch
@@ -114,8 +114,8 @@ Ursprünglich eine Java-PC-Version, gibt es Minecraft heute auf nahezu jeder Pla
 **Wichtige Links für Einsteiger:**
 *   Offizielle Seite: [minecraft.net](https://www.minecraft.net/)
 *   Das Minecraft Wiki: [minecraft.wiki](https://minecraft.wiki/) – Die umfassendste Wissensdatenbank.
-', FALSE, NOW(), NOW(), 'ea952ebe-c38b-43cf-af1a-0b2a70402c34'),
+', FALSE,'PUBLIC', 'UNLOCKED', NOW(), NOW(), 'ea952ebe-c38b-43cf-af1a-0b2a70402c34'),
 
-('a6267337-a192-4cc7-b60f-44eb8b150762', 'Project Ideas', '## Header Build a mobile app for task management', TRUE, NOW(), NOW(),'413972c5-d918-49a2-a425-7fa5bb68ff3b'),
-('b929b280-2684-40c1-a7e8-f03ef6a6b09e', 'Travel Plans', 'Visit *Paris* and *Rome* next summer', FALSE, NOW(), NOW(), '7f4e2d1a-8c3b-4f5e-9f6a-2b3c4d5e6f70'),
-('d68d419b-cefb-412d-ad16-7a32804364e6', 'Workout Routine', '- Monday: Chest <br> - Tuesday: Back <br> - Wednesday: Legs', TRUE, NOW(), NOW(), 'ea952ebe-c38b-43cf-af1a-0b2a70402c34');
+('a6267337-a192-4cc7-b60f-44eb8b150762', 'Project Ideas', '## Header Build a mobile app for task management', TRUE, 'PUBLIC', 'UNLOCKED',NOW(), NOW(),'413972c5-d918-49a2-a425-7fa5bb68ff3b'),
+('b929b280-2684-40c1-a7e8-f03ef6a6b09e', 'Travel Plans', 'Visit *Paris* and *Rome* next summer', FALSE,'PUBLIC', 'UNLOCKED', NOW(), NOW(), '7f4e2d1a-8c3b-4f5e-9f6a-2b3c4d5e6f70'),
+('d68d419b-cefb-412d-ad16-7a32804364e6', 'Workout Routine', '- Monday: Chest <br> - Tuesday: Back <br> - Wednesday: Legs', TRUE,'PUBLIC', 'UNLOCKED', NOW(), NOW(), 'ea952ebe-c38b-43cf-af1a-0b2a70402c34');

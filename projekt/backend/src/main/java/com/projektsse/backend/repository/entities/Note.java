@@ -1,6 +1,8 @@
 package com.projektsse.backend.repository.entities;
 
 import com.projektsse.backend.models.NoteModel;
+import com.projektsse.backend.repository.enums.NoteStatus;
+import com.projektsse.backend.repository.enums.NoteVisibility;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -24,6 +26,14 @@ public class Note {
 
     @Column(name = "is_private")
     private boolean isPrivate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility", nullable = false)
+    private NoteVisibility visibility;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private NoteStatus status;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

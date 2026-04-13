@@ -22,6 +22,9 @@ public class User {
     @Column(name="password_hash", nullable = false, length = 255)
     private String password_hash;
 
+    @Column(name="is_admin", nullable = false)
+    private boolean is_admin = false;
+
     @CreationTimestamp
     @Column(name="created_at", updatable = false, nullable = false)
     private LocalDateTime created_at;
