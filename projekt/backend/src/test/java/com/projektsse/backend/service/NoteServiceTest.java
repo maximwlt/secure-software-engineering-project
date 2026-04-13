@@ -1,8 +1,9 @@
 package com.projektsse.backend.service;
 
-import com.projektsse.backend.repository.NoteRepository;
-import com.projektsse.backend.repository.UserRepository;
-import com.projektsse.backend.repository.entities.User;
+import com.projektsse.backend.feature.auth.service.JwtService;
+import com.projektsse.backend.feature.notes.repository.NoteRepository;
+import com.projektsse.backend.feature.auth.repository.UserRepository;
+import com.projektsse.backend.feature.auth.repository.entities.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

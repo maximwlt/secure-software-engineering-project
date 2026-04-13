@@ -1,13 +1,13 @@
 package com.projektsse.backend.controller.Unit.Authentication;
 
-import com.projektsse.backend.controller.AuthController;
-import com.projektsse.backend.controller.components.AuthCookieFactory;
-import com.projektsse.backend.controller.dto.RegisterRequest;
-import com.projektsse.backend.exceptions.GlobalExceptionHandler;
-import com.projektsse.backend.service.JwtService;
-import com.projektsse.backend.service.PasswortResetService;
-import com.projektsse.backend.service.TokenService;
-import com.projektsse.backend.service.UserService;
+import com.projektsse.backend.feature.auth.api.AuthController;
+import com.projektsse.backend.feature.auth.components.AuthCookieFactory;
+import com.projektsse.backend.feature.auth.api.dto.RegisterRequest;
+import com.projektsse.backend.shared.exceptions.GlobalExceptionHandler;
+import com.projektsse.backend.feature.auth.service.JwtService;
+import com.projektsse.backend.feature.auth.service.PasswordResetService;
+import com.projektsse.backend.feature.auth.service.TokenService;
+import com.projektsse.backend.feature.auth.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -34,10 +34,10 @@ class AuthControllerTest {
         UserService userService = Mockito.mock(UserService.class);
         JwtService jwtService = Mockito.mock(JwtService.class);
         TokenService tokenService = Mockito.mock(TokenService.class);
-        PasswortResetService passwortResetService = Mockito.mock(PasswortResetService.class);
+        PasswordResetService passwordResetService = Mockito.mock(PasswordResetService.class);
         AuthCookieFactory authCookieFactory = Mockito.mock(AuthCookieFactory.class);
         client = RestTestClient.bindToController(
-                        new AuthController(userService, jwtService, tokenService, passwortResetService, authCookieFactory),
+                        new AuthController(userService, jwtService, tokenService, passwordResetService, authCookieFactory),
                         new GlobalExceptionHandler()
                 )
                 .build();
