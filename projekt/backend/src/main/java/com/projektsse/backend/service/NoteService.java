@@ -90,16 +90,19 @@ public class NoteService {
         } else {
             throw new NoteNotFoundException(String.format("Note with ID %s not found", documentId));
         }
-        noteRepository.delete(note);
     }
 
 
     public NoteModel updateNote(UUID docId, @Valid NoteRequest noteRequest, UUID userId) {
-
         Note noteEntity = noteRepository.findById(docId)
                 .orElseThrow(() -> new NoteNotFoundException(String.format("Note with ID %s not found", docId)));
 
-        if (!noteEntity.getOwner().getId().equals(userId)) {
+        OpaInput input = new OpaInput(
+                new OpaUser(userId.toString()),
+                new OpaResource(docId.toString(), "note", noteEntity.getOwner().getId().toString()),
+                "update"
+        );
+        if (!opaService.check("notes/allow", input)) {
             // Note exists, but belongs to another user, so we throw the same exception to prevent user enumeration
             throw new NoteNotFoundException(String.format("Note with ID %s not found", docId));
         }

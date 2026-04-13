@@ -8,3 +8,8 @@ allow if {
     input.action == "delete"
 }
 
+allow if {
+    input.resource.type == "note"
+    input.user.id == input.resource.ownerId
+    input.action == "update"
+}

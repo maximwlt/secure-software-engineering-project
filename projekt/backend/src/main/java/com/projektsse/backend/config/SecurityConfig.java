@@ -10,7 +10,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.util.AntPathMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -43,7 +42,7 @@ public class SecurityConfig {
         });
 
         http
-            .cors(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable) // TODO: Set in production
             .csrf(csrf -> csrf
                     .ignoringRequestMatchers(
                             "/api/auth/login",
