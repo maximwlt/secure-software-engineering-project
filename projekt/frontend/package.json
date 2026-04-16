@@ -21,7 +21,7 @@
     "@zxcvbn-ts/core": "^3.0.4",
     "@zxcvbn-ts/language-common": "^3.0.4",
     "@zxcvbn-ts/language-de": "^3.0.2",
-    "dompurify": "^3.3.2",
+    "dompurify": "^3.4.0",
     "jwt-decode": "^4.0.0",
     "marked": "^17.0.4",
     "react": "^19.2.4",
